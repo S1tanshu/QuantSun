@@ -123,24 +123,6 @@ quantos-data/              ← Separate public data repo
 ├── competitions.json
 ├── internships.json
 └── jobs.json
-```
-
----
-
-## Roadmap
-
-### Phase 2 (Current)
-- [x] GitHub JSON data pipeline (remove hardcoded arrays)
-- [x] Cloudflare Pages deployment
-- [ ] PWA manifest (installable on mobile)
-- [ ] Umami analytics integration
-- [ ] Export progress to PDF
-
-### Phase 3
-- [ ] Multi-device sync (optional backend — Supabase or PocketBase)
-- [ ] Community leaderboard for competition scores
-- [ ] QD track content expansion (parallel programming, low-latency C++)
-- [ ] Discord community integration
 
 ---
 
