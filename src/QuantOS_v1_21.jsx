@@ -14,7 +14,7 @@ import { useState, useEffect, useRef, useCallback, useMemo } from "react"
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 // VERSION — bump this once per release
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-const APP_VERSION = "v1.21"
+const APP_VERSION = "v1.22"
 
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 // AI PROVIDER ADAPTER — swap provider without touching any feature code
@@ -1135,17 +1135,19 @@ const SUBJECT_COLOR_LOOKUP = {
 // FILE: src/hooks/useStorage.js  (when splitting into separate files)
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 const useStorage = (key, fallback) => {
-  const [val, setVal] = useState(fallback)
-  useEffect(() => {
-    window.storage?.get(key).then(r => {
-      if (r?.value) setVal(JSON.parse(r.value))
-    }).catch(() => {})
-  }, [key])
+  const [val, setVal] = useState(() => {
+    try {
+      const raw = localStorage.getItem(key)
+      return raw !== null ? JSON.parse(raw) : fallback
+    } catch { return fallback }
+  })
   const save = useCallback((v) => {
-    const next = typeof v === "function" ? v(val) : v
-    setVal(next)
-    window.storage?.set(key, JSON.stringify(next)).catch(() => {})
-  }, [key, val])
+    setVal(prev => {
+      const next = typeof v === "function" ? v(prev) : v
+      try { localStorage.setItem(key, JSON.stringify(next)) } catch {}
+      return next
+    })
+  }, [key])
   return [val, save]
 }
 
@@ -6011,21 +6013,25 @@ Based on this full picture, give ONE specific, honest, actionable piece of advic
 
 // ── Custom SVG nav icons ────────────────────────────────────────────────────
 const NavIcon = ({ id, color, size = 22 }) => {
-  const s = { width:size, height:size, display:"block" }
-  const p = { fill:"none", stroke:color, strokeWidth:1.5, strokeLinecap:"round", strokeLinejoin:"round" }
-  switch(id) {
+  const s = {
+    width: size, height: size, viewBox: "0 0 24 24",
+    fill: "none", stroke: color, strokeWidth: 1.5,
+    strokeLinecap: "round", strokeLinejoin: "round"
+  }
+  switch (id) {
     case "dashboard": return (
-      <svg style={s} viewBox="0 0 24 24" {...p}>
-        <polygon points="12,2 22,9 18,21 6,21 2,9"/>
+      <svg {...s}>
+        <polygon points="12,2 22,9 18,21 6,21 2,9" fill="none"/>
         <circle cx="12" cy="12" r="2.5" fill={color} stroke="none"/>
         <line x1="12" y1="2" x2="12" y2="9.5"/>
         <line x1="22" y1="9" x2="14.5" y2="11"/>
         <line x1="18" y1="21" x2="13.5" y2="13.5"/>
         <line x1="6" y1="21" x2="10.5" y2="13.5"/>
         <line x1="2" y1="9" x2="9.5" y2="11"/>
-      </svg>)
+      </svg>
+    )
     case "roadmap": return (
-      <svg style={s} viewBox="0 0 24 24" {...p}>
+      <svg {...s}>
         <line x1="12" y1="21" x2="12" y2="14"/>
         <line x1="12" y1="14" x2="6" y2="8"/>
         <line x1="12" y1="14" x2="18" y2="8"/>
@@ -6036,41 +6042,38 @@ const NavIcon = ({ id, color, size = 22 }) => {
         <circle cx="12" cy="21" r="1.5" fill={color} stroke="none"/>
         <circle cx="6" cy="8" r="1.5" fill={color} stroke="none"/>
         <circle cx="18" cy="8" r="1.5" fill={color} stroke="none"/>
-      </svg>)
+      </svg>
+    )
     case "learning": return (
-      <svg style={s} viewBox="0 0 24 24" {...p}>
+      <svg {...s}>
         <path d="M2 6 C2 6 7 5 12 7 C17 5 22 6 22 6 L22 19 C22 19 17 18 12 20 C7 18 2 19 2 19 Z"/>
         <line x1="12" y1="7" x2="12" y2="20"/>
-        <line x1="7" y1="12" x2="11" y2="12"/>
-        <line x1="7" y1="14.5" x2="11" y2="14.5"/>
-        <line x1="13" y1="12" x2="17" y2="12"/>
-        <line x1="13" y1="14.5" x2="17" y2="14.5"/>
-      </svg>)
+        <line x1="7" y1="12" x2="11" y2="12" strokeWidth="1"/>
+        <line x1="7" y1="14.5" x2="11" y2="14.5" strokeWidth="1"/>
+        <line x1="13" y1="12" x2="17" y2="12" strokeWidth="1"/>
+        <line x1="13" y1="14.5" x2="17" y2="14.5" strokeWidth="1"/>
+      </svg>
+    )
     case "competitions": return (
-      <svg style={s} viewBox="0 0 24 24" {...p}>
+      <svg {...s}>
         <path d="M8 3 L16 3 L16 13 C16 16.3 14.2 18 12 18 C9.8 18 8 16.3 8 13 Z"/>
         <path d="M5 5 L8 5 L8 11 C6.3 11 5 9.5 5 8 Z"/>
         <path d="M19 5 L16 5 L16 11 C17.7 11 19 9.5 19 8 Z"/>
         <line x1="9" y1="18" x2="9" y2="21"/>
         <line x1="15" y1="18" x2="15" y2="21"/>
         <line x1="7" y1="21" x2="17" y2="21"/>
-      </svg>)
-    case "career": return (
-      <svg style={s} viewBox="0 0 24 24" {...p}>
-        <rect x="2" y="8" width="20" height="13" rx="2"/>
-        <path d="M8 8 L8 5 C8 3.9 8.9 3 10 3 L14 3 C15.1 3 16 3.9 16 5 L16 8"/>
-        <line x1="2" y1="14" x2="22" y2="14"/>
-        <line x1="12" y1="14" x2="12" y2="17"/>
-      </svg>)
+      </svg>
+    )
     case "interview": return (
-      <svg style={s} viewBox="0 0 24 24" {...p}>
+      <svg {...s}>
         <path d="M3 5 C3 3.9 3.9 3 5 3 L19 3 C20.1 3 21 3.9 21 5 L21 15 C21 16.1 20.1 17 19 17 L8 17 L3 21 L3 5 Z"/>
         <circle cx="8" cy="10" r="1.2" fill={color} stroke="none"/>
         <circle cx="12" cy="10" r="1.2" fill={color} stroke="none"/>
         <circle cx="16" cy="10" r="1.2" fill={color} stroke="none"/>
-      </svg>)
+      </svg>
+    )
     case "networking": return (
-      <svg style={s} viewBox="0 0 24 24" {...p}>
+      <svg {...s}>
         <circle cx="12" cy="12" r="2.5"/>
         <circle cx="4" cy="6" r="2"/>
         <circle cx="20" cy="6" r="2"/>
@@ -6080,33 +6083,24 @@ const NavIcon = ({ id, color, size = 22 }) => {
         <line x1="14.4" y1="10.5" x2="18.2" y2="7.7"/>
         <line x1="9.6" y1="13.5" x2="5.8" y2="16.3"/>
         <line x1="14.4" y1="13.5" x2="18.2" y2="16.3"/>
-      </svg>)
+      </svg>
+    )
     case "resources": return (
-      <svg style={s} viewBox="0 0 24 24" {...p}>
+      <svg {...s}>
         <rect x="4" y="15" width="16" height="6" rx="1"/>
         <rect x="5" y="9" width="14" height="6" rx="1"/>
         <rect x="6" y="3" width="12" height="6" rx="1"/>
         <line x1="8" y1="3" x2="8" y2="9"/>
         <line x1="8" y1="9" x2="8" y2="15"/>
-      </svg>)
-    case "skilltree": return (
-      <svg style={s} viewBox="0 0 24 24" {...p}>
-        <circle cx="12" cy="20" r="2"/>
-        <line x1="12" y1="18" x2="12" y2="14"/>
-        <line x1="12" y1="14" x2="7" y2="10"/>
-        <line x1="12" y1="14" x2="17" y2="10"/>
-        <circle cx="7" cy="10" r="1.8"/>
-        <line x1="7" y1="8.2" x2="4" y2="5"/>
-        <line x1="7" y1="8.2" x2="10" y2="5"/>
-        <circle cx="4" cy="4" r="1.5" fill={color} stroke="none"/>
-        <circle cx="10" cy="4" r="1.5" fill={color} stroke="none"/>
-        <circle cx="17" cy="10" r="1.8"/>
-        <line x1="17" y1="8.2" x2="14" y2="5"/>
-        <line x1="17" y1="8.2" x2="20" y2="5"/>
-        <circle cx="14" cy="4" r="1.5" fill={color} stroke="none"/>
-        <circle cx="20" cy="4" r="1.5" fill={color} stroke="none"/>
-      </svg>)
-    default: return <span style={{ fontSize:17, color }}>{id}</span>
+      </svg>
+    )
+    default: return (
+      <svg {...s}>
+        <ellipse cx="12" cy="6" rx="9" ry="3"/>
+        <path d="M3 6 C3 6 3 12 3 12 C3 13.7 7 15 12 15 C17 15 21 13.7 21 12 L21 6"/>
+        <path d="M3 12 C3 12 3 18 3 18 C3 19.7 7 21 12 21 C17 21 21 19.7 21 18 L21 12"/>
+      </svg>
+    )
   }
 }
 
@@ -6114,10 +6108,9 @@ const NAV_ITEMS = [
   { id:"dashboard",    label:"Dashboard" },
   { id:"roadmap",      label:"Career Roadmap" },
   { id:"learning",     label:"Learning Path" },
-  { id:"competitions", label:"Competitions" },
-  { id:"career",       label:"Career Prep",   mobileOnly:true  },
-  { id:"interview",    label:"Practice",      desktopOnly:true },
-  { id:"networking",   label:"Networking",    desktopOnly:true },
+  { id:"competitions", label:"Competitions & Jobs" },
+  { id:"interview",    label:"Practice" },
+  { id:"networking",   label:"Networking" },
   { id:"resources",    label:"Resource Hub" },
 ]
 
