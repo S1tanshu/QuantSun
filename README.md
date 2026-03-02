@@ -1,4 +1,3 @@
-
 # QuantOS — Quant Career Operating System
 
 > A free, open-source study and career platform for students pursuing quantitative finance.  
