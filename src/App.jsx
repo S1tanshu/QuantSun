@@ -14,7 +14,7 @@ import { useState, useEffect, useRef, useCallback, useMemo } from "react"
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 // VERSION — bump this once per release
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-const APP_VERSION = "v1.22"
+const APP_VERSION = "v1.23"
 
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 // AI PROVIDER ADAPTER — swap provider without touching any feature code
@@ -129,19 +129,15 @@ const callAI = async ({ system = "", prompt, maxTokens = 800, aiSettings = {} })
 // NOTE: The repo must be PUBLIC. No API key needed. GitHub CDN is free & fast.
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-// ── STEP 1: Paste your raw GitHub URLs here when ready ───────────────────────
-/*
+// ── STEP 1: Raw GitHub URLs ───────────────────────────────────────────────────
 const GITHUB_DATA_URLS = {
-  courses:      "https://raw.githubusercontent.com/YOUR_USERNAME/quantos-data/main/courses.json",
-  competitions: "https://raw.githubusercontent.com/YOUR_USERNAME/quantos-data/main/competitions.json",
-  internships:  "https://raw.githubusercontent.com/YOUR_USERNAME/quantos-data/main/internships.json",
-  jobs:         "https://raw.githubusercontent.com/YOUR_USERNAME/quantos-data/main/jobs.json",
+  courses:      "https://raw.githubusercontent.com/sitanshu-thakurmail/quantos-data/main/courses.json",
+  competitions: "https://raw.githubusercontent.com/sitanshu-thakurmail/quantos-data/main/competitions.json",
+  internships:  "https://raw.githubusercontent.com/sitanshu-thakurmail/quantos-data/main/internships.json",
+  jobs:         "https://raw.githubusercontent.com/sitanshu-thakurmail/quantos-data/main/jobs.json",
 }
-*/
 
-// ── STEP 2: This hook fetches all 4 files on app load ────────────────────────
-// Uncomment this entire block when you have the URLs above filled in:
-/*
+// ── STEP 2: Hook fetches all 4 files on app load ─────────────────────────────
 const useGithubData = () => {
   const [githubData, setGithubData] = useState({})
   const [loading, setLoading]       = useState(true)
@@ -171,43 +167,8 @@ const useGithubData = () => {
 
   return { githubData, loading, error }
 }
-*/
 
-// ── STEP 3: In QuantOS() shell, add this line after your other hooks: ─────────
-/*
-  const { githubData, loading: dataLoading } = useGithubData()
-*/
-
-// ── STEP 4: Pass githubData down to components that need it: ─────────────────
-// In renderModule(), add githubData={githubData} to:
-//   <LearningPath    ... githubData={githubData} />
-//   <CompetitionTracker ... githubData={githubData} />
-// (CareerRoadmap uses COURSES via courseProgress so it updates automatically)
-
-// ── STEP 5: In each component, replace hardcoded array with live data: ────────
-// LearningPath / SkillTreeView:
-//   Replace:  COURSES
-//   With:     (githubData.courses || COURSES)
-//
-// CompetitionTracker:
-//   Replace:  COMPETITIONS
-//   With:     (githubData.competitions || COMPETITIONS)
-//   Replace:  INTERNSHIPS
-//   With:     (githubData.internships || INTERNSHIPS)
-//   Replace:  JOBS
-//   With:     (githubData.jobs || JOBS)
-
-// ── STEP 6 (optional): Show a loading state while fetching ───────────────────
-// In QuantOS() shell, before the main return, add:
-/*
-  if (dataLoading) return (
-    <div style={{ minHeight:"100vh", display:"flex", alignItems:"center", justifyContent:"center",
-      background: T?.bg || "#050510", fontFamily:"'JetBrains Mono',monospace",
-      color:"#C17F3A", fontSize:13 }}>
-      Loading data...
-    </div>
-  )
-*/
+// ── STEP 3-6 now implemented below in QuantOS() shell ───────────────────────
 
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 // HARDCODED DATA (delete these arrays once GitHub fetch is working)
@@ -3068,7 +3029,8 @@ const TREE_EDGES = {
 // COMPONENT: SkillTreeView — tabbed, one subject at a time
 // Arc progress ring · name labels below nodes · side panel · P-A larger nodes
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-const SkillTreeView = ({ courseProgress, onCourseClick, setCourseProgress, T, isDark, aiSettings }) => {
+const SkillTreeView = ({ courseProgress, onCourseClick, setCourseProgress, T, isDark, aiSettings, githubData = {} }) => {
+  const LIVE_COURSES = githubData.courses || COURSES
   const SUBJECTS     = ["Mathematics","Comp Sci","Programming","Machine Learning","Finance & Economics"]
   const [activeSubj, setActiveSubj]   = useState("Mathematics")
   const [panelCourse,setPanelCourse]  = useState(null)
@@ -3123,7 +3085,7 @@ const SkillTreeView = ({ courseProgress, onCourseClick, setCourseProgress, T, is
   const layout = useMemo(() => {
     const subj    = activeSubj
     const col     = SUBJECT_COLORS[subj]
-    const allC    = COURSES.filter(c => c.subject===subj)
+    const allC    = LIVE_COURSES.filter(c => c.subject===subj)
     const ids     = new Set(allC.map(c=>c.id))
     const edges   = (TREE_EDGES[subj]||[]).filter(([a,b])=>ids.has(a)&&ids.has(b))
     const edgeSet = new Set(edges.map(([a,b])=>`${a}→${b}`))
@@ -3472,9 +3434,9 @@ const SkillTreeView = ({ courseProgress, onCourseClick, setCourseProgress, T, is
         const locked = state === "locked"
         const pct    = lecturePct(c)
         const col2  = SUBJECT_COLORS[c.subject]
-        const deps  = (PREREQS[c.id]||[]).map(id=>COURSES.find(x=>x.id===id)).filter(Boolean)
+        const deps  = (PREREQS[c.id]||[]).map(id=>LIVE_COURSES.find(x=>x.id===id)).filter(Boolean)
         const unlocks=(TREE_EDGES[c.subject]||[]).filter(([a])=>a===c.id)
-          .map(([,b])=>COURSES.find(x=>x.id===b)).filter(Boolean)
+          .map(([,b])=>LIVE_COURSES.find(x=>x.id===b)).filter(Boolean)
         const hasSched=!!SCHEDULES[c.id]
         const statusIcon=state==="done"?"✓ Done":state==="active"?"◑ In Progress":state==="avail"?"○ Ready":"🔒 Locked"
         const statusC=state==="done"?"#10b981":state==="active"?"#C17F3A":state==="avail"?"#94a3b8":"#334155"
@@ -3668,7 +3630,8 @@ const SkillTreeView = ({ courseProgress, onCourseClick, setCourseProgress, T, is
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 // FILE: src/components/modules/LearningPath.jsx  (when splitting into separate files)
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-const LearningPath = ({ courseProgress, setCourseProgress, T, user, aiSettings }) => {
+const LearningPath = ({ courseProgress, setCourseProgress, T, user, aiSettings, githubData = {} }) => {
+  const LIVE_COURSES = githubData.courses || COURSES
   const [activeSubj, setActiveSubj] = useState("All")
   const [filterStatus, setFilterStatus] = useState("All")
   const [filterPriority, setFilterPriority] = useState("All")
@@ -3687,7 +3650,7 @@ const LearningPath = ({ courseProgress, setCourseProgress, T, user, aiSettings }
 
   const subjects = ["All", ...Object.keys(SUBJECT_COLORS)]
 
-  const filtered = COURSES.filter(c => {
+  const filtered = LIVE_COURSES.filter(c => {
     if (activeSubj !== "All" && c.subject !== activeSubj) return false
     const status = courseProgress[c.id]
     if (filterStatus === "Done" && status !== 1) return false
@@ -3748,7 +3711,7 @@ const LearningPath = ({ courseProgress, setCourseProgress, T, user, aiSettings }
         <div style={{ display:"flex", justifyContent:"space-between", alignItems:"flex-start", gap:12 }}>
           <div>
             <h1 style={{ fontSize:26, fontWeight:700, color:txt, fontFamily:"'Syne', sans-serif", margin:0 }}>Learning Path</h1>
-            <p style={{ color:sub, margin:"4px 0 0", fontSize:13 }}>{COURSES.length} courses · <span style={{ color:"#818cf8" }}>📋 courses with full schedules</span> open lecture-by-lecture view</p>
+            <p style={{ color:sub, margin:"4px 0 0", fontSize:13 }}>{LIVE_COURSES.length} courses · <span style={{ color:"#818cf8" }}>📋 courses with full schedules</span> open lecture-by-lecture view</p>
           </div>
           {/* View toggle */}
           <div style={{ display:"flex", gap:6, flexShrink:0 }}>
@@ -3779,7 +3742,7 @@ const LearningPath = ({ courseProgress, setCourseProgress, T, user, aiSettings }
             courseProgress={courseProgress}
             onCourseClick={(c) => setSelectedCourse(c)}
             setCourseProgress={setCourseProgress}
-            T={T} isDark={isDark} aiSettings={aiSettings}
+            T={T} isDark={isDark} aiSettings={aiSettings} githubData={githubData}
           />
         </div>
       )}
@@ -3837,7 +3800,7 @@ const LearningPath = ({ courseProgress, setCourseProgress, T, user, aiSettings }
                         {prereqsDone(c.id, courseProgress)
                           ? <span style={{ fontSize:9, color:"#10b981", background:"rgba(16,185,129,0.1)", border:"1px solid rgba(16,185,129,0.2)", padding:"1px 6px", borderRadius:3 }}>✓ prereqs done</span>
                           : (PREREQS[c.id]||[]).slice(0,2).map(depId => {
-                              const dep = COURSES.find(x => x.id === depId)
+                              const dep = LIVE_COURSES.find(x => x.id === depId)
                               return dep ? <span key={depId} style={{ fontSize:9, color:"#C17F3A", background:"rgba(193,127,58,0.08)", border:"1px solid rgba(193,127,58,0.2)", padding:"1px 6px", borderRadius:3 }}>🔒 {dep.code}</span> : null
                             })
                         }
@@ -3875,7 +3838,8 @@ const LearningPath = ({ courseProgress, setCourseProgress, T, user, aiSettings }
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 // FILE: src/components/modules/CompetitionTracker.jsx  (when splitting)
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-const CompetitionTracker = ({ bookmarks, setBookmarks, T, aiSettings }) => {
+const CompetitionTracker = ({ bookmarks, setBookmarks, T, aiSettings, githubData = {} }) => {
+  const LIVE_COMPS = githubData.competitions || COMPETITIONS
   const [search, setSearch] = useState("")
   const [filterStatus, setFilterStatus] = useState("All")
   const [filterCat, setFilterCat] = useState("All")
@@ -3909,7 +3873,7 @@ const CompetitionTracker = ({ bookmarks, setBookmarks, T, aiSettings }) => {
       return d.toISOString().replace(/-|:|\.\d{3}/g,"").slice(0,15)+"Z"
     }
     const lines = ["BEGIN:VCALENDAR","VERSION:2.0","PRODID:-//QuantOS//Competitions//EN","CALSCALE:GREGORIAN"]
-    COMPETITIONS.filter(c=>c.status!=="closed").forEach(c=>{
+    LIVE_COMPS.filter(c=>c.status!=="closed").forEach(c=>{
       const dt = toICSDate(c.deadline); if(!dt) return
       lines.push("BEGIN:VEVENT",
         `DTSTART:${dt}`, `DTEND:${dt}`,
@@ -3930,7 +3894,7 @@ const CompetitionTracker = ({ bookmarks, setBookmarks, T, aiSettings }) => {
     setBookmarks(prev => prev.includes(id) ? prev.filter(b => b !== id) : [...prev, id])
   }
 
-  let filtered = COMPETITIONS.filter(c => {
+  let filtered = LIVE_COMPS.filter(c => {
     if (filterStatus !== "All" && filterStatus === "open"       && c.status !== "open")   return false
     if (filterStatus !== "All" && filterStatus === "tba"        && c.status !== "tba")    return false
     if (filterStatus !== "All" && filterStatus === "closed"     && c.status !== "closed") return false
@@ -4067,7 +4031,7 @@ Focus on real, verifiable competitions. If deadline is unknown use TBA. Today is
       <div style={{ marginBottom:20, display:"flex", alignItems:"flex-start", justifyContent:"space-between", gap:12, flexWrap:"wrap" }}>
         <div>
           <h1 style={{ fontSize:26, fontWeight:700, color:txt, fontFamily:"'Syne', sans-serif", margin:0 }}>Competitions</h1>
-          <p style={{ color:sub, margin:"4px 0 0", fontSize:13 }}>{COMPETITIONS.length} competitions · Track your applications</p>
+          <p style={{ color:sub, margin:"4px 0 0", fontSize:13 }}>{LIVE_COMPS.length} competitions · Track your applications</p>
         </div>
         <button onClick={exportICS}
           title="Download all open competition deadlines as a .ics calendar file"
@@ -4150,7 +4114,8 @@ Focus on real, verifiable competitions. If deadline is unknown use TBA. Today is
 // ─────────────────────────────────────────────
 //  InternshipsTab + JobsTab — used inside CareerPrep
 // ─────────────────────────────────────────────
-const InternshipsTab = ({ T }) => {
+const InternshipsTab = ({ T, githubData = {} }) => {
+  const LIVE_INTERNSHIPS = githubData.internships || INTERNSHIPS
   const bg    = T?.cardBg    || "rgba(255,255,255,0.04)"
   const bdr   = T?.cardBorder|| "rgba(180,90,40,0.18)"
   const txt   = T?.text      || "#E8D5C0"
@@ -4167,8 +4132,8 @@ const InternshipsTab = ({ T }) => {
   const APP_STATES = ["None", "Applied", "Interviewing", "Offer", "Rejected"]
   const APP_COLORS = { None:"#475569", Applied:"#6366f1", Interviewing:"#C17F3A", Offer:"#10b981", Rejected:"#ef4444" }
 
-  const internTypes = ["All", ...Array.from(new Set(INTERNSHIPS.map(i => i.type))).sort()]
-  const filtered = INTERNSHIPS.filter(i => {
+  const internTypes = ["All", ...Array.from(new Set(LIVE_INTERNSHIPS.map(i => i.type))).sort()]
+  const filtered = LIVE_INTERNSHIPS.filter(i => {
     if (internType   !== "All" && i.type   !== internType)   return false
     if (internStatus !== "All" && i.status !== internStatus) return false
     if (internSearch && !i.company.toLowerCase().includes(internSearch.toLowerCase()) &&
@@ -4244,7 +4209,8 @@ const InternshipsTab = ({ T }) => {
   )
 }
 
-const JobsTab = ({ T }) => {
+const JobsTab = ({ T, githubData = {} }) => {
+  const LIVE_JOBS = githubData.jobs || JOBS
   const bg    = T?.cardBg    || "rgba(255,255,255,0.04)"
   const bdr   = T?.cardBorder|| "rgba(180,90,40,0.18)"
   const txt   = T?.text      || "#E8D5C0"
@@ -4262,7 +4228,7 @@ const JobsTab = ({ T }) => {
   const JOB_STATES = ["—","saved","applied","interviewing","offer","rejected"]
   const JOB_STATE_COLORS = { saved:"#6366f1", applied:"#0ea5e9", interviewing:"#C17F3A", offer:"#10b981", rejected:"#475569" }
 
-  const filtered = JOBS.filter(j=>{
+  const filtered = LIVE_JOBS.filter(j=>{
     if (jobType   !== "All" && j.type   !== jobType)   return false
     if (jobStatus !== "All" && j.status !== jobStatus) return false
     if (jobSearch && !j.company.toLowerCase().includes(jobSearch.toLowerCase()) &&
@@ -6440,7 +6406,7 @@ const AISettingsModal = ({ onClose, aiSettings, setAiSettings, T, isDark }) => {
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 // COMPONENT: CareerPrep — mobile-only tab merging Practice + Networking
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-const CareerPrep = ({ T, isMobile, aiSettings }) => {
+const CareerPrep = ({ T, isMobile, aiSettings, githubData = {} }) => {
   const [tab, setTab] = useState("practice")
   const sub = T?.textSub  || "#8B6250"
   const bdr = T?.cardBorder|| "rgba(180,90,40,0.18)"
@@ -6467,14 +6433,15 @@ const CareerPrep = ({ T, isMobile, aiSettings }) => {
       </div>
       {tab === "practice"    && <PracticeHub      T={T} isMobile={isMobile} aiSettings={aiSettings} />}
       {tab === "networking"  && <NetworkingTracker T={T} aiSettings={aiSettings} />}
-      {tab === "internships" && <InternshipsTab    T={T} />}
-      {tab === "jobs"        && <JobsTab           T={T} />}
+      {tab === "internships" && <InternshipsTab    T={T} githubData={githubData} />}
+      {tab === "jobs"        && <JobsTab           T={T} githubData={githubData} />}
     </div>
   )
 }
 
 export default function QuantOS() {
   const [active, setActive]                     = useState("dashboard")
+  const { githubData, loading: dataLoading } = useGithubData()
   const [courseProgress, setCourseProgress]     = useStorage("course_progress_v2", {})
   const [bookmarks, setBookmarks]               = useStorage("comp_bookmarks_v2", [])
   const [user, setUser]                         = useStorage("auth_user_v2", null)
@@ -6583,6 +6550,19 @@ export default function QuantOS() {
   }
 
   if (!user) return <WelcomeScreen onLogin={u => { setUser(u); if(!onboardingDone) setShowOnboarding(true) }} isDark={isDark} />
+  if (dataLoading) return (
+    <div style={{ minHeight:"100vh", display:"flex", flexDirection:"column", alignItems:"center", justifyContent:"center",
+      background:"#110703", fontFamily:"'JetBrains Mono',monospace", gap:16 }}>
+      <div style={{ fontSize:28, fontWeight:800, fontFamily:"'Syne',sans-serif" }}>
+        <span style={{ color:"#C17F3A" }}>Quant</span><span style={{ color:"#E8D5C0" }}>OS</span>
+      </div>
+      <div style={{ fontSize:12, color:"#9A7A62", letterSpacing:"0.1em" }}>LOADING DATA...</div>
+      <div style={{ width:120, height:2, background:"rgba(193,127,58,0.15)", borderRadius:99, overflow:"hidden" }}>
+        <div style={{ height:"100%", background:"#C17F3A", borderRadius:99, animation:"qos-load 1.2s ease-in-out infinite" }}/>
+      </div>
+      <style>{`@keyframes qos-load { 0%{width:0%} 50%{width:100%} 100%{width:0%;margin-left:100%} }`}</style>
+    </div>
+  )
 
   // ── Sidebar alert badges (plain computation — no hooks) ───────────────────
   const today = new Date().toISOString().slice(0,10)
@@ -6725,12 +6705,12 @@ export default function QuantOS() {
 
     switch (active) {
       case "dashboard":    return <Dashboard courseProgress={courseProgress} bookmarks={bookmarks} T={T} onStartTour={()=>setShowOnboarding(true)} navigate={setActive} isMobile={isMobile} />
-      case "learning":     return <LearningPath courseProgress={courseProgress} setCourseProgress={setCourseProgress} T={T} user={user} aiSettings={aiSettings} />
-      case "competitions": return <CompetitionTracker bookmarks={bookmarks} setBookmarks={setBookmarks} T={T} aiSettings={aiSettings} />
+      case "learning":     return <LearningPath courseProgress={courseProgress} setCourseProgress={setCourseProgress} T={T} user={user} aiSettings={aiSettings} githubData={githubData} />
+      case "competitions": return <CompetitionTracker bookmarks={bookmarks} setBookmarks={setBookmarks} T={T} aiSettings={aiSettings} githubData={githubData} />
       case "interview":    return <PracticeHub T={T} isMobile={isMobile} aiSettings={aiSettings} />
       case "resources":    return <ResourceHub T={T} />
       case "networking":   return <NetworkingTracker T={T} aiSettings={aiSettings} />
-      case "career":       return <CareerPrep T={T} isMobile={isMobile} aiSettings={aiSettings} />
+      case "career":       return <CareerPrep T={T} isMobile={isMobile} aiSettings={aiSettings} githubData={githubData} />
       case "roadmap":      return <CareerRoadmap T={T} courseProgress={courseProgress} navigate={setActive} isMobile={isMobile} isTablet={isTablet} aiSettings={aiSettings} userContext={userContext} />
       default: return null
     }
