@@ -14,7 +14,7 @@ import { useState, useEffect, useRef, useCallback, useMemo } from "react"
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 // VERSION — bump this once per release
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-const APP_VERSION = "v1.26"
+const APP_VERSION = "v1.23"
 
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 // AI PROVIDER ADAPTER — swap provider without touching any feature code
@@ -146,24 +146,15 @@ const useGithubData = () => {
   useEffect(() => {
     const fetchAll = async () => {
       try {
-          const bust = `?t=${Date.now()}`
-        const settled = await Promise.allSettled(
+        const results = await Promise.all(
           Object.entries(GITHUB_DATA_URLS).map(async ([key, url]) => {
-            const res = await fetch(url + bust, { cache: "no-cache" })
-            if (!res.ok) throw new Error(`${key}: ${res.status}`)
+            const res  = await fetch(url)
+            if (!res.ok) throw new Error(`Failed to fetch ${key}: ${res.status}`)
             const data = await res.json()
             return [key, data]
           })
         )
-        const loaded = {}
-        const failed = []
-        settled.forEach((r, i) => {
-          const key = Object.keys(GITHUB_DATA_URLS)[i]
-          if (r.status === "fulfilled") loaded[key] = r.value[1]
-          else failed.push(`${key}(${r.reason?.message})`)
-        })
-        if (failed.length) console.warn("QuantOS data fetch failed:", failed.join(", "))
-        setGithubData(loaded)
+        setGithubData(Object.fromEntries(results))
       } catch (e) {
         console.warn("GitHub data fetch failed — falling back to hardcoded data.", e.message)
         setError(e.message)
@@ -174,8 +165,7 @@ const useGithubData = () => {
     fetchAll()
   }, [])
 
-  const loadedKeys = Object.keys(githubData)
-  return { githubData, loading, error, isLive: loadedKeys.length > 0, loadedKeys }
+  return { githubData, loading, error }
 }
 
 // ── STEP 3-6 now implemented below in QuantOS() shell ───────────────────────
@@ -185,7 +175,7 @@ const useGithubData = () => {
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 const COURSES = [
   // ═══ COMPUTER SCIENCE ═══
-  { id:"c0",  subject:"Comp Sci",          institution:"MIT",            code:"MIT 6.042J",    name:"Mathematics for Computer Science",                               source:"MIT OCW",  link:"https://www.youtube.com/results?search_query=MIT+6.042J+Mathematics+for+Computer+Science,+Fall+2010",                lectures:"25/25", priority:"A", status:0 },
+  { id:"c0",  subject:"Comp Sci",          institution:"MIT",            code:"MIT 6.042J",    name:"Mathematics for Computer Science",                               source:"MIT OCW",  link:"https://www.youtube.com/results?search_query=MIT+6.042J+Mathematics+for+Computer+Science,+Fall+2010",                lectures:"25/25", priority:"A", status:1 },
   { id:"c1",  subject:"Comp Sci",          institution:"MIT",            code:"MIT 6.041",     name:"Probability Systems Analysis and Applied Probability",           source:"MIT OCW",  link:"https://www.youtube.com/results?search_query=MIT+6.041SC+Probabilistic+Systems+Analysis+and+Applied+Probability,+Fall+2013", lectures:"0/25",  priority:"A", status:0 },
   { id:"c2",  subject:"Comp Sci",          institution:"MIT",            code:"MIT 6.0002",    name:"Introduction to Computational Thinking and Data Science",         source:"MIT OCW",  link:"https://ocw.mit.edu/search/?q=Introduction+to+computational+thinking+and+data+sci",                                       lectures:"0/?",   priority:"A", status:0 },
   { id:"c3",  subject:"Comp Sci",          institution:"IIT",            code:"MCS202",        name:"Computer Organisation",                                          source:"NPTEL",    link:"https://www.youtube.com/results?search_query=Computer+Sc+-+Computer+Organization",                                           lectures:"4/33",  priority:"A", status:0 },
@@ -257,7 +247,7 @@ const COURSES = [
   { id:"m1",  subject:"Mathematics",       institution:"MIT",            code:"MIT 18.02",     name:"Multivariable Calculus",                                         source:"MIT OCW",  link:"https://www.youtube.com/results?search_query=MIT+18.02+Multivariable+Calculus+Fall+2007",                               lectures:"0/35",  priority:"A", status:0 },
   { id:"m2",  subject:"Mathematics",       institution:"MIT",            code:"MIT 18.03",     name:"Differential Equations",                                         source:"MIT OCW",  link:"https://www.youtube.com/results?search_query=MIT+18.03+Differential+Equations+Spring+2006",                             lectures:"0/33",  priority:"A", status:0 },
   { id:"m3",  subject:"Mathematics",       institution:"MIT",            code:"MIT 18.05",     name:"Introduction to Probability and Statistics",                     source:"MIT OCW",  link:"https://ocw.mit.edu/search/?q=MIT+18.05+probability+statistics",                                                          lectures:"0/?",   priority:"A", status:0 },
-  { id:"m4",  subject:"Mathematics",       institution:"MIT",            code:"MIT 18.06",     name:"Linear Algebra",                                                 source:"MIT OCW",  link:"https://www.youtube.com/results?search_query=MIT+18.06SC+Linear+Algebra+Fall+2011",                                     lectures:"70/70", priority:"A", status:0 },
+  { id:"m4",  subject:"Mathematics",       institution:"MIT",            code:"MIT 18.06",     name:"Linear Algebra",                                                 source:"MIT OCW",  link:"https://www.youtube.com/results?search_query=MIT+18.06SC+Linear+Algebra+Fall+2011",                                     lectures:"70/70", priority:"A", status:1 },
   { id:"m5",  subject:"Mathematics",       institution:"MIT",            code:"MIT",           name:"Discrete Mathematics",                                           source:"Youtube",  link:"https://www.youtube.com/results?search_query=Discrete+Mathematics+Full+Course",                                          lectures:"0/?",   priority:"A", status:0 },
   { id:"m6",  subject:"Mathematics",       institution:"MIT",            code:"MIT 6.262",     name:"Discrete Stochastic Processes",                                  source:"MIT OCW",  link:"https://www.youtube.com/results?search_query=MIT+6.262+Discrete+Stochastic+Processes+Spring+2011",                     lectures:"0/25",  priority:"A", status:0 },
   { id:"m7",  subject:"Mathematics",       institution:"NPTEL",          code:"NPTEL",         name:"Theory of Probability and Applications",                         source:"Youtube",  link:"https://www.youtube.com/results?search_query=Mathematics+Probability+Theory+and+Applications+NPTEL",                    lectures:"0/40",  priority:"A", status:0 },
@@ -286,8 +276,8 @@ const COURSES = [
 
   // ═══ FINANCE & ECONOMICS ═══
   { id:"f0",  subject:"Finance & Economics",institution:"Yale",           code:"Econ 251",      name:"Financial Theory",                                               source:"Youtube",  link:"https://www.youtube.com/playlist?list=PLEDC55106E0BA18FC",                                                               lectures:"0/26",  priority:"A", status:0 },
-  { id:"f1",  subject:"Finance & Economics",institution:"Yale",           code:"Econ 252",      name:"Financial Markets (Robert Shiller)",                             source:"Youtube",  link:"https://www.youtube.com/results?search_query=Financial+Markets+2011+with+Robert+Shiller",                             lectures:"23/23", priority:"A", status:0 },
-  { id:"f2",  subject:"Finance & Economics",institution:"Yale",           code:"Econ 159",      name:"Game Theory",                                                    source:"Youtube",  link:"https://www.youtube.com/results?search_query=Game+Theory+Yale+ECON+159",                                               lectures:"24/24", priority:"A", status:0 },
+  { id:"f1",  subject:"Finance & Economics",institution:"Yale",           code:"Econ 252",      name:"Financial Markets (Robert Shiller)",                             source:"Youtube",  link:"https://www.youtube.com/results?search_query=Financial+Markets+2011+with+Robert+Shiller",                             lectures:"23/23", priority:"A", status:1 },
+  { id:"f2",  subject:"Finance & Economics",institution:"Yale",           code:"Econ 159",      name:"Game Theory",                                                    source:"Youtube",  link:"https://www.youtube.com/results?search_query=Game+Theory+Yale+ECON+159",                                               lectures:"24/24", priority:"A", status:1 },
   { id:"f3",  subject:"Finance & Economics",institution:"MIT",            code:"MIT 14.01",     name:"Principles of Microeconomics",                                   source:"MIT OCW",  link:"https://www.youtube.com/results?search_query=MIT+14.01+Principles+of+Microeconomics+Fall+2023",                     lectures:"0/26",  priority:"B", status:0 },
   { id:"f4",  subject:"Finance & Economics",institution:"MIT",            code:"MIT 14.02",     name:"Principles of Macroeconomics",                                   source:"MIT OCW",  link:"https://www.youtube.com/results?search_query=MIT+14.02+Principles+of+Macroeconomics+Spring+2023",                   lectures:"0/25",  priority:"B", status:0 },
   { id:"f5",  subject:"Finance & Economics",institution:"MIT",            code:"MIT 14.771",    name:"Development Economics",                                          source:"MIT OCW",  link:"https://www.youtube.com/results?search_query=MIT+14.771+Development+Economics+Fall+2021",                            lectures:"0/25",  priority:"C", status:0 },
@@ -2519,7 +2509,7 @@ const YouTubePlayer = ({ playlistId, startIndex, onLectureDone, T }) => {
   )
 }
 
-const CourseDetail = ({ course, onBack, lectureProgress, setLectureProgress, setCourseProgress = ()=>{}, T, user, markStudyToday = ()=>{} }) => {
+const CourseDetail = ({ course, onBack, lectureProgress, setLectureProgress, T, user }) => {
   const sched = SCHEDULES[course.id]
   const [tab, setTab] = useState("schedule")
   const subjColor = SUBJECT_COLOR_LOOKUP[course.subject] || "#64748b"
@@ -2621,25 +2611,7 @@ Grade this submission strictly and fairly. Return ONLY a JSON object (no markdow
     </div>
   )
 
- const toggleL = (n) => {
-    markStudyToday()
-    setLectureProgress(prev => {
-      const k    = `${course.id}_l${n}`
-      const next = { ...prev, [k]: prev[k] === 1 ? 0 : 1 }
-
-      // ── Auto-sync course state based on lecture completions ──────────
-      if (sched) {
-        const total     = sched.lectures.length
-        const doneCount = sched.lectures.filter(l => next[`${course.id}_l${l.n}`] === 1).length
-        setCourseProgress(cp => ({
-          ...cp,
-          [course.id]: doneCount === 0 ? 0 : doneCount === total ? 1 : 0.5,
-        }))
-      }
-
-      return next
-    })
-  }
+  const toggleL = (n) => setLectureProgress(prev => { const k=`${course.id}_l${n}`; return {...prev,[k]:prev[k]===1?0:1} })
   const isDone = (n) => lectureProgress[`${course.id}_l${n}`] === 1
   const doneCount = sched.lectures.filter(l => isDone(l.n)).length
   const pct = Math.round(doneCount / sched.lectures.length * 100)
@@ -2651,7 +2623,7 @@ Grade this submission strictly and fairly. Return ONLY a JSON object (no markdow
   const startIndex = Math.max(0, sched.lectures.findIndex(l => !isDone(l.n)))
   // Auto-mark lecture done when video ends — called by YouTubePlayer
   const onLectureDone = (lectureNumber) => {
-    markStudyToday(); setLectureProgress(prev => ({ ...prev, [`${course.id}_l${lectureNumber}`]: 1 }))
+    setLectureProgress(prev => ({ ...prev, [`${course.id}_l${lectureNumber}`]: 1 }))
   }
   return (
     <div style={{ paddingBottom:60 }}>
@@ -3658,7 +3630,7 @@ const SkillTreeView = ({ courseProgress, onCourseClick, setCourseProgress, T, is
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 // FILE: src/components/modules/LearningPath.jsx  (when splitting into separate files)
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-const LearningPath = ({ courseProgress, setCourseProgress, T, user, aiSettings, githubData = {}, markStudyToday = ()=>{} }) => {
+const LearningPath = ({ courseProgress, setCourseProgress, T, user, aiSettings, githubData = {} }) => {
   const LIVE_COURSES = githubData.courses || COURSES
   const [activeSubj, setActiveSubj] = useState("All")
   const [filterStatus, setFilterStatus] = useState("All")
@@ -3693,6 +3665,10 @@ const LearningPath = ({ courseProgress, setCourseProgress, T, user, aiSettings, 
 
   // Write today's date to study log whenever user interacts with a course
   const [studyLog, setStudyLog] = useStorage("study_log_v1", {})
+  const markStudyToday = () => {
+    const today = new Date().toISOString().slice(0, 10)
+    setStudyLog(prev => prev[today] ? prev : { ...prev, [today]: 1 })
+  }
 
   const toggle = (id) => {
     markStudyToday()
@@ -3720,14 +3696,12 @@ const LearningPath = ({ courseProgress, setCourseProgress, T, user, aiSettings, 
   // Drill into CourseDetail
   if (selectedCourse) return (
     <CourseDetail
-     course={selectedCourse}
+      course={selectedCourse}
       onBack={() => setSelectedCourse(null)}
       lectureProgress={lectureProgress}
       setLectureProgress={setLectureProgress}
-      setCourseProgress={setCourseProgress}
       T={T}
       user={user}
-      markStudyToday={markStudyToday}
     />
   )
 
@@ -4333,7 +4307,7 @@ const JobsTab = ({ T, githubData = {} }) => {
 // Unified practice module: Interview Prep + Flashcards in one place
 // Two top-level tabs keep all features intact while halving sidebar clutter
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-const PracticeHub = ({ T, isMobile, aiSettings, markStudyToday = ()=>{} }) => {
+const PracticeHub = ({ T, isMobile, aiSettings }) => {
   const bg   = T?.cardBg    || "rgba(255,255,255,0.04)"
   const bdr  = T?.cardBorder|| "rgba(255,255,255,0.08)"
   const txt  = T?.text      || "#f1f5f9"
@@ -4376,7 +4350,7 @@ const PracticeHub = ({ T, isMobile, aiSettings, markStudyToday = ()=>{} }) => {
   const cardKey = `${deck.id}_${cardIdx}`
 
   const rate = (rating) => {
-    markStudyToday(); setScores(prev => ({ ...prev, [cardKey]: rating }))
+    setScores(prev => ({ ...prev, [cardKey]: rating }))
     setCardIdx(i => (i + 1) % Math.max(total, 1))
     setFlipped(false)
   }
@@ -4417,7 +4391,7 @@ const PracticeHub = ({ T, isMobile, aiSettings, markStudyToday = ()=>{} }) => {
       const match = text.match(/SCORE:\s*(\d+)\/10/)
       const s = match ? parseInt(match[1]) : null
       setScore(s)
-      if (s !== null) { markStudyToday(); setHistory(prev => [{ question, answer:userAnswer, score:s, category, difficulty, date:new Date().toLocaleDateString() }, ...prev].slice(0,20)) }
+      if (s !== null) setHistory(prev => [{ question, answer:userAnswer, score:s, category, difficulty, date:new Date().toLocaleDateString() }, ...prev].slice(0,20))
     } catch { setFeedback("Could not evaluate. Check connection.") }
     setLoading(false)
   }
@@ -4541,7 +4515,7 @@ const PracticeHub = ({ T, isMobile, aiSettings, markStudyToday = ()=>{} }) => {
                       })
                       setFeedback(text)
                       const m = text.match(/SCORE:\s*(\d+)\/10/)
-                      if (m) { const s=parseInt(m[1]); setScore(s); markStudyToday(); setHistory(prev=>[{ question:currentBankQ, answer:userAnswer, score:s, category, difficulty, date:new Date().toLocaleDateString() },...prev].slice(0,20)) }
+                      if (m) { const s=parseInt(m[1]); setScore(s); setHistory(prev=>[{ question:currentBankQ, answer:userAnswer, score:s, category, difficulty, date:new Date().toLocaleDateString() },...prev].slice(0,20)) }
                     } catch { setFeedback("Eval failed.") }
                     setLoading(false)
                   } else { evalAnswer() }
@@ -5081,7 +5055,7 @@ const ResourceHub = ({ T }) => {
 // Track firms contacted, people met, competition connections, interview stages
 // Data stored in persistent browser storage (useStorage)
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-const NetworkingTracker = ({ T, aiSettings, markStudyToday = ()=>{} }) => {
+const NetworkingTracker = ({ T, aiSettings }) => {
   const bg   = T?.cardBg    || "rgba(255,255,255,0.03)"
   const bdr  = T?.cardBorder|| "rgba(255,255,255,0.07)"
   const txt  = T?.text      || "#f1f5f9"
@@ -5121,10 +5095,10 @@ const NetworkingTracker = ({ T, aiSettings, markStudyToday = ()=>{} }) => {
   const saveContact = () => {
     if (!form.name.trim() || !form.firm.trim()) return
     if (editId) {
-      markStudyToday(); setContacts(prev => prev.map(c => c.id === editId ? { ...form, id: editId } : c))
+      setContacts(prev => prev.map(c => c.id === editId ? { ...form, id: editId } : c))
       setEditId(null)
     } else {
-      markStudyToday(); setContacts(prev => [{ ...form, id: Date.now().toString() }, ...prev])
+      setContacts(prev => [{ ...form, id: Date.now().toString() }, ...prev])
     }
     setForm(EMPTY_FORM)
     setShowForm(false)
@@ -6432,7 +6406,7 @@ const AISettingsModal = ({ onClose, aiSettings, setAiSettings, T, isDark }) => {
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 // COMPONENT: CareerPrep — mobile-only tab merging Practice + Networking
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-const CareerPrep = ({ T, isMobile, aiSettings, githubData = {}, markStudyToday = ()=>{} }) => {
+const CareerPrep = ({ T, isMobile, aiSettings, githubData = {} }) => {
   const [tab, setTab] = useState("practice")
   const sub = T?.textSub  || "#8B6250"
   const bdr = T?.cardBorder|| "rgba(180,90,40,0.18)"
@@ -6467,7 +6441,7 @@ const CareerPrep = ({ T, isMobile, aiSettings, githubData = {}, markStudyToday =
 
 export default function QuantOS() {
   const [active, setActive]                     = useState("dashboard")
-  const { githubData, loading: dataLoading, isLive, loadedKeys } = useGithubData()
+  const { githubData, loading: dataLoading } = useGithubData()
   const [courseProgress, setCourseProgress]     = useStorage("course_progress_v2", {})
   const [bookmarks, setBookmarks]               = useStorage("comp_bookmarks_v2", [])
   const [user, setUser]                         = useStorage("auth_user_v2", null)
@@ -6539,11 +6513,7 @@ export default function QuantOS() {
   const [aiSettings, setAiSettings] = useStorage("ai_settings_v1", { provider: "groq", key: "" })
   const [showAISettings, setShowAISettings] = useState(false)
   // ── Extra context for AI advisor ────────────────────────────────────────────
-  const [studyLogShell, setStudyLogShell] = useStorage("study_log_v1", {})
-  const markStudyToday = useCallback(() => {
-    const today = new Date().toISOString().slice(0, 10)
-    setStudyLogShell(prev => prev[today] ? prev : { ...prev, [today]: 1 })
-  }, [])
+  const [studyLogShell]        = useStorage("study_log_v1",             {})
   const [lectureProgressShell] = useStorage("lecture_progress_v2",      {})
   const [trackedAppsShell]     = useStorage("tracked_applications_v1",  {})
   const [jobAppsShell]         = useStorage("job_applications_v1",      {})
@@ -6551,7 +6521,7 @@ export default function QuantOS() {
   useEffect(() => {
     setCourseProgress(prev => {
       const init = { ...prev }; let changed = false
-      COURSES.forEach(c => { if (!(c.id in init)) { init[c.id] = 0; changed = true } })
+      COURSES.forEach(c => { if (!(c.id in init)) { init[c.id] = c.status === 1 ? 1 : 0; changed = true } })
       return changed ? init : prev
     })
   }, [])
@@ -6735,12 +6705,12 @@ export default function QuantOS() {
 
     switch (active) {
       case "dashboard":    return <Dashboard courseProgress={courseProgress} bookmarks={bookmarks} T={T} onStartTour={()=>setShowOnboarding(true)} navigate={setActive} isMobile={isMobile} />
-      case "learning":     return <LearningPath courseProgress={courseProgress} setCourseProgress={setCourseProgress} T={T} user={user} aiSettings={aiSettings} githubData={githubData} markStudyToday={markStudyToday} />
+      case "learning":     return <LearningPath courseProgress={courseProgress} setCourseProgress={setCourseProgress} T={T} user={user} aiSettings={aiSettings} githubData={githubData} />
       case "competitions": return <CompetitionTracker bookmarks={bookmarks} setBookmarks={setBookmarks} T={T} aiSettings={aiSettings} githubData={githubData} />
-      case "interview":    return <PracticeHub T={T} isMobile={isMobile} aiSettings={aiSettings} markStudyToday={markStudyToday} />
+      case "interview":    return <PracticeHub T={T} isMobile={isMobile} aiSettings={aiSettings} />
       case "resources":    return <ResourceHub T={T} />
-      case "networking":   return <NetworkingTracker T={T} aiSettings={aiSettings} markStudyToday={markStudyToday} />
-      case "career":       return <CareerPrep T={T} isMobile={isMobile} aiSettings={aiSettings} githubData={githubData} markStudyToday={markStudyToday} />
+      case "networking":   return <NetworkingTracker T={T} aiSettings={aiSettings} />
+      case "career":       return <CareerPrep T={T} isMobile={isMobile} aiSettings={aiSettings} githubData={githubData} />
       case "roadmap":      return <CareerRoadmap T={T} courseProgress={courseProgress} navigate={setActive} isMobile={isMobile} isTablet={isTablet} aiSettings={aiSettings} userContext={userContext} />
       default: return null
     }
@@ -6773,19 +6743,6 @@ export default function QuantOS() {
         boxShadow: "0 2px 16px rgba(193,127,58,0.18)",
       }}>
         <span style={{ fontSize: 16, fontWeight: 800, fontFamily: "'Syne',sans-serif", color: "#C17F3A" }}>Q</span>
-      </div>
-   
-        <div
-        title={isLive ? `Live data: ${loadedKeys.join(", ")}` : "Using local fallback data"}
-        style={{
-          fontSize:9, fontFamily:"'JetBrains Mono',monospace",
-          color:      isLive ? "#10b981" : "#C17F3A",
-          background: isLive ? "rgba(16,185,129,0.12)" : "rgba(193,127,58,0.12)",
-          border:    `1px solid ${isLive ? "rgba(16,185,129,0.25)" : "rgba(193,127,58,0.25)"}`,
-          borderRadius:4, padding:"2px 5px", marginBottom:8,
-          letterSpacing:"0.04em", cursor:"default", userSelect:"none",
-        }}>
-        {isLive ? "GH ✓" : "LOCAL"}
       </div>
 
       {/* Nav */}

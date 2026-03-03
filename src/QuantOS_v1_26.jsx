@@ -146,24 +146,16 @@ const useGithubData = () => {
   useEffect(() => {
     const fetchAll = async () => {
       try {
-          const bust = `?t=${Date.now()}`
-        const settled = await Promise.allSettled(
+        const bust = `?t=${Date.now()}`
+        const results = await Promise.all(
           Object.entries(GITHUB_DATA_URLS).map(async ([key, url]) => {
-            const res = await fetch(url + bust, { cache: "no-cache" })
-            if (!res.ok) throw new Error(`${key}: ${res.status}`)
+            const res  = await fetch(url + bust, { cache: "no-cache" })
+            if (!res.ok) throw new Error(`Failed to fetch ${key}: ${res.status}`)
             const data = await res.json()
             return [key, data]
           })
         )
-        const loaded = {}
-        const failed = []
-        settled.forEach((r, i) => {
-          const key = Object.keys(GITHUB_DATA_URLS)[i]
-          if (r.status === "fulfilled") loaded[key] = r.value[1]
-          else failed.push(`${key}(${r.reason?.message})`)
-        })
-        if (failed.length) console.warn("QuantOS data fetch failed:", failed.join(", "))
-        setGithubData(loaded)
+        setGithubData(Object.fromEntries(results))
       } catch (e) {
         console.warn("GitHub data fetch failed — falling back to hardcoded data.", e.message)
         setError(e.message)
@@ -174,8 +166,7 @@ const useGithubData = () => {
     fetchAll()
   }, [])
 
-  const loadedKeys = Object.keys(githubData)
-  return { githubData, loading, error, isLive: loadedKeys.length > 0, loadedKeys }
+  return { githubData, loading, error }
 }
 
 // ── STEP 3-6 now implemented below in QuantOS() shell ───────────────────────
@@ -2519,7 +2510,7 @@ const YouTubePlayer = ({ playlistId, startIndex, onLectureDone, T }) => {
   )
 }
 
-const CourseDetail = ({ course, onBack, lectureProgress, setLectureProgress, setCourseProgress = ()=>{}, T, user, markStudyToday = ()=>{} }) => {
+const CourseDetail = ({ course, onBack, lectureProgress, setLectureProgress, T, user, markStudyToday = ()=>{} }) => {
   const sched = SCHEDULES[course.id]
   const [tab, setTab] = useState("schedule")
   const subjColor = SUBJECT_COLOR_LOOKUP[course.subject] || "#64748b"
@@ -2621,25 +2612,7 @@ Grade this submission strictly and fairly. Return ONLY a JSON object (no markdow
     </div>
   )
 
- const toggleL = (n) => {
-    markStudyToday()
-    setLectureProgress(prev => {
-      const k    = `${course.id}_l${n}`
-      const next = { ...prev, [k]: prev[k] === 1 ? 0 : 1 }
-
-      // ── Auto-sync course state based on lecture completions ──────────
-      if (sched) {
-        const total     = sched.lectures.length
-        const doneCount = sched.lectures.filter(l => next[`${course.id}_l${l.n}`] === 1).length
-        setCourseProgress(cp => ({
-          ...cp,
-          [course.id]: doneCount === 0 ? 0 : doneCount === total ? 1 : 0.5,
-        }))
-      }
-
-      return next
-    })
-  }
+  const toggleL = (n) => { markStudyToday(); setLectureProgress(prev => { const k=`${course.id}_l${n}`; return {...prev,[k]:prev[k]===1?0:1} }) }
   const isDone = (n) => lectureProgress[`${course.id}_l${n}`] === 1
   const doneCount = sched.lectures.filter(l => isDone(l.n)).length
   const pct = Math.round(doneCount / sched.lectures.length * 100)
@@ -3720,14 +3693,12 @@ const LearningPath = ({ courseProgress, setCourseProgress, T, user, aiSettings, 
   // Drill into CourseDetail
   if (selectedCourse) return (
     <CourseDetail
-     course={selectedCourse}
+      course={selectedCourse}
       onBack={() => setSelectedCourse(null)}
       lectureProgress={lectureProgress}
       setLectureProgress={setLectureProgress}
-      setCourseProgress={setCourseProgress}
       T={T}
       user={user}
-      markStudyToday={markStudyToday}
     />
   )
 
@@ -6467,7 +6438,7 @@ const CareerPrep = ({ T, isMobile, aiSettings, githubData = {}, markStudyToday =
 
 export default function QuantOS() {
   const [active, setActive]                     = useState("dashboard")
-  const { githubData, loading: dataLoading, isLive, loadedKeys } = useGithubData()
+  const { githubData, loading: dataLoading } = useGithubData()
   const [courseProgress, setCourseProgress]     = useStorage("course_progress_v2", {})
   const [bookmarks, setBookmarks]               = useStorage("comp_bookmarks_v2", [])
   const [user, setUser]                         = useStorage("auth_user_v2", null)
@@ -6773,19 +6744,6 @@ export default function QuantOS() {
         boxShadow: "0 2px 16px rgba(193,127,58,0.18)",
       }}>
         <span style={{ fontSize: 16, fontWeight: 800, fontFamily: "'Syne',sans-serif", color: "#C17F3A" }}>Q</span>
-      </div>
-   
-        <div
-        title={isLive ? `Live data: ${loadedKeys.join(", ")}` : "Using local fallback data"}
-        style={{
-          fontSize:9, fontFamily:"'JetBrains Mono',monospace",
-          color:      isLive ? "#10b981" : "#C17F3A",
-          background: isLive ? "rgba(16,185,129,0.12)" : "rgba(193,127,58,0.12)",
-          border:    `1px solid ${isLive ? "rgba(16,185,129,0.25)" : "rgba(193,127,58,0.25)"}`,
-          borderRadius:4, padding:"2px 5px", marginBottom:8,
-          letterSpacing:"0.04em", cursor:"default", userSelect:"none",
-        }}>
-        {isLive ? "GH ✓" : "LOCAL"}
       </div>
 
       {/* Nav */}
