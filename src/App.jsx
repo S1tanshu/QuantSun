@@ -2561,7 +2561,7 @@ const CourseDetail = ({ course, onBack, lectureProgress, setLectureProgress, set
     const m = sched?.playlistUrl?.match(/[?&]list=([^&]+)/)
     const pid = m ? m[1] : null
     const url = pid
-      ? `https://www.youtube.com/playlist?list=${pid}&index=${n}`
+      ? `https://www.youtube.com/watch?list=${pid}&index=${n-1}`
       : sched.playlistUrl
     window.open(url, "_blank", "noopener,noreferrer")
   }
