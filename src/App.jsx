@@ -135,6 +135,7 @@ const GITHUB_DATA_URLS = {
   competitions: "https://raw.githubusercontent.com/S1tanshu/quantos-data/main/competitions.json",
   internships:  "https://raw.githubusercontent.com/S1tanshu/quantos-data/main/internships.json",
   jobs:         "https://raw.githubusercontent.com/S1tanshu/quantos-data/main/jobs.json",
+  schedules:    "https://raw.githubusercontent.com/S1tanshu/quantos-data/main/schedules.json",
 }
 
 
@@ -2520,8 +2521,23 @@ const YouTubePlayer = ({ playlistId, startIndex, onLectureDone, T }) => {
   )
 }
 
-const CourseDetail = ({ course, onBack, lectureProgress, setLectureProgress, setCourseProgress = ()=>{}, T, user, markStudyToday = ()=>{} }) => {
-  const sched = SCHEDULES[course.id]
+const CourseDetail = ({ course, onBack, lectureProgress, setLectureProgress, setCourseProgress = ()=>{}, T, user, markStudyToday = ()=>{}, githubData = {} }) => {
+  const LIVE_SCHEDULES = githubData.schedules || SCHEDULES
+  const sched = LIVE_SCHEDULES[course.id] || (() => {
+    // Auto-generate from lecture count in course data e.g. "0/25" or "10/32"
+    const total = parseInt(course.lectures?.split("/")?.[1])
+    if (!total || isNaN(total)) return null
+    return {
+      playlistUrl: course.playlistUrl || null,
+      notesPage:   course.link,
+      problemSets: [],
+      lectures: Array.from({ length: total }, (_, i) => ({
+        n:     i + 1,
+        title: `Lecture ${i + 1}`,
+        ps:    false,
+      }))
+    }
+  })()
   const [tab, setTab] = useState("schedule")
   const subjColor = SUBJECT_COLOR_LOOKUP[course.subject] || "#64748b"
   const bg   = T?.cardBg    || "rgba(255,255,255,0.02)"
@@ -3729,6 +3745,7 @@ const LearningPath = ({ courseProgress, setCourseProgress, T, user, aiSettings, 
       T={T}
       user={user}
       markStudyToday={markStudyToday}
+      githubData={githubData}
     />
   )
 
