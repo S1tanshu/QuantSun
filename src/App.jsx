@@ -131,11 +131,12 @@ const callAI = async ({ system = "", prompt, maxTokens = 800, aiSettings = {} })
 
 // ── STEP 1: Raw GitHub URLs ───────────────────────────────────────────────────
 const GITHUB_DATA_URLS = {
-  courses:      "https://raw.githubusercontent.com/sitanshu-thakurmail/quantos-data/main/courses.json",
-  competitions: "https://raw.githubusercontent.com/sitanshu-thakurmail/quantos-data/main/competitions.json",
-  internships:  "https://raw.githubusercontent.com/sitanshu-thakurmail/quantos-data/main/internships.json",
-  jobs:         "https://raw.githubusercontent.com/sitanshu-thakurmail/quantos-data/main/jobs.json",
+  courses:      "https://raw.githubusercontent.com/S1tanshu/quantos-data/main/courses.json",
+  competitions: "https://raw.githubusercontent.com/S1tanshu/quantos-data/main/competitions.json",
+  internships:  "https://raw.githubusercontent.com/S1tanshu/quantos-data/main/internships.json",
+  jobs:         "https://raw.githubusercontent.com/S1tanshu/quantos-data/main/jobs.json",
 }
+
 
 // ── STEP 2: Hook fetches all 4 files on app load ─────────────────────────────
 const useGithubData = () => {
