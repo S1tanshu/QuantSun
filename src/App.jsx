@@ -2459,7 +2459,7 @@ const YouTubePlayer = ({ playlistId, startIndex, onLectureDone, T }) => {
   const divId      = useRef(`yt-${playlistId}-${Date.now()}`)
   const bdr = T?.cardBorder || "rgba(255,255,255,0.08)"
 
-  ect(() => {useEff
+  useEffect(() => {
     // ── Load the IFrame API script once globally ──────────────────────────────
     const loadAPI = (cb) => {
       if (window.YT && window.YT.Player) { cb(); return }
