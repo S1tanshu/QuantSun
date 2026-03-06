@@ -2565,16 +2565,21 @@ const sched = (raw ? {
   const [reviewing, setReviewing] = useState(null)      // ps.id being reviewed
 
   // Open lecture in a new tab at the correct playlist position
-   const openVideo = (n) => {
-    const lecture = sched.lectures.find(l => l.n === n)
-    const pid = playlistId
-    const url = lecture?.videoId
-      ? `https://www.youtube.com/watch?v=${lecture.videoId}&list=${pid}`
-      : pid
-        ? `https://www.youtube.com/watch?list=${pid}&index=${n - 1}`
-        : sched.playlistUrl
-    if (url) window.open(url, "_blank", "noopener,noreferrer")
+  const [manualIndex, setManualIndex] = useState(null)
+
+const openVideo = (n) => {
+  if (!playlistId) {
+    // No playlist — fall back to external link only if no embed possible
+    window.open(sched.playlistUrl, "_blank", "noopener,noreferrer")
+    return
   }
+  setManualIndex(n - 1)   // YouTube IFrame API is 0-based
+  setShowPlayer(true)
+  // Scroll player into view
+  setTimeout(() => {
+    document.getElementById("yt-player-anchor")?.scrollIntoView({ behavior:"smooth", block:"start" })
+  }, 100)
+}
 
   // ── AI Review via Anthropic API ──
   const submitForReview = async (ps) => {
@@ -2728,15 +2733,16 @@ Grade this submission strictly and fairly. Return ONLY a JSON object (no markdow
         </div>
       </div>
 
-      {/* Embedded YouTube player — auto-marks lectures done on video end */}
-      {showPlayer && playlistId && (
-        <YouTubePlayer
-          playlistId={playlistId}
-          startIndex={startIndex}
-          onLectureDone={onLectureDone}
-          T={T}
-        />
-      )}
+     {/* Embedded YouTube player — auto-marks lectures done on video end */}
+<div id="yt-player-anchor" />
+{showPlayer && playlistId && (
+  <YouTubePlayer
+    playlistId={playlistId}
+    startIndex={manualIndex ?? startIndex}
+    onLectureDone={onLectureDone}
+    T={T}
+  />
+)}
       {showPlayer && !playlistId && (
         <div style={{ background:"rgba(193,127,58,0.06)", border:"1px solid rgba(193,127,58,0.2)",
           borderRadius:10, padding:"14px 18px", marginBottom:20, fontSize:12, color:"#C17F3A" }}>
