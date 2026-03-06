@@ -2478,31 +2478,49 @@ const YouTubePlayer = ({ playlistId, startIndex, onLectureDone, T }) => {
       }
     }
 
-    const createPlayer = () => {
-      if (playerRef.current) { playerRef.current.destroy(); playerRef.current = null }
-      playerRef.current = new window.YT.Player(divId.current, {
-        width:  "100%",
-        height: "100%",
-        playerVars: {
-          listType:       "playlist",
-          list:           playlistId,
-          index:          startIndex,   // 0-based — starts at first unwatched lecture
-          autoplay:       0,
-          rel:            0,            // no related videos from other channels
-          modestbranding: 1,
-        },
-        events: {
-          // ── Auto-mark lecture done when video ends ──────────────────────────
-          onStateChange: (e) => {
-            // YT.PlayerState.ENDED = 0
-            if (e.data === 0) {
-              const idx = playerRef.current.getPlaylistIndex() // 0-based
-              onLectureDone(idx + 1)                          // convert to 1-based lecture number
-            }
+    // REPLACE the single useEffect with these two:
+
+// Effect 1: create player only when playlistId changes
+useEffect(() => {
+  const loadAPI = (cb) => {
+    if (window.YT && window.YT.Player) { cb(); return }
+    const existing = document.getElementById("yt-iframe-api")
+    if (!existing) {
+      const s = document.createElement("script")
+      s.id  = "yt-iframe-api"
+      s.src = "https://www.youtube.com/iframe_api"
+      document.body.appendChild(s)
+    }
+    const prev = window.onYouTubeIframeAPIReady
+    window.onYouTubeIframeAPIReady = () => { if (prev) prev(); cb() }
+  }
+
+  const createPlayer = () => {
+    if (playerRef.current) { playerRef.current.destroy(); playerRef.current = null }
+    playerRef.current = new window.YT.Player(divId.current, {
+      width: "100%", height: "100%",
+      playerVars: { listType:"playlist", list:playlistId, index:startIndex, autoplay:0, rel:0, modestbranding:1 },
+      events: {
+        onStateChange: (e) => {
+          if (e.data === 0) {
+            const idx = playerRef.current.getPlaylistIndex()
+            onLectureDone(idx + 1)
           }
         }
-      })
-    }
+      }
+    })
+  }
+
+  loadAPI(createPlayer)
+  return () => { try { playerRef.current?.destroy() } catch {} playerRef.current = null }
+}, [playlistId]) // ← only recreate when course changes
+
+// Effect 2: seek without recreating when index changes
+useEffect(() => {
+  if (playerRef.current?.playVideoAt) {
+    playerRef.current.playVideoAt(startIndex)
+  }
+}, [startIndex])
 
     loadAPI(createPlayer)
 
@@ -2573,7 +2591,7 @@ const openVideo = (n) => {
     window.open(sched.playlistUrl, "_blank", "noopener,noreferrer")
     return
   }
-  setManualIndex(n)   // YouTube IFrame API is 0-based
+  setManualIndex(n - 1)   // YouTube IFrame API is 0-based
   setShowPlayer(true)
   // Scroll player into view
   setTimeout(() => {
