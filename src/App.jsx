@@ -2573,7 +2573,7 @@ const openVideo = (n) => {
     window.open(sched.playlistUrl, "_blank", "noopener,noreferrer")
     return
   }
-  setManualIndex(n - 1)   // YouTube IFrame API is 0-based
+  setManualIndex(n)   // YouTube IFrame API is 0-based
   setShowPlayer(true)
   // Scroll player into view
   setTimeout(() => {
