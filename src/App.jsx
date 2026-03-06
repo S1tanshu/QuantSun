@@ -2459,7 +2459,7 @@ const YouTubePlayer = ({ playlistId, startIndex, onLectureDone, T }) => {
   const divId      = useRef(`yt-${playlistId}-${Date.now()}`)
   const bdr = T?.cardBorder || "rgba(255,255,255,0.08)"
 
-  useEffect(() => {
+  ect(() => {useEff
     // ── Load the IFrame API script once globally ──────────────────────────────
     const loadAPI = (cb) => {
       if (window.YT && window.YT.Player) { cb(); return }
@@ -2480,7 +2480,6 @@ const YouTubePlayer = ({ playlistId, startIndex, onLectureDone, T }) => {
 
     // REPLACE the single useEffect with these two:
 
-// Effect 1: create player only when playlistId changes
 useEffect(() => {
   const loadAPI = (cb) => {
     if (window.YT && window.YT.Player) { cb(); return }
@@ -2512,12 +2511,16 @@ useEffect(() => {
   }
 
   loadAPI(createPlayer)
-  return () => { try { playerRef.current?.destroy() } catch {} playerRef.current = null }
-}, [playlistId]) // ← only recreate when course changes
 
-// Effect 2: seek without recreating when index changes
+  return () => {
+    try { playerRef.current?.destroy() } catch(err) {}
+    playerRef.current = null
+  }
+}, [playlistId])
+
 useEffect(() => {
-  if (playerRef.current?.playVideoAt) {
+  if (startIndex == null) return
+  if (playerRef.current && playerRef.current.playVideoAt) {
     playerRef.current.playVideoAt(startIndex)
   }
 }, [startIndex])
