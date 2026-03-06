@@ -2523,28 +2523,21 @@ useEffect(() => {
   if (playerRef.current && playerRef.current.playVideoAt) {
     playerRef.current.playVideoAt(startIndex)
   }
-}, [startIndex])
+}, [startIndex]) 
 
     loadAPI(createPlayer)
-
-    return () => {
-      // Cleanup on unmount
-      try { playerRef.current?.destroy() } catch {}
-      playerRef.current = null
-    }
-  }, [playlistId, startIndex]) // re-create player if course changes
-
+  
   return (
     <div style={{ width:"100%", aspectRatio:"16/9", borderRadius:12, overflow:"hidden",
       border:`1px solid ${bdr}`, background:"#000", marginBottom:20 }}>
       <div id={divId.current} style={{ width:"100%", height:"100%" }} />
     </div>
-  )
+   )
 }
 
 const CourseDetail = ({ course, onBack, lectureProgress, setLectureProgress, setCourseProgress = ()=>{}, T, user, markStudyToday = ()=>{}, githubData = {} }) => {
- const LIVE_SCHEDULES = githubData.schedules || SCHEDULES
- const raw = LIVE_SCHEDULES[course.id]
+const LIVE_SCHEDULES = githubData.schedules || SCHEDULES
+const raw = LIVE_SCHEDULES[course.id]
 const sched = (raw ? {
   ...raw,
   lectures:    raw.lectures    || [],
