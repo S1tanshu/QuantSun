@@ -2454,4 +2454,4740 @@ const SCHEDULES = {
 // Uses YouTube IFrame Player API (just a JS library, not the Data API)
 // Docs: https://developers.google.com/youtube/iframe_api_reference
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+const YouTubePlayer = ({ playlistId, startIndex, onLectureDone, T }) => {
+  const playerRef = useRef(null)
+  const divId     = useRef(`yt-${playlistId}-${Date.now()}`)
+  const bdr = T?.cardBorder || "rgba(255,255,255,0.08)"
 
+  useEffect(() => {
+    const loadAPI = (cb) => {
+      if (window.YT && window.YT.Player) { cb(); return }
+      const existing = document.getElementById("yt-iframe-api")
+      if (!existing) {
+        const s = document.createElement("script")
+        s.id  = "yt-iframe-api"
+        s.src = "https://www.youtube.com/iframe_api"
+        document.body.appendChild(s)
+      }
+      const prev = window.onYouTubeIframeAPIReady
+      window.onYouTubeIframeAPIReady = () => { if (prev) prev(); cb() }
+    }
+
+    const createPlayer = () => {
+      if (playerRef.current) { playerRef.current.destroy(); playerRef.current = null }
+      playerRef.current = new window.YT.Player(divId.current, {
+        width: "100%", height: "100%",
+        playerVars: { listType:"playlist", list:playlistId, index:startIndex, autoplay:0, rel:0, modestbranding:1 },
+        events: {
+          onStateChange: (e) => {
+            if (e.data === 0) {
+              const idx = playerRef.current.getPlaylistIndex()
+              onLectureDone(idx + 1)
+            }
+          }
+        }
+      })
+    }
+
+    loadAPI(createPlayer)
+
+    return () => {
+      try { playerRef.current?.destroy() } catch(err) {}
+      playerRef.current = null
+    }
+  }, [playlistId])
+
+  useEffect(() => {
+    if (startIndex == null) return
+    if (playerRef.current && playerRef.current.playVideoAt) {
+      playerRef.current.playVideoAt(startIndex)
+    }
+  }, [startIndex])
+
+  return (
+    <div style={{ width:"100%", aspectRatio:"16/9", borderRadius:12, overflow:"hidden",
+      border:`1px solid ${bdr}`, background:"#000", marginBottom:20 }}>
+      <div id={divId.current} style={{ width:"100%", height:"100%" }} />
+    </div>
+  )
+}
+
+const CourseDetail = ({ course, onBack, lectureProgress, setLectureProgress, setCourseProgress = ()=>{}, T, user, markStudyToday = ()=>{}, githubData = {} }) => {
+const LIVE_SCHEDULES = githubData.schedules || SCHEDULES
+const raw = LIVE_SCHEDULES[course.id]
+const sched = (raw ? {
+  ...raw,
+  lectures:    raw.lectures    || [],
+  problemSets: raw.problemSets || raw.psets || [],
+  psets:       raw.psets       || [],
+  notesPage:   raw.notesPage   || course.link,
+  playlistUrl: raw.playlistUrl || course.playlistUrl || null,
+} : null) || (() => {
+  const total = parseInt(course.lectures?.split("/")?.[1])
+  if (!total || isNaN(total)) return null
+  return {
+    playlistUrl: course.playlistUrl || null,
+    notesPage:   course.link,
+    problemSets: [],
+    lectures: Array.from({ length: total }, (_, i) => ({
+      n:     i + 1,
+      title: `Lecture ${i + 1}`,
+      ps:    false,
+    }))
+  }
+})()
+
+  const [tab, setTab] = useState("schedule")
+  const subjColor = SUBJECT_COLOR_LOOKUP[course.subject] || "#64748b"
+  const bg   = T?.cardBg    || "rgba(255,255,255,0.02)"
+  const bdr  = T?.cardBorder|| "rgba(255,255,255,0.08)"
+  const txt  = T?.text      || "#f1f5f9"
+  const sub  = T?.textSub   || "#64748b"
+  const muted= T?.textMuted || "#475569"
+  const inBg = T?.inputBg   || "rgba(255,255,255,0.04)"
+
+  // Per-user PS review storage — key includes user email so each account is isolated
+  const userKey = `ps_reviews_${user?.email || "guest"}`
+  const [psReviews, setPsReviews] = useStorage(userKey, {})
+
+  // UI state for the submission panel
+  const [expandedPs, setExpandedPs] = useState(null)   // ps.id currently open
+  const [drafts, setDrafts] = useState({})              // { psId: textValue }
+  const [reviewing, setReviewing] = useState(null)      // ps.id being reviewed
+
+  // Open lecture in a new tab at the correct playlist position
+  const [manualIndex, setManualIndex] = useState(null)
+
+const openVideo = (n) => {
+  if (!playlistId) {
+    // No playlist — fall back to external link only if no embed possible
+    window.open(sched.playlistUrl, "_blank", "noopener,noreferrer")
+    return
+  }
+  setManualIndex(n - 1)   // YouTube IFrame API is 0-based
+  setShowPlayer(true)
+  // Scroll player into view
+  setTimeout(() => {
+    document.getElementById("yt-player-anchor")?.scrollIntoView({ behavior:"smooth", block:"start" })
+  }, 100)
+}
+
+  // ── AI Review via Anthropic API ──
+  const submitForReview = async (ps) => {
+    const solution = drafts[ps.id]?.trim()
+    if (!solution || solution.length < 30) return
+    setReviewing(ps.id)
+    try {
+      const prompt = `You are a rigorous quantitative finance professor grading a student's problem set submission.
+
+COURSE: ${sched?.fullName} (${sched?.code})
+PROBLEM SET: ${ps.title} 
+TOPICS COVERED: ${ps.covers}
+
+STUDENT'S SUBMISSION:
+"""
+${solution}
+"""
+
+Grade this submission strictly and fairly. Return ONLY a JSON object (no markdown, no preamble) with this exact structure:
+{
+  "score": <integer 0-100>,
+  "grade": "<A+|A|A-|B+|B|B-|C+|C|D|F>",
+  "summary": "<2-sentence overall assessment>",
+  "breakdown": {
+    "conceptual_understanding": <0-25>,
+    "mathematical_rigor": <0-25>,
+    "problem_solving": <0-25>,
+    "clarity_and_notation": <0-25>
+  },
+  "strengths": ["<strength 1>", "<strength 2>"],
+  "improvements": ["<improvement 1>", "<improvement 2>", "<improvement 3>"],
+  "model_answer_hint": "<1-2 sentence hint about the ideal approach without giving away the full answer>"
+}`
+
+      if (!aiSettings?.key) throw new Error("NO_KEY")
+      const raw = await callAI({ prompt, maxTokens: 1000, aiSettings })
+      if (!raw) throw new Error("empty")
+      const clean = raw.replace(/```json|```/g, "").trim()
+      const review = JSON.parse(clean)
+
+      setPsReviews(prev => ({
+        ...prev,
+        [`${course.id}_${ps.id}`]: {
+          ...review,
+          submittedAt: new Date().toISOString().slice(0, 10),
+          solution: solution.slice(0, 500) // store first 500 chars for reference
+        }
+      }))
+      setExpandedPs(null)
+    } catch (e) {
+      setPsReviews(prev => ({
+        ...prev,
+        [`${course.id}_${ps.id}`]: {
+          score: null, error: "Review failed — please try again.",
+          submittedAt: new Date().toISOString().slice(0, 10)
+        }
+      }))
+    }
+    setReviewing(null)
+  }
+
+  if (!sched) return (
+    <div>
+      <button onClick={onBack} style={{ background:"none", border:"none", color:"#C17F3A", cursor:"pointer", fontSize:13, marginBottom:20, padding:0 }}>← Back to Courses</button>
+      <h1 style={{ fontSize:22, fontWeight:700, color:txt, fontFamily:"'Syne',sans-serif", marginBottom:8 }}>{course.name}</h1>
+      <p style={{ color:sub, fontSize:13, marginBottom:20 }}>{course.institution} · {course.source} · Full schedule not yet mapped.</p>
+      <div style={{ background:bg, border:`1px solid ${bdr}`, borderRadius:12, padding:"20px 24px" }}>
+        <p style={{ color:sub, marginBottom:12, fontSize:13 }}>Visit the official page for lectures and problem sets:</p>
+        <a href={course.link} target="_blank" rel="noreferrer" style={{ color:"#C17F3A", fontSize:14 }}>Open Course Page →</a>
+      </div>
+    </div>
+  )
+
+ const toggleL = (n) => {
+    markStudyToday()
+    setLectureProgress(prev => {
+      const k    = `${course.id}_l${n}`
+      const next = { ...prev, [k]: prev[k] === 1 ? 0 : 1 }
+
+      // ── Auto-sync course state based on lecture completions ──────────
+      if (sched) {
+        const total     = sched.lectures.length
+        const doneCount = sched.lectures.filter(l => next[`${course.id}_l${l.n}`] === 1).length
+        setCourseProgress(cp => ({
+          ...cp,
+          [course.id]: doneCount === 0 ? 0 : doneCount === total ? 1 : 0.5,
+        }))
+      }
+
+      return next
+    })
+  }
+  const isDone = (n) => lectureProgress[`${course.id}_l${n}`] === 1
+  const doneCount = sched.lectures.filter(l => isDone(l.n)).length
+  const pct = Math.round(doneCount / sched.lectures.length * 100)
+
+  // ── YouTube player ────────────────────────────────────────────────────────
+  const hasVideoIds = sched?.lectures?.some(l => l.videoId)
+  const [showPlayer, setShowPlayer] = useState(!!hasVideoIds)
+  const playlistId = sched.playlistUrl?.match(/[?&]list=([^&]+)/)?.[1] || null
+  // Start at first unwatched lecture (0-based index for YT API)
+  const startIndex = Math.max(0, sched.lectures.findIndex(l => !isDone(l.n)))
+  // Auto-mark lecture done when video ends — called by YouTubePlayer
+  const onLectureDone = (lectureNumber) => {
+    markStudyToday(); setLectureProgress(prev => ({ ...prev, [`${course.id}_l${lectureNumber}`]: 1 }))
+  }
+  return (
+    <div style={{ paddingBottom:60 }}>
+      <button onClick={onBack} style={{ background:"none", border:"none", color:"#C17F3A", cursor:"pointer", fontSize:13, marginBottom:20, padding:0 }}>← Back to Courses</button>
+
+      <div style={{ display:"flex", justifyContent:"space-between", alignItems:"flex-start", flexWrap:"wrap", gap:12, marginBottom:20 }}>
+        <div>
+          <div style={{ display:"flex", gap:8, alignItems:"center", marginBottom:6 }}>
+            <span style={{ fontSize:11, color:"#C17F3A", fontFamily:"'JetBrains Mono',monospace", background:"rgba(193,127,58,0.15)", padding:"2px 8px", borderRadius:4 }}>{sched.code}</span>
+            <span style={{ fontSize:11, color:subjColor, background:"rgba(255,255,255,0.06)", padding:"2px 8px", borderRadius:4 }}>{course.subject}</span>
+          </div>
+          <h1 style={{ fontSize:22, fontWeight:800, color:txt, fontFamily:"'Syne',sans-serif", margin:0 }}>{sched.fullName}</h1>
+          <p style={{ color:sub, fontSize:13, margin:"4px 0 0" }}>{course.institution} · {sched.lectures.length} Lectures · {sched.problemSets.length} Problem Sets</p>
+          <p style={{ color:muted, fontSize:12, margin:"4px 0 0" }}>📖 {sched.textbook}</p>
+        </div>
+        <div style={{ display:"flex", gap:8, flexWrap:"wrap" }}>
+          {playlistId && (
+            <button onClick={() => setShowPlayer(s => !s)}
+              style={{ background: showPlayer ? "rgba(239,68,68,0.25)" : "rgba(239,68,68,0.15)",
+                border:"1px solid rgba(239,68,68,0.3)", borderRadius:8, padding:"8px 14px",
+                color:"#f87171", fontSize:12, cursor:"pointer", fontWeight:600 }}>
+              {showPlayer ? "⏹ Close Player" : "▶ Watch Here"}
+            </button>
+          )}
+          <a href={sched.playlistUrl} target="_blank" rel="noreferrer"
+            style={{ background:"rgba(239,68,68,0.08)", border:"1px solid rgba(239,68,68,0.2)",
+              borderRadius:8, padding:"8px 14px", color:"#f87171", fontSize:12, textDecoration:"none" }}>
+            ↗ YouTube
+          </a>
+          <a href={sched.ocwUrl} target="_blank" rel="noreferrer"
+            style={{ background:"rgba(193,127,58,0.1)", border:"1px solid rgba(193,127,58,0.3)",
+              borderRadius:8, padding:"8px 14px", color:"#C17F3A", fontSize:12, textDecoration:"none" }}>
+            🎓 MIT OCW
+          </a>
+        </div>
+      </div>
+
+      {/* Progress bar */}
+      <div style={{ background:bg, border:`1px solid ${bdr}`, borderRadius:10, padding:"12px 20px", marginBottom:20 }}>
+        <div style={{ display:"flex", justifyContent:"space-between", marginBottom:6 }}>
+          <span style={{ fontSize:12, color:sub }}>Lecture Progress</span>
+          <span style={{ fontSize:12, fontFamily:"'JetBrains Mono',monospace", color:"#C17F3A" }}>{doneCount}/{sched.lectures.length} ({pct}%)</span>
+        </div>
+        <div style={{ height:6, borderRadius:4, background:"rgba(255,255,255,0.07)", overflow:"hidden" }}>
+          <div style={{ height:"100%", background:"linear-gradient(90deg,#C17F3A,#10b981)", width:`${pct}%`, borderRadius:4, transition:"width 0.5s" }} />
+        </div>
+      </div>
+
+     {/* Embedded YouTube player — auto-marks lectures done on video end */}
+<div id="yt-player-anchor" />
+{showPlayer && playlistId && (
+  <YouTubePlayer
+    playlistId={playlistId}
+    startIndex={manualIndex ?? startIndex}
+    onLectureDone={onLectureDone}
+    T={T}
+  />
+)}
+      {showPlayer && !playlistId && (
+        <div style={{ background:"rgba(193,127,58,0.06)", border:"1px solid rgba(193,127,58,0.2)",
+          borderRadius:10, padding:"14px 18px", marginBottom:20, fontSize:12, color:"#C17F3A" }}>
+          No playlist ID found for this course. Use ↗ YouTube to watch externally.
+        </div>
+      )}
+
+      {/* Tabs */}
+      <div style={{ display:"flex", gap:8, marginBottom:20 }}>
+        {[["schedule","📅 Schedule"],["problemsets","📝 Problem Sets"],["resources","🔗 Resources"]].map(([id,label]) => (
+          <button key={id} onClick={() => setTab(id)} style={{ padding:"8px 18px", borderRadius:8, border:"1px solid", fontSize:13, cursor:"pointer",
+            borderColor:tab===id?"#C17F3A":"rgba(255,255,255,0.1)",
+            background:tab===id?"rgba(193,127,58,0.12)":"transparent",
+            color:tab===id?"#C17F3A":sub }}>{label}</button>
+        ))}
+      </div>
+
+      {tab === "schedule" && (
+        <div>
+          <p style={{ fontSize:12, color:muted, marginBottom:10 }}>
+            Click <strong style={{color:"#ef4444"}}>▶ Watch Here</strong> above to open the embedded player — lectures auto-mark done when they finish.
+            Or mark them manually below.
+          </p>
+          {/* Lecture table — horizontally scrollable on mobile so buttons never get cut */}
+          <div style={{ overflowX:"auto", WebkitOverflowScrolling:"touch", width:"100%" }}>
+            <div style={{ minWidth:480 }}>
+              <div style={{ display:"grid", gridTemplateColumns:"40px 1fr 74px 84px 78px", marginBottom:6 }}>
+                {["#","Lecture Title","Notes","Watch","Status"].map(h => (
+                  <div key={h} style={{ fontSize:10, color:muted, textTransform:"uppercase", letterSpacing:"0.08em", padding:"6px 8px", fontFamily:"'JetBrains Mono',monospace" }}>{h}</div>
+                ))}
+              </div>
+              {sched.lectures.map(l => {
+                const done = isDone(l.n)
+                const isExam = l.title.includes("🎯") || l.title.includes("🏁")
+                return (
+                  <div key={l.n} style={{ display:"grid", gridTemplateColumns:"40px 1fr 74px 84px 78px",
+                    borderTop:`1px solid ${bdr}`, alignItems:"center",
+                    background:done?"rgba(16,185,129,0.04)":isExam?"rgba(193,127,58,0.03)":"transparent" }}>
+                    <div style={{ padding:"10px 8px", fontSize:12, color:muted, fontFamily:"'JetBrains Mono',monospace" }}>{l.n}</div>
+                    {/* Title cell — truncated so all rows stay the same height */}
+                    <div style={{ padding:"10px 8px 10px 0", minWidth:0, display:"flex", alignItems:"center", gap:6, overflow:"hidden" }}>
+                      <button onClick={() => !isExam && openVideo(l.n)}
+                        style={{ fontSize:13, color:done?"#10b981":isExam?"#C17F3A":txt,
+                          textDecoration:done?"line-through":"none", lineHeight:1,
+                          background:"none", border:"none", padding:0,
+                          cursor:isExam?"default":"pointer", textAlign:"left",
+                          whiteSpace:"nowrap", overflow:"hidden", textOverflow:"ellipsis", maxWidth:"100%" }}>
+                        {l.title}
+                      </button>
+                      {l.ps && <span style={{ fontSize:9, color:"#C17F3A", background:"rgba(193,127,58,0.15)", padding:"1px 5px", borderRadius:3, whiteSpace:"nowrap", flexShrink:0 }}>PS</span>}
+                    </div>
+                    <div style={{ padding:"10px 8px", display:"flex", alignItems:"center" }}>
+                      {!isExam && <a href={sched.notesPage} target="_blank" rel="noreferrer" style={{ fontSize:11, color:"#0ea5e9", textDecoration:"none", whiteSpace:"nowrap" }}>Notes →</a>}
+                    </div>
+                    <div style={{ padding:"10px 8px", display:"flex", alignItems:"center" }}>
+                      {!isExam && (
+                        <button onClick={() => openVideo(l.n)}
+                          style={{ fontSize:11, background:"rgba(239,68,68,0.1)", border:"1px solid rgba(239,68,68,0.3)", borderRadius:4, padding:"3px 9px", color:"#ef4444", cursor:"pointer", whiteSpace:"nowrap" }}>
+                          ▶ Watch
+                        </button>
+                      )}
+                    </div>
+                    <div style={{ padding:"10px 8px", display:"flex", alignItems:"center" }}>
+                      <button onClick={() => toggleL(l.n)} style={{ fontSize:11, background:done?"rgba(16,185,129,0.15)":bg, border:`1px solid ${done?"rgba(16,185,129,0.3)":bdr}`, borderRadius:4, padding:"3px 8px", color:done?"#10b981":sub, cursor:"pointer", whiteSpace:"nowrap" }}>
+                        {done ? "✓ Done" : "○ Mark"}
+                      </button>
+                    </div>
+                  </div>
+                )
+              })}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {tab === "problemsets" && (
+        <div>
+          {/* ── Overall PS Progress Bar ── */}
+          {(() => {
+            const reviewed = sched.problemSets.filter(ps => {
+              const r = psReviews[`${course.id}_${ps.id}`]
+              return r && r.score != null
+            })
+            const avgScore = reviewed.length
+              ? Math.round(reviewed.reduce((s, ps) => s + (psReviews[`${course.id}_${ps.id}`]?.score || 0), 0) / reviewed.length)
+              : null
+            const pct = Math.round(reviewed.length / sched.problemSets.length * 100)
+            const scoreColor = avgScore >= 80 ? "#10b981" : avgScore >= 60 ? "#C17F3A" : avgScore != null ? "#ef4444" : "#64748b"
+            return (
+              <div style={{ background:bg, border:`1px solid ${bdr}`, borderRadius:12, padding:"16px 20px", marginBottom:20 }}>
+                <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:10 }}>
+                  <div>
+                    <span style={{ fontSize:13, fontWeight:600, color:txt }}>Problem Set Progress</span>
+                    <span style={{ fontSize:12, color:sub, marginLeft:10 }}>{reviewed.length}/{sched.problemSets.length} reviewed</span>
+                  </div>
+                  {avgScore != null && (
+                    <div style={{ textAlign:"right" }}>
+                      <span style={{ fontSize:22, fontWeight:800, color:scoreColor, fontFamily:"'JetBrains Mono',monospace" }}>{avgScore}</span>
+                      <span style={{ fontSize:11, color:sub }}>/100 avg</span>
+                    </div>
+                  )}
+                </div>
+                {/* Segment bar — one block per PS */}
+                <div style={{ display:"flex", gap:3, height:10, borderRadius:6, overflow:"hidden" }}>
+                  {sched.problemSets.map(ps => {
+                    const r = psReviews[`${course.id}_${ps.id}`]
+                    const sc = r?.score
+                    const col = sc >= 80 ? "#10b981" : sc >= 60 ? "#C17F3A" : sc != null ? "#ef4444" : "rgba(255,255,255,0.08)"
+                    return <div key={ps.id} title={`${ps.title}: ${sc != null ? sc+"/100" : "not reviewed"}`} style={{ flex:1, background:col, borderRadius:2, transition:"background 0.4s" }} />
+                  })}
+                </div>
+                <div style={{ display:"flex", gap:16, marginTop:8 }}>
+                  {[["#10b981","≥ 80 (Strong)"],["#C17F3A","60–79 (Good)"],["#ef4444","< 60 (Review)"],["rgba(255,255,255,0.15)","Not yet submitted"]].map(([col,label]) => (
+                    <div key={label} style={{ display:"flex", alignItems:"center", gap:5 }}>
+                      <div style={{ width:8, height:8, borderRadius:2, background:col, flexShrink:0 }} />
+                      <span style={{ fontSize:10, color:muted }}>{label}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )
+          })()}
+
+          {/* ── PS Cards ── */}
+          <div style={{ display:"flex", flexDirection:"column", gap:14 }}>
+            {sched.problemSets.map(ps => {
+              const reviewKey = `${course.id}_${ps.id}`
+              const review = psReviews[reviewKey]
+              const isExpanded = expandedPs === ps.id
+              const isReviewing = reviewing === ps.id
+              const sc = review?.score
+              const scoreColor = sc >= 80 ? "#10b981" : sc >= 60 ? "#C17F3A" : sc != null ? "#ef4444" : null
+              const grade = review?.grade
+
+              return (
+                <div key={ps.id} style={{ background:bg, border:`1px solid ${review?.score!=null ? scoreColor+"40" : isExpanded ? "rgba(193,127,58,0.3)" : bdr}`, borderRadius:14, overflow:"hidden", transition:"border-color 0.3s" }}>
+
+                  {/* Card Header */}
+                  <div style={{ padding:"16px 20px", display:"flex", justifyContent:"space-between", alignItems:"flex-start", gap:12 }}>
+                    <div style={{ flex:1 }}>
+                      <div style={{ display:"flex", alignItems:"center", gap:10, marginBottom:6, flexWrap:"wrap" }}>
+                        <span style={{ fontSize:15, fontWeight:700, color:txt }}>{ps.title}{ps.link && (
+  <a href={ps.link} target="_blank" rel="noreferrer"
+    style={{ fontSize:11, color:"#C17F3A", textDecoration:"none", marginLeft:10 }}>
+    Open PS →
+  </a>
+)}</span>
+                        <span style={{ fontSize:10, color:"#C17F3A", background:"rgba(193,127,58,0.1)", padding:"2px 8px", borderRadius:4, fontFamily:"'JetBrains Mono',monospace" }}>After L{ps.assignedAfter}</span>
+                        {review?.submittedAt && (
+                          <span style={{ fontSize:10, color:muted, fontFamily:"'JetBrains Mono',monospace" }}>Submitted {review.submittedAt}</span>
+                        )}
+                      </div>
+                      <div style={{ fontSize:12, color:sub, lineHeight:1.5 }}>{ps.covers}</div>
+                    </div>
+
+                    {/* Score badge or Submit button */}
+                    <div style={{ display:"flex", flexDirection:"column", alignItems:"flex-end", gap:8, flexShrink:0 }}>
+                      {sc != null ? (
+                        <div style={{ textAlign:"center" }}>
+                          <div style={{ fontSize:26, fontWeight:800, color:scoreColor, fontFamily:"'JetBrains Mono',monospace", lineHeight:1 }}>{sc}</div>
+                          <div style={{ fontSize:10, color:scoreColor }}>{grade}</div>
+                        </div>
+                      ) : (
+                        <div style={{ width:44, height:44, borderRadius:"50%", border:`2px dashed ${bdr}`, display:"flex", alignItems:"center", justifyContent:"center" }}>
+                          <span style={{ fontSize:18, color:muted }}>?</span>
+                        </div>
+                      )}
+                      <div style={{ display:"flex", gap:6 }}>
+                        <a href={sched.psPage} target="_blank" rel="noreferrer"
+                          style={{ fontSize:11, color:"#C17F3A", textDecoration:"none", border:"1px solid rgba(193,127,58,0.3)", padding:"4px 10px", borderRadius:6 }}>
+                          OCW →
+                        </a>
+                        <button onClick={() => setExpandedPs(isExpanded ? null : ps.id)}
+                          style={{ fontSize:11, background:isExpanded?"rgba(193,127,58,0.15)":bg, border:`1px solid ${isExpanded?"rgba(193,127,58,0.4)":bdr}`, borderRadius:6, padding:"4px 12px", color:isExpanded?"#C17F3A":sub, cursor:"pointer" }}>
+                          {sc != null ? "✎ Resubmit" : isExpanded ? "✕ Close" : "✦ Submit"}
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Review result panel */}
+                  {review && !isExpanded && sc != null && (
+                    <div style={{ borderTop:`1px solid ${bdr}`, padding:"14px 20px" }}>
+                      {/* Score breakdown bar */}
+                      <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr 1fr 1fr", gap:8, marginBottom:12 }}>
+                        {review.breakdown && Object.entries(review.breakdown).map(([key, val]) => {
+                          const label = key.replace(/_/g," ").replace(/\b\w/g,c=>c.toUpperCase())
+                          const pct = Math.round(val / 25 * 100)
+                          const col = pct >= 80 ? "#10b981" : pct >= 60 ? "#C17F3A" : "#ef4444"
+                          return (
+                            <div key={key} style={{ background:T?.rowBg||"rgba(0,0,0,0.025)", borderRadius:8, padding:"10px 12px" }}>
+                              <div style={{ fontSize:10, color:muted, marginBottom:4, lineHeight:1.3 }}>{label}</div>
+                              <div style={{ fontSize:17, fontWeight:700, color:col, fontFamily:"'JetBrains Mono',monospace" }}>{val}/25</div>
+                              <div style={{ height:3, borderRadius:2, background:"rgba(255,255,255,0.06)", marginTop:5, overflow:"hidden" }}>
+                                <div style={{ height:"100%", width:`${pct}%`, background:col, borderRadius:2 }} />
+                              </div>
+                            </div>
+                          )
+                        })}
+                      </div>
+
+                      {/* Summary */}
+                      {review.summary && (
+                        <div style={{ background:T?.rowBg||"rgba(0,0,0,0.025)", borderRadius:8, padding:"10px 14px", marginBottom:10, fontSize:13, color:sub, lineHeight:1.6, borderLeft:`3px solid ${scoreColor}` }}>
+                          {review.summary}
+                        </div>
+                      )}
+
+                      {/* Strengths + Improvements */}
+                      <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:12, marginBottom:10 }}>
+                        <div>
+                          <div style={{ fontSize:11, color:"#10b981", fontFamily:"'JetBrains Mono',monospace", marginBottom:6, letterSpacing:"0.06em" }}>✓ STRENGTHS</div>
+                          {(review.strengths||[]).map((s,i) => (
+                            <div key={i} style={{ fontSize:12, color:sub, lineHeight:1.5, marginBottom:4, display:"flex", gap:6 }}>
+                              <span style={{ color:"#10b981", flexShrink:0 }}>•</span>{s}
+                            </div>
+                          ))}
+                        </div>
+                        <div>
+                          <div style={{ fontSize:11, color:"#C17F3A", fontFamily:"'JetBrains Mono',monospace", marginBottom:6, letterSpacing:"0.06em" }}>↑ IMPROVE</div>
+                          {(review.improvements||[]).map((s,i) => (
+                            <div key={i} style={{ fontSize:12, color:sub, lineHeight:1.5, marginBottom:4, display:"flex", gap:6 }}>
+                              <span style={{ color:"#C17F3A", flexShrink:0 }}>•</span>{s}
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+
+                      {/* Hint */}
+                      {review.model_answer_hint && (
+                        <div style={{ background:"rgba(99,102,241,0.06)", border:"1px solid rgba(99,102,241,0.2)", borderRadius:8, padding:"10px 14px", fontSize:12, color:"#a5b4fc", lineHeight:1.5 }}>
+                          💡 <strong>Hint:</strong> {review.model_answer_hint}
+                        </div>
+                      )}
+                    </div>
+                  )}
+
+                  {/* Submission panel */}
+                  {isExpanded && (
+                    <div style={{ borderTop:`1px solid rgba(193,127,58,0.25)`, padding:"16px 20px", background:"rgba(193,127,58,0.03)" }}>
+                      <div style={{ fontSize:12, color:sub, marginBottom:10, lineHeight:1.5 }}>
+                        Write or paste your solution below. Our AI professor will score it on <strong style={{color:txt}}>Conceptual Understanding</strong>, <strong style={{color:txt}}>Mathematical Rigor</strong>, <strong style={{color:txt}}>Problem Solving</strong>, and <strong style={{color:txt}}>Clarity</strong>.
+                      </div>
+                      <textarea
+                        value={drafts[ps.id] || ""}
+                        onChange={e => setDrafts(prev => ({ ...prev, [ps.id]: e.target.value }))}
+                        placeholder={`Write your solution to ${ps.title} here...\n\nExample: "For problem 1, I applied the definition of linear independence... Setting up the matrix A = [...], I computed the determinant..."`}
+                        rows={10}
+                        style={{
+                          width:"100%", background:inBg, border:`1px solid rgba(193,127,58,0.25)`,
+                          borderRadius:10, padding:"14px 16px", color:txt, fontSize:13,
+                          fontFamily:"'DM Sans',sans-serif", lineHeight:1.6, outline:"none",
+                          resize:"vertical", marginBottom:12
+                        }}
+                      />
+                      <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center" }}>
+                        <span style={{ fontSize:11, color:muted }}>{(drafts[ps.id]||"").length} chars · min ~30 for review</span>
+                        <div style={{ display:"flex", gap:8 }}>
+                          <button onClick={() => setExpandedPs(null)}
+                            style={{ padding:"8px 16px", borderRadius:8, border:`1px solid ${bdr}`, background:"transparent", color:sub, fontSize:13, cursor:"pointer" }}>
+                            Cancel
+                          </button>
+                          <button
+                            onClick={() => submitForReview(ps)}
+                            disabled={isReviewing || (drafts[ps.id]||"").trim().length < 30}
+                            style={{ padding:"8px 20px", borderRadius:8, border:"none", background: isReviewing ? "rgba(193,127,58,0.3)" : "rgba(193,127,58,0.9)", color:"#000", fontSize:13, fontWeight:700, cursor:"pointer", opacity:(drafts[ps.id]||"").trim().length<30?0.4:1, display:"flex", alignItems:"center", gap:8 }}>
+                            {isReviewing ? (
+                              <><span style={{ display:"inline-block", animation:"spin 1s linear infinite" }}>⟳</span> Reviewing...</>
+                            ) : "✦ Submit for AI Review"}
+                          </button>
+                        </div>
+                      </div>
+                      {review?.error && (
+                        <div style={{ marginTop:10, fontSize:12, color:"#ef4444", background:"rgba(239,68,68,0.08)", borderRadius:6, padding:"8px 12px" }}>{review.error}</div>
+                      )}
+                    </div>
+                  )}
+                </div>
+              )
+            })}
+          </div>
+          <style>{`@keyframes spin { from{transform:rotate(0deg)} to{transform:rotate(360deg)} }`}</style>
+        </div>
+      )}
+
+      {tab === "resources" && (
+        <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:14 }}>
+          {[
+            { label:"YouTube Playlist", desc:`All ${sched.lectures.length} lectures in order`, url:sched.playlistUrl, icon:"▶", color:"#ef4444" },
+            { label:"MIT OCW Page",     desc:"Syllabus, calendar, all materials hub",         url:sched.ocwUrl,      icon:"🎓", color:"#C17F3A" },
+            { label:"Lecture Notes",    desc:"Typed/scanned notes as PDFs",                  url:sched.notesPage,   icon:"📄", color:"#0ea5e9" },
+            { label:"Problem Sets",     desc:"All assignments with full solutions",           url:sched.psPage,      icon:"📝", color:"#C17F3A" },
+          ].map(r => (
+            <a key={r.label} href={r.url} target="_blank" rel="noreferrer" style={{ background:bg, border:`1px solid ${bdr}`, borderRadius:12, padding:"16px 18px", textDecoration:"none", display:"block", transition:"border-color 0.2s" }}
+              onMouseEnter={e => e.currentTarget.style.borderColor=`${r.color}50`}
+              onMouseLeave={e => e.currentTarget.style.borderColor=bdr}>
+              <div style={{ fontSize:24, marginBottom:8 }}>{r.icon}</div>
+              <div style={{ fontSize:14, fontWeight:600, color:r.color }}>{r.label} →</div>
+              <div style={{ fontSize:12, color:sub, marginTop:4 }}>{r.desc}</div>
+            </a>
+          ))}
+          <div style={{ gridColumn:"1/-1", background:bg, border:`1px solid ${bdr}`, borderRadius:12, padding:"16px 18px" }}>
+            <div style={{ fontSize:11, color:sub, textTransform:"uppercase", letterSpacing:"0.08em", marginBottom:6 }}>Textbook</div>
+            <div style={{ fontSize:14, color:txt }}>{sched.textbook}</div>
+          </div>
+        </div>
+      )}
+    </div>
+  )
+}
+
+
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+// DATA: TREE_EDGES — natural learning order beyond formal PREREQS
+// These encode the *narrative* path a student should follow.
+// Format: [fromId, toId] — directed, top→bottom in the tree.
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+const TREE_EDGES = {
+  "Mathematics": [
+    ["m0","m1"],["m1","m2"],["m0","m3"],["m0","m4"],
+    ["m4","m9"],["m3","m6"],["m6","m13"],["m3","m8"],
+    ["m3","m12"],["m3","m17"],["m17","m18"],["m3","m26"],
+    ["m3","m7"],["m1","m21"],["m21","m23"],["m4","m20"],
+    ["m24","m29"],["m24","m20"],
+  ],
+  "Comp Sci": [
+    ["c0","c1"],["c0","c7"],["c3","c4"],["c8","c16"],
+    ["c2","c6"],["c2","c20"],["c7","c10"],["c7","c11"],
+    ["c8","c15"],["c8","c9"],["c17","c23"],["c18","c23"],
+  ],
+  "Programming": [
+    ["p6","p0"],["p0","p2"],["p2","p1"],["p1","p10"],
+    ["p6","p5"],["p5","p14"],["p14","p15"],["p15","p17"],
+    ["p4","p5"],["p6","p18"],["p18","p19"],["p6","p20"],
+    ["p5","p13"],["p6","p8"],["p8","p9"],["p6","p23"],["p23","p24"],
+  ],
+  "Machine Learning": [
+    ["ml5","ml3"],["ml5","ml4"],["ml5","ml0"],["ml5","ml6"],
+    ["ml5","ml7"],["ml3","ml1"],["ml1","ml11"],["ml1","ml12"],
+    ["ml1","ml2"],["ml0","ml9"],["ml6","ml7"],
+  ],
+  "Finance & Economics": [
+    ["f3","f4"],["f0","f1"],["f1","f7"],["f1","f9"],
+    ["f1","f13"],["f1","f16"],["f16","f17"],["f1","f18"],
+    ["f7","f22"],["f8","f21"],["f0","f8"],["f14","f24"],["f14","f25"],
+    ["f11","f12"],
+  ],
+}
+
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+// COMPONENT: SkillTreeView — tabbed, one subject at a time
+// Arc progress ring · name labels below nodes · side panel · P-A larger nodes
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+const SkillTreeView = ({ courseProgress, onCourseClick, setCourseProgress, T, isDark, aiSettings, githubData = {} }) => {
+  const LIVE_COURSES = githubData.courses || COURSES
+  const SUBJECTS     = ["Mathematics","Comp Sci","Programming","Machine Learning","Finance & Economics"]
+  const [activeSubj, setActiveSubj]   = useState("Mathematics")
+  const [panelCourse,setPanelCourse]  = useState(null)
+  const [showPA,     setShowPA]       = useState(false)
+  const [showPath,   setShowPath]     = useState(false)
+  const [isFullscreen,setIsFullscreen]= useState(false)
+  const [reviewSchedule, setReviewSchedule] = useStorage("review_schedule_v1", {})
+  // reviewSchedule[courseId] = "YYYY-MM-DD" (due date)
+  const treeRef = useRef(null)
+
+  const toggleFullscreen = () => {
+    if (!document.fullscreenElement) {
+      treeRef.current?.requestFullscreen().then(()=>setIsFullscreen(true)).catch(()=>{})
+    } else {
+      document.exitFullscreen().then(()=>setIsFullscreen(false)).catch(()=>{})
+    }
+  }
+  useEffect(()=>{
+    const handler = () => setIsFullscreen(!!document.fullscreenElement)
+    document.addEventListener("fullscreenchange", handler)
+    return ()=>document.removeEventListener("fullscreenchange", handler)
+  },[])
+
+  // ── Lecture progress 0–1 from stored "done/total" string ────────────────────
+  const lecturePct = (course) => {
+    if (courseProgress[course.id] === 1) return 1
+    const m = String(course.lectures||"").trim().match(/^(\d+)\/(\d+)$/)
+    if (m && +m[2]>0) return Math.min(+m[1]/+m[2], 0.999)
+    return courseProgress[course.id]===0.5 ? 0.33 : 0
+  }
+
+  // ── Node state ────────────────────────────────────────────────────────────────
+  const nodeState = (id) => {
+    const p = courseProgress[id]
+    if (p===1)   return "done"
+    if (p===0.5) return "active"
+    return (PREREQS[id]||[]).every(d=>courseProgress[d]===1) ? "avail" : "locked"
+  }
+
+  // ── Arc path for circular progress ring (clockwise from top) ─────────────────
+  const arcPath = (cx, cy, r, pct) => {
+    if (pct<=0) return ""
+    if (pct>=1) return `M${cx},${cy-r} A${r},${r},0,1,1,${cx-0.001},${cy-r}Z`
+    const angle = pct*2*Math.PI - Math.PI/2
+    const laf   = pct>0.5 ? 1 : 0
+    const ex    = cx + r*Math.cos(angle)
+    const ey    = cy + r*Math.sin(angle)
+    return `M${cx},${cy-r} A${r},${r},0,${laf},1,${ex},${ey}`
+  }
+
+  // ── Layout for the active subject ────────────────────────────────────────────
+  const layout = useMemo(() => {
+    const subj    = activeSubj
+    const col     = SUBJECT_COLORS[subj]
+    const allC    = LIVE_COURSES.filter(c => c.subject===subj)
+    const ids     = new Set(allC.map(c=>c.id))
+    const edges   = (TREE_EDGES[subj]||[]).filter(([a,b])=>ids.has(a)&&ids.has(b))
+    const edgeSet = new Set(edges.map(([a,b])=>`${a}→${b}`))
+
+    // Within-subject in-edges and out-edges from TREE_EDGES
+    const children = {}, parents = {}
+    allC.forEach(c=>{ children[c.id]=[]; parents[c.id]=[] })
+    edges.forEach(([a,b])=>{ children[a].push(b); parents[b].push(a) })
+
+    // Connected = has any TREE_EDGES link
+    const inTree  = allC.filter(c=>children[c.id].length>0||parents[c.id].length>0)
+    const free    = allC.filter(c=>children[c.id].length===0&&parents[c.id].length===0)
+
+    // Topological depth
+    const depth = {}
+    const visit=(id,seen=new Set())=>{
+      if(id in depth) return depth[id]
+      if(seen.has(id)) return 0
+      seen.add(id)
+      depth[id] = parents[id].length===0 ? 0 : Math.max(...parents[id].map(p=>visit(p,new Set(seen))))+1
+      return depth[id]
+    }
+    inTree.forEach(c=>visit(c.id))
+
+    // Group by depth, sort by P-A first within each level
+    const maxD = inTree.length>0 ? Math.max(...inTree.map(c=>depth[c.id])) : -1
+    const byLevel = Array.from({length:maxD+1},()=>[])
+    inTree.forEach(c=>byLevel[depth[c.id]].push(c))
+    byLevel.forEach(lvl=>lvl.sort((a,b)=>(a.priority==="A"?0:1)-(b.priority==="A"?0:1)))
+
+    // SVG sizing
+    const nodeR    = (c) => c.priority==="A" ? 30 : c.priority==="B" ? 24 : 20
+    const H_SEP    = 72   // horizontal gap between node centres in a row
+    const V_SEP    = 110  // vertical gap between depth levels
+    const PAD_TOP  = 28
+    const svgW_min = 700
+
+    // Compute x per node: distribute evenly per level, centred on svgW
+    const positions = {}
+    const maxNodesInRow = Math.max(...byLevel.map(l=>l.length),1)
+    const svgW = Math.max(svgW_min, maxNodesInRow*H_SEP + 120)
+
+    byLevel.forEach((nodes,d)=>{
+      const total = nodes.length
+      const rowW  = (total-1)*H_SEP
+      const startX= svgW/2 - rowW/2
+      nodes.forEach((c,i)=>{
+        const r = nodeR(c)
+        positions[c.id]={ x:startX+i*H_SEP, y:PAD_TOP+d*V_SEP+r, r, free:false }
+      })
+    })
+
+    // Free nodes in compact grid at bottom
+    const treeH   = PAD_TOP + (maxD+1)*V_SEP + 40
+    const FREE_COLS = Math.max(Math.floor((svgW-48) / 90), 3)
+    free.forEach((c,i)=>{
+      const fr=16
+      positions[c.id]={
+        x: 40 + (i%FREE_COLS)*90 + fr,
+        y: treeH + 36 + Math.floor(i/FREE_COLS)*88 + fr,
+        r: fr, free:true
+      }
+    })
+
+    const freeRows = free.length>0 ? Math.ceil(free.length/FREE_COLS) : 0
+    const svgH     = treeH + (freeRows>0 ? 36+freeRows*88+32 : 0) + 32
+
+    // "My path" highlight: ancestors+descendants of the deepest active/done node
+    const pathSet = new Set()
+    if(showPath){
+      const active = inTree.filter(c=>["done","active"].includes(nodeState(c.id)))
+      const deepest= active.sort((a,b)=>(depth[b.id]||0)-(depth[a.id]||0))[0]
+      if(deepest){
+        const up=(id)=>{ pathSet.add(id); parents[id].forEach(up) }
+        const dn=(id)=>{ pathSet.add(id); children[id].forEach(dn) }
+        up(deepest.id); dn(deepest.id)
+      }
+    }
+
+    return { col, allC, inTree, free, depth, byLevel, children, parents, edges,
+             positions, svgW, svgH, treeH, FREE_COLS, pathSet }
+  },[activeSubj, courseProgress, showPath])
+
+  // ── Cycle course status on right-click (from tree) ───────────────────────────
+  const cycleStatus = (e, id) => {
+    e.preventDefault()
+    setCourseProgress(prev=>{
+      const curr=prev[id]
+      const next=curr===1?0:curr===0.5?1:0.5
+      return {...prev,[id]:next}
+    })
+  }
+
+  // ── Filtered courses list (respects showPA) ───────────────────────────────────
+  const visibleIds = useMemo(()=>{
+    if(!showPA) return new Set(layout.allC.map(c=>c.id))
+    return new Set(layout.allC.filter(c=>c.priority==="A").map(c=>c.id))
+  },[layout, showPA])
+
+  const { col, allC, inTree, free, positions, svgW, svgH, treeH, edges,
+          children, parents, pathSet } = layout
+
+  // ── Render ────────────────────────────────────────────────────────────────────
+  return (
+    <div ref={treeRef} style={{display:"flex",gap:0,borderRadius:18,overflow:"hidden",
+      background:"linear-gradient(160deg,#05050d 0%,#090916 60%,#06060f 100%)",
+      boxShadow:"0 0 0 1px rgba(255,255,255,0.05) inset, 0 32px 80px rgba(0,0,0,0.6)",
+      minHeight:500, position:"relative"}}>
+
+      {/* ── Left: tree panel ── */}
+      <div style={{flex:1,display:"flex",flexDirection:"column",minWidth:0}}>
+
+        {/* Controls bar */}
+        <div style={{display:"flex",alignItems:"center",gap:8,padding:"14px 20px 10px",
+          flexWrap:"wrap",borderBottom:"none",
+          background:T?.rowBg||"rgba(0,0,0,0.025)"}}>
+
+          {/* Subject tabs */}
+          <div style={{display:"flex",gap:5,flexWrap:"wrap"}}>
+            {SUBJECTS.map(s=>{
+              const c=SUBJECT_COLORS[s]
+              const active=activeSubj===s
+              return (
+                <button key={s} onClick={()=>{ setActiveSubj(s); setPanelCourse(null) }}
+                  style={{padding:"5px 13px",borderRadius:20,border:`1px solid ${active?c:c+"30"}`,
+                    fontSize:10,cursor:"pointer",fontFamily:"'JetBrains Mono',monospace",
+                    fontWeight:active?700:400,letterSpacing:"0.06em",
+                    background:active?`${c}20`:"transparent",
+                    color:active?c:`${c}80`,transition:"all 0.15s"}}>
+                  {s}
+                </button>
+              )
+            })}
+          </div>
+
+          {/* Separator */}
+          <div style={{width:1,height:20,background:"rgba(255,255,255,0.06)",flexShrink:0}}/>
+
+          {/* Filters */}
+          <button onClick={()=>setShowPA(v=>!v)}
+            style={{padding:"5px 12px",borderRadius:20,border:`1px solid ${showPA?"#C17F3A":"rgba(193,127,58,0.2)"}`,
+              fontSize:10,cursor:"pointer",fontFamily:"'JetBrains Mono',monospace",
+              background:showPA?"rgba(193,127,58,0.15)":"transparent",
+              color:showPA?"#C17F3A":"rgba(193,127,58,0.5)",transition:"all 0.15s"}}>
+            ★ Priority A only
+          </button>
+          <button onClick={()=>setShowPath(v=>!v)}
+            style={{padding:"5px 12px",borderRadius:20,border:`1px solid ${showPath?"#6366f1":"rgba(99,102,241,0.2)"}`,
+              fontSize:10,cursor:"pointer",fontFamily:"'JetBrains Mono',monospace",
+              background:showPath?"rgba(99,102,241,0.15)":"transparent",
+              color:showPath?"#818cf8":"rgba(99,102,241,0.5)",transition:"all 0.15s"}}>
+            ⬡ My path
+          </button>
+
+          {/* Fullscreen toggle */}
+          <button onClick={toggleFullscreen}
+            title={isFullscreen?"Exit fullscreen":"Fullscreen"}
+            style={{padding:"5px 10px",borderRadius:20,border:`1px solid ${T?.border||"rgba(0,0,0,0.08)"}`,
+              fontSize:11,cursor:"pointer",background:T?.cardBg||"rgba(255,255,255,0.7)",
+              color:"rgba(255,255,255,0.3)",transition:"all 0.15s",lineHeight:1}}>
+            {isFullscreen ? "⊠" : "⊡"}
+          </button>
+
+          {/* Legend */}
+          <div style={{marginLeft:"auto",display:"flex",gap:12,alignItems:"center",
+            fontSize:9,fontFamily:"'JetBrains Mono',monospace",color:"#1e3048",flexWrap:"wrap"}}>
+            {[["#10b981","Done"],["#C17F3A","Active"],["#94a3b8","Ready"],["#1e293b","Locked"]].map(([c,l])=>(
+              <span key={l} style={{display:"flex",alignItems:"center",gap:4}}>
+                <span style={{width:7,height:7,borderRadius:"50%",background:c,display:"inline-block"}}/>
+                {l}
+              </span>
+            ))}
+            <span style={{color:"#12172a"}}>Right-click node to toggle status</span>
+          </div>
+        </div>
+
+        {/* SVG canvas */}
+        <div style={{overflowY:"auto",overflowX:"auto",flex:1,
+          maxHeight:isFullscreen?"calc(100vh - 60px)":"68vh",padding:"0 10px 10px"}}>
+          <svg width={svgW} height={svgH} style={{display:"block",overflow:"visible"}}>
+            <defs>
+              <filter id="nd-done" x="-60%" y="-60%" width="220%" height="220%">
+                <feGaussianBlur in="SourceGraphic" stdDeviation="4" result="b"/>
+                <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
+              </filter>
+              <filter id="nd-active" x="-50%" y="-50%" width="200%" height="200%">
+                <feGaussianBlur in="SourceGraphic" stdDeviation="2.5" result="b"/>
+                <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
+              </filter>
+              <filter id="nd-hover" x="-50%" y="-50%" width="200%" height="200%">
+                <feGaussianBlur in="SourceGraphic" stdDeviation="3" result="b"/>
+                <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
+              </filter>
+            </defs>
+
+            {/* ── Standalone separator ── */}
+            {free.length>0 && (
+              <g>
+                <line x1={24} y1={treeH+2} x2={svgW-24} y2={treeH+2}
+                  stroke={`${col}18`} strokeWidth={1} strokeDasharray="4 6"/>
+                <text x={28} y={treeH+18} fontSize={8} fill={`${col}44`}
+                  fontFamily="'JetBrains Mono',monospace" letterSpacing="0.1em">
+                  ◦ STANDALONE COURSES (no natural chain)
+                </text>
+              </g>
+            )}
+
+            {/* ── Edges ── */}
+            {edges.map(([aid,bid])=>{
+              const a=positions[aid], b=positions[bid]
+              if(!a||!b) return null
+              if(showPA && (!visibleIds.has(aid)||!visibleIds.has(bid))) return null
+              const lit  = courseProgress[aid]===1
+              const dim  = showPath && pathSet.size>0 && (!pathSet.has(aid)||!pathSet.has(bid))
+              const x1=a.x, y1=a.y+a.r+2, x2=b.x, y2=b.y-b.r-2
+              const my=(y1+y2)/2
+              return (
+                <path key={`${aid}→${bid}`}
+                  d={`M${x1},${y1} C${x1},${my} ${x2},${my} ${x2},${y2}`}
+                  fill="none"
+                  stroke={lit?"#10b981":"#1a2540"}
+                  strokeWidth={lit?2:1}
+                  opacity={dim?0.08:lit?0.9:0.55}
+                />
+              )
+            })}
+
+            {/* ── Nodes ── */}
+            {allC.map(course=>{
+              const p   = positions[course.id]; if(!p) return null
+              if(showPA && !visibleIds.has(course.id)) return null
+
+              const state   = nodeState(course.id)
+              const pct     = lecturePct(course)
+              const locked  = state==="locked"
+              const r       = p.r
+              const isPanel = panelCourse?.id===course.id
+              const dimPath = showPath && pathSet.size>0 && !pathSet.has(course.id) && !p.free
+              const hasSched= !!SCHEDULES[course.id]
+
+              // Colours
+              const nodeBg  = state==="done"  ? "#10b981"
+                            : state==="active" ? "#071c14"
+                            : locked           ? "#080d18"
+                            : "#0e1626"
+              const ringC   = state==="done"  ? "#34d399"
+                            : state==="active" ? "#10b981"
+                            : locked           ? "#111e33"
+                            : `${col}55`
+              const labelC  = state==="done"  ? "#fff"
+                            : locked           ? "#1a2e48"
+                            : "#c8d4e8"
+              const arcC    = state==="done"  ? "#34d399"
+                            : state==="active" ? "#C17F3A"
+                            : col
+              const glowF   = state==="done"  ? "url(#nd-done)"
+                            : state==="active" ? "url(#nd-active)"
+                            : isPanel          ? "url(#nd-hover)"
+                            : "none"
+              const opacity = locked ? 0.4 : dimPath ? 0.15 : 1
+
+              // Short label: order number in its level if connected, else acronym
+              const levelIdx= (inTree.includes(course) && layout.byLevel)
+                ? layout.byLevel[layout.depth?.[course.id]||0]?.indexOf(course)+1 || "?"
+                : "·"
+              const insideLabel = state==="done" ? "✓" : p.free ? "" : String(levelIdx)
+
+              // Name label below node (2 words max)
+              const words = course.name.split(" ")
+              const line1 = words.slice(0,2).join(" ")
+              const line2 = words.length>2 ? words.slice(2,4).join(" ")+(words.length>4?"…":"") : null
+
+              // Arc ring params
+              const arcR  = r+4
+              const ringPct = pct
+              const arcD  = arcPath(p.x, p.y, arcR, ringPct)
+
+              return (
+                <g key={course.id}
+                  style={{cursor:"pointer"}}
+                  onClick={()=>setPanelCourse(prev=>prev?.id===course.id?null:course)}
+                  onContextMenu={e=>{ e.preventDefault(); if(!locked) cycleStatus(e,course.id) }}>
+
+                  {/* ── Transparent hit-area (ensures full circle is always clickable) ── */}
+                  <circle cx={p.x} cy={p.y} r={r+8} fill="transparent"/>
+
+                  <g style={{opacity, transition:"opacity 0.2s"}}>
+                    {/* Outer selected ring */}
+                    {isPanel && <circle cx={p.x} cy={p.y} r={r+9}
+                      fill="none" stroke={col} strokeWidth={1.5} opacity={0.5}/>}
+
+                    {/* Subject ambient ring */}
+                    <circle cx={p.x} cy={p.y} r={r+2}
+                      fill="none" stroke={col} strokeWidth={0.4}
+                      opacity={locked?0.05:0.18}/>
+
+                    {/* Node body */}
+                    <circle cx={p.x} cy={p.y} r={r}
+                      fill={nodeBg} stroke={ringC} strokeWidth={isPanel?2:1}
+                      filter={glowF}/>
+
+                    {/* Arc progress ring */}
+                    {arcD && ringPct>0 && (
+                      <path d={arcD} fill="none"
+                        stroke={arcC} strokeWidth={3}
+                        strokeLinecap="round" opacity={0.95}/>
+                    )}
+
+                    {/* Order number label */}
+                    <text x={p.x} y={p.y+0.5} textAnchor="middle" dominantBaseline="middle"
+                      fontSize={p.free?7:r>26?12:10} fontWeight={700} fill={labelC}
+                      fontFamily="'JetBrains Mono',monospace" style={{pointerEvents:"none"}}>
+                      {insideLabel}
+                    </text>
+
+                    {/* Schedule dot */}
+                    {hasSched && !locked && (
+                      <circle cx={p.x+r-5} cy={p.y-r+5} r={3}
+                        fill="#6366f1" stroke="#818cf8" strokeWidth={1}/>
+                    )}
+
+                    {/* Name label below node — shown for all nodes */}
+                    <text x={p.x} y={p.y+r+12} textAnchor="middle"
+                      fontSize={p.free?7:8} fill={locked?"#1a2e48":isPanel?col:"#4a6280"}
+                      fontFamily="'DM Sans',sans-serif" fontWeight={isPanel?600:400}
+                      style={{pointerEvents:"none"}}>
+                      {line1}
+                    </text>
+                    {line2&&<text x={p.x} y={p.y+r+(p.free?19:22)} textAnchor="middle"
+                      fontSize={p.free?7:8} fill={locked?"#1a2e48":"#364d66"}
+                      fontFamily="'DM Sans',sans-serif" style={{pointerEvents:"none"}}>
+                      {line2}
+                    </text>}
+                  </g>
+                </g>
+              )
+            })}
+          </svg>
+        </div>
+      </div>
+
+      {/* ── Right: side panel ── */}
+      {panelCourse && (()=>{
+        const c      = panelCourse
+        const state  = nodeState(c.id)
+        const locked = state === "locked"
+        const pct    = lecturePct(c)
+        const col2  = SUBJECT_COLORS[c.subject]
+        const deps  = (PREREQS[c.id]||[]).map(id=>LIVE_COURSES.find(x=>x.id===id)).filter(Boolean)
+        const unlocks=(TREE_EDGES[c.subject]||[]).filter(([a])=>a===c.id)
+          .map(([,b])=>LIVE_COURSES.find(x=>x.id===b)).filter(Boolean)
+        const hasSched=!!SCHEDULES[c.id]
+        const statusIcon=state==="done"?"✓ Done":state==="active"?"◑ In Progress":state==="avail"?"○ Ready":"🔒 Locked"
+        const statusC=state==="done"?"#10b981":state==="active"?"#C17F3A":state==="avail"?"#94a3b8":"#334155"
+
+        return (
+          <div style={{
+            width:280,flexShrink:0,
+            background:T?.panelBg||"rgba(255,255,255,0.9)",
+            borderLeft:"none",
+            boxShadow:isDark?"-12px 0 40px rgba(0,0,0,0.4)":"-12px 0 40px rgba(0,0,0,0.08)",
+            display:"flex",flexDirection:"column",
+            overflowY:"auto",
+            animation:"qos-fade 0.18s ease",
+          }}>
+            {/* Header */}
+            <div style={{padding:"20px 20px 16px",borderBottom:"none",
+              background:`linear-gradient(180deg,${col2}12 0%,transparent 100%)`}}>
+              <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start",gap:8}}>
+                <div style={{flex:1,minWidth:0}}>
+                  <div style={{fontSize:8,color:col2,fontFamily:"'JetBrains Mono',monospace",
+                    letterSpacing:"0.12em",marginBottom:4}}>{c.subject.toUpperCase()}</div>
+                  <div style={{fontSize:14,fontWeight:700,color:T?.panelText||"#1a1a2e",lineHeight:1.35,
+                    fontFamily:"'Syne',sans-serif"}}>{c.name}</div>
+                  <div style={{fontSize:10,color:T?.panelMuted||"#64748b",marginTop:4}}>{c.institution}</div>
+                </div>
+                <button onClick={()=>setPanelCourse(null)}
+                  style={{background:"none",border:"none",color:T?.panelMuted||"#64748b",cursor:"pointer",
+                    fontSize:16,lineHeight:1,flexShrink:0,paddingTop:2}}>✕</button>
+              </div>
+
+              {/* Status + progress */}
+              <div style={{marginTop:14,display:"flex",flexDirection:"column",gap:8}}>
+                <div style={{display:"flex",alignItems:"center",justifyContent:"space-between"}}>
+                  <span style={{fontSize:10,color:statusC,fontFamily:"'JetBrains Mono',monospace",
+                    fontWeight:700}}>{statusIcon}</span>
+                  <span style={{fontSize:9,color:T?.panelMuted||"#64748b",fontFamily:"'JetBrains Mono',monospace"}}>
+                    {c.priority==="A"?"★ Priority A":c.priority==="B"?"Priority B":"Priority C"}
+                  </span>
+                </div>
+                {/* Arc progress bar */}
+                <div style={{height:3,borderRadius:3,background:T?.trackBg||"rgba(0,0,0,0.08)",overflow:"hidden"}}>
+                  <div style={{height:"100%",borderRadius:3,
+                    background:state==="done"?"#10b981":state==="active"?`linear-gradient(90deg,#10b981,#C17F3A)`:col2,
+                    width:`${Math.round(pct*100)}%`,transition:"width 0.5s ease"}}/>
+                </div>
+                <div style={{fontSize:9,color:"#1e3048",fontFamily:"'JetBrains Mono',monospace"}}>
+                  {Math.round(pct*100)}% lectures complete · {c.lectures}
+                </div>
+              </div>
+            </div>
+
+            {/* Body */}
+            <div style={{padding:"16px 20px",display:"flex",flexDirection:"column",gap:14,flex:1}}>
+
+              {/* Locked explanation */}
+              {state==="locked" && deps.filter(d=>nodeState(d.id)!=="done").length>0 && (
+                <div style={{padding:"10px 12px",borderRadius:9,
+                  background:"rgba(239,68,68,0.06)",border:"1px solid rgba(239,68,68,0.15)"}}>
+                  <div style={{fontSize:9,color:"#ef4444",fontFamily:"'JetBrains Mono',monospace",
+                    letterSpacing:"0.1em",marginBottom:6}}>🔒 COMPLETE FIRST</div>
+                  {deps.filter(d=>nodeState(d.id)!=="done").map(d=>(
+                    <div key={d.id} onClick={()=>setPanelCourse(d)}
+                      style={{display:"flex",alignItems:"center",gap:8,padding:"5px 8px",
+                        borderRadius:6,marginBottom:3,cursor:"pointer",
+                        background:"rgba(239,68,68,0.04)"}}>
+                      <span style={{fontSize:10,color:"#ef4444"}}>○</span>
+                      <span style={{fontSize:11,color:"#4a6280",lineHeight:1.3}}>{d.name}</span>
+                    </div>
+                  ))}
+                </div>
+              )}
+
+              {/* Quick actions */}
+              <div style={{display:"flex",gap:6}}>
+                <button onClick={()=>!locked && onCourseClick(c)}
+                  style={{flex:1,padding:"7px 0",borderRadius:8,
+                    border:`1px solid ${locked?T?.rowBorder||"rgba(0,0,0,0.06)":col2+"35"}`,
+                    background:locked?T?.rowBg||"rgba(0,0,0,0.025)":`${col2}12`,
+                    color:locked?"#1e3048":col2,
+                    fontSize:11,cursor:locked?"default":"pointer",fontWeight:600,
+                    opacity:locked?0.5:1}}>
+                  {locked?"🔒 Locked":hasSched?"📋 Open Schedule":"→ Open Course"}
+                </button>
+                <button onClick={e=>{ if(!locked||state==="avail") cycleStatus(e,c.id) }}
+                  style={{flex:1,padding:"7px 0",borderRadius:8,
+                    border:`1px solid ${statusC}35`,background:`${statusC}10`,
+                    color:statusC,fontSize:11,cursor:locked?"default":"pointer",fontWeight:600,
+                    opacity:locked?0.4:1}}>
+                  {state==="done"?"↩ Undo":state==="active"?"✓ Mark Done":state==="avail"?"▶ Start":"—"}
+                </button>
+              </div>
+
+              {/* Prerequisites */}
+              {deps.length>0 && (
+                <div>
+                  <div style={{fontSize:9,color:"#1e3048",fontFamily:"'JetBrains Mono',monospace",
+                    letterSpacing:"0.1em",marginBottom:8}}>PREREQUISITES</div>
+                  {deps.map(d=>{
+                    const ds=nodeState(d.id)
+                    return (
+                      <div key={d.id} onClick={()=>setPanelCourse(d)}
+                        style={{display:"flex",alignItems:"center",gap:8,padding:"6px 10px",
+                          borderRadius:7,background:T?.rowBg||"rgba(0,0,0,0.02)",marginBottom:4,
+                          cursor:"pointer",border:`1px solid ${T?.rowBorder||"rgba(0,0,0,0.05)"}`}}>
+                        <span style={{fontSize:10,
+                          color:ds==="done"?"#10b981":ds==="active"?"#C17F3A":"#334155"}}>
+                          {ds==="done"?"✓":ds==="active"?"◑":"○"}
+                        </span>
+                        <span style={{fontSize:11,color:"#4a6280",lineHeight:1.3}}>{d.name}</span>
+                      </div>
+                    )
+                  })}
+                </div>
+              )}
+
+              {/* Unlocks next */}
+              {unlocks.length>0 && (
+                <div>
+                  <div style={{fontSize:9,color:"#1e3048",fontFamily:"'JetBrains Mono',monospace",
+                    letterSpacing:"0.1em",marginBottom:8}}>UNLOCKS NEXT</div>
+                  {unlocks.map(d=>(
+                    <div key={d.id} onClick={()=>setPanelCourse(d)}
+                      style={{display:"flex",alignItems:"center",gap:8,padding:"6px 10px",
+                        borderRadius:7,background:T?.rowBg||"rgba(0,0,0,0.02)",marginBottom:4,
+                        cursor:"pointer",border:`1px solid ${T?.rowBorder||"rgba(0,0,0,0.05)"}`}}>
+                      <span style={{fontSize:10,color:col2}}>→</span>
+                      <span style={{fontSize:11,color:"#4a6280",lineHeight:1.3}}>{d.name}</span>
+                    </div>
+                  ))}
+                </div>
+              )}
+
+              {/* Revision schedule */}
+              {(state === "done" || state === "active") && (() => {
+                const due = reviewSchedule[c.id]
+                const daysLeft = due ? Math.ceil((new Date(due) - new Date()) / 86400000) : null
+                const isDue = daysLeft !== null && daysLeft <= 0
+                return (
+                  <div style={{padding:"10px 12px",borderRadius:9,
+                    background:isDue?"rgba(239,68,68,0.06)":due?"rgba(99,102,241,0.06)":T?.rowBg||"rgba(0,0,0,0.025)",
+                    border:`1px solid ${isDue?"rgba(239,68,68,0.2)":due?"rgba(99,102,241,0.15)":T?.rowBorder||"rgba(0,0,0,0.06)"}`}}>
+                    <div style={{fontSize:9,color:isDue?"#ef4444":"#818cf8",fontFamily:"'JetBrains Mono',monospace",
+                      letterSpacing:"0.1em",marginBottom:8}}>
+                      {isDue?"🔔 REVIEW DUE":due?"⏰ REVIEW SCHEDULED":"🗓 REVISION SCHEDULE"}
+                    </div>
+                    {due ? (
+                      <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",gap:8}}>
+                        <span style={{fontSize:11,color:isDue?"#ef4444":"#94a3b8"}}>
+                          {isDue?`Overdue by ${Math.abs(daysLeft)}d`:`Due in ${daysLeft}d — ${new Date(due).toLocaleDateString("en-GB",{day:"numeric",month:"short"})}`}
+                        </span>
+                        <button onClick={()=>setReviewSchedule(p=>{const n={...p};delete n[c.id];return n})}
+                          style={{fontSize:10,color:"#475569",background:"none",border:"none",cursor:"pointer",padding:0}}>
+                          ✕ clear
+                        </button>
+                      </div>
+                    ) : (
+                      <div style={{display:"flex",gap:6}}>
+                        {[7,14,30].map(days=>(
+                          <button key={days} onClick={()=>{
+                            const d=new Date(); d.setDate(d.getDate()+days)
+                            setReviewSchedule(p=>({...p,[c.id]:d.toISOString().slice(0,10)}))
+                          }} style={{flex:1,padding:"5px 0",borderRadius:7,fontSize:10,cursor:"pointer",
+                            border:"1px solid rgba(99,102,241,0.2)",
+                            background:"rgba(99,102,241,0.08)",color:"#818cf8",fontFamily:"'JetBrains Mono',monospace"}}>
+                            +{days}d
+                          </button>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                )
+              })()}
+
+              {/* External link */}
+              {c.link&&c.link.startsWith("http")&&(
+                <a href={c.link} target="_blank" rel="noreferrer"
+                  style={{display:"block",textAlign:"center",padding:"7px",borderRadius:8,
+                    border:`1px solid ${T?.border||"rgba(0,0,0,0.07)"}`,color:T?.textSub||"#64748b",fontSize:11,
+                    textDecoration:"none",background:T?.rowBg||"rgba(0,0,0,0.02)"}}>
+                  ↗ Open on {c.source}
+                </a>
+              )}
+            </div>
+          </div>
+        )
+      })()}
+    </div>
+  )
+}
+
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+// FILE: src/components/modules/LearningPath.jsx  (when splitting into separate files)
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+const LearningPath = ({ courseProgress, setCourseProgress, T, user, aiSettings, githubData = {}, markStudyToday = ()=>{} }) => {
+  const LIVE_COURSES = githubData.courses || COURSES
+  const [activeSubj, setActiveSubj] = useState("All")
+  const [filterStatus, setFilterStatus] = useState("All")
+  const [filterPriority, setFilterPriority] = useState("All")
+  const [search, setSearch] = useState("")
+  const [selectedCourse, setSelectedCourse] = useState(null)
+  const [lectureProgress, setLectureProgress] = useStorage("lecture_progress_v2", {})
+  const [viewMode, setViewMode] = useState("grid")  // "grid" | "tree"
+
+  const txt    = T?.text      || "#f1f5f9"
+  const sub    = T?.textSub   || "#64748b"
+  const muted  = T?.textMuted || "#475569"
+  const bg     = T?.cardBg    || "rgba(255,255,255,0.04)"
+  const bdr    = T?.cardBorder|| "rgba(255,255,255,0.08)"
+  const inBg   = T?.inputBg   || "rgba(255,255,255,0.055)"
+  const isDark = (T?.text || "#f1f5f9").startsWith("#f") || (T?.text || "").startsWith("#e")
+
+  const subjects = ["All", ...Object.keys(SUBJECT_COLORS)]
+
+  const filtered = LIVE_COURSES.filter(c => {
+    if (activeSubj !== "All" && c.subject !== activeSubj) return false
+    const status = courseProgress[c.id]
+    if (filterStatus === "Done" && status !== 1) return false
+    if (filterStatus === "In Progress" && status !== 0.5) return false
+    if (filterStatus === "Not Started" && status && status !== 0) return false
+    if (filterStatus === "Ready" && !prereqsDone(c.id, courseProgress)) return false
+    if (filterStatus === "Locked" && prereqsDone(c.id, courseProgress)) return false
+    if (filterPriority !== "All" && c.priority !== filterPriority) return false
+    if (search && !c.name.toLowerCase().includes(search.toLowerCase()) && !c.code.toLowerCase().includes(search.toLowerCase())) return false
+    return true
+  })
+
+  // Write today's date to study log whenever user interacts with a course
+  const [studyLog, setStudyLog] = useStorage("study_log_v1", {})
+
+  const toggle = (id) => {
+    markStudyToday()
+    setCourseProgress(prev => {
+      const curr = prev[id]
+      const next = curr === 1 ? 0.5 : curr === 0.5 ? 0 : 1
+      return { ...prev, [id]: next }
+    })
+  }
+
+  // Prereq helpers
+  const prereqsDone = (courseId, progress) => {
+    const deps = PREREQS[courseId] || []
+    return deps.every(depId => progress[depId] === 1)
+  }
+  const hasPrereqs = (courseId) => (PREREQS[courseId] || []).length > 0
+
+  const getStatusLabel = (id) => {
+    const s = courseProgress[id]
+    if (s === 1) return { label:"✓ Done", color:"#10b981" }
+    if (s === 0.5) return { label:"◑ Active", color:"#C17F3A" }
+    return { label:"○ Start", color:muted }
+  }
+
+  // Drill into CourseDetail
+  if (selectedCourse) return (
+    <CourseDetail
+     course={selectedCourse}
+      onBack={() => setSelectedCourse(null)}
+      lectureProgress={lectureProgress}
+      setLectureProgress={setLectureProgress}
+      setCourseProgress={setCourseProgress}
+      T={T}
+      user={user}
+      markStudyToday={markStudyToday}
+      githubData={githubData}
+    />
+  )
+
+  return (
+    <div>
+      <div style={{ marginBottom:24 }}>
+        <div style={{ display:"flex", justifyContent:"space-between", alignItems:"flex-start", gap:12 }}>
+          <div>
+            <h1 style={{ fontSize:26, fontWeight:700, color:txt, fontFamily:"'Syne', sans-serif", margin:0 }}>Learning Path</h1>
+            <p style={{ color:sub, margin:"4px 0 0", fontSize:13 }}>{LIVE_COURSES.length} courses · <span style={{ color:"#818cf8" }}>📋 courses with full schedules</span> open lecture-by-lecture view</p>
+          </div>
+          {/* View toggle */}
+          <div style={{ display:"flex", gap:6, flexShrink:0 }}>
+            {[["grid","▦ List"],["tree","skilltree"]].map(([mode, label]) => (
+              <button key={mode} onClick={() => setViewMode(mode)}
+                style={{ padding:"7px 14px", borderRadius:8, border:"1px solid", fontSize:12, cursor:"pointer",
+                  fontFamily:"'JetBrains Mono',monospace", transition:"all 0.18s",
+                  display:"flex", alignItems:"center", gap:6,
+                  borderColor: viewMode === mode ? "#6366f1" : bdr,
+                  background:  viewMode === mode ? "rgba(99,102,241,0.15)" : "transparent",
+                  color:       viewMode === mode ? "#818cf8" : muted }}>
+                {mode === "tree"
+                  ? <><NavIcon id="skilltree" size={14} color={viewMode === "tree" ? "#818cf8" : muted}/> Tree</>
+                  : label}
+              </button>
+            ))}
+          </div>
+        </div>
+      </div>
+
+      {/* ── TREE VIEW ── */}
+      {viewMode === "tree" && (
+        <div>
+          <div style={{ fontSize:12, color:sub, marginBottom:14, lineHeight:1.7 }}>
+            Each node is a course. Edges trace prerequisite chains. <span style={{ color:"#10b981" }}>Green</span> = done · <span style={{ color:"#C17F3A" }}>Amber</span> = in progress · <span style={{ color:"#e2e8f0" }}>White</span> = ready · <span style={{ color:"#334155" }}>Dim</span> = locked. <span style={{ color:"#818cf8" }}>● Indigo dot</span> = full lecture schedule available.
+          </div>
+          <SkillTreeView
+            courseProgress={courseProgress}
+            onCourseClick={(c) => setSelectedCourse(c)}
+            setCourseProgress={setCourseProgress}
+            T={T} isDark={isDark} aiSettings={aiSettings} githubData={githubData}
+          />
+        </div>
+      )}
+
+      {/* ── GRID VIEW ── */}
+      {viewMode === "grid" && (<>
+        {/* Subject Tabs */}
+        <div style={{ display:"flex", gap:8, marginBottom:16, flexWrap:"wrap" }}>
+          {subjects.map(s => (
+            <button key={s} onClick={() => setActiveSubj(s)} style={{ padding:"6px 14px", borderRadius:20, border:"1px solid", fontSize:12, cursor:"pointer", fontFamily:"'JetBrains Mono', monospace", transition:"all 0.2s",
+              borderColor: activeSubj === s ? (SUBJECT_COLORS[s] || "#6366f1") : bdr,
+              background: activeSubj === s ? (SUBJECT_COLORS[s] ? SUBJECT_COLORS[s] + "20" : "rgba(99,102,241,0.15)") : "transparent",
+              color: activeSubj === s ? (SUBJECT_COLORS[s] || "#6366f1") : sub }}>
+              {s}
+            </button>
+          ))}
+        </div>
+
+        {/* Filters Row */}
+        <div style={{ display:"flex", gap:10, marginBottom:20, alignItems:"center", flexWrap:"wrap" }}>
+          <input value={search} onChange={e => setSearch(e.target.value)} placeholder="Search courses..." style={{ background:inBg, border:`1px solid ${bdr}`, borderRadius:8, padding:"7px 12px", color:txt, fontSize:13, outline:"none", minWidth:200 }} />
+          {["All","Done","In Progress","Not Started","Ready","Locked"].map(f => (
+            <button key={f} onClick={() => setFilterStatus(f)} style={{ padding:"6px 12px", borderRadius:6, border:"1px solid", fontSize:12, cursor:"pointer",
+              borderColor: filterStatus === f ? "#6366f1" : bdr,
+              background: filterStatus === f ? "rgba(99,102,241,0.15)" : "transparent",
+              color: filterStatus === f ? "#818cf8" : sub }}>{f}</button>
+          ))}
+          {["All","A","B"].map(p => (
+            <button key={p} onClick={() => setFilterPriority(p)} style={{ padding:"6px 12px", borderRadius:6, border:"1px solid", fontSize:12, cursor:"pointer",
+              borderColor: filterPriority === p ? "#C17F3A" : bdr,
+              background: filterPriority === p ? "rgba(193,127,58,0.15)" : "transparent",
+              color: filterPriority === p ? "#C17F3A" : sub }}>P-{p}</button>
+          ))}
+          <span style={{ fontSize:12, color:muted, marginLeft:"auto" }}>{filtered.length} courses</span>
+        </div>
+
+        {/* Course Grid */}
+        <div style={{ display:"grid", gridTemplateColumns:"repeat(auto-fill, minmax(320px, 1fr))", gap:12 }}>
+          {filtered.map(c => {
+            const { label, color } = getStatusLabel(c.id)
+            const subjColor = SUBJECT_COLOR_LOOKUP[c.subject] || "#64748b"
+            const hasSched = !!SCHEDULES[c.id]
+            return (
+              <div key={c.id} style={{ background:bg, border:`1px solid ${hasSched ? "rgba(99,102,241,0.22)" : bdr}`, borderRadius:10, padding:"14px 16px", display:"flex", flexDirection:"column", gap:8 }}>
+                <div style={{ display:"flex", justifyContent:"space-between", alignItems:"flex-start" }}>
+                  <div style={{ flex:1, minWidth:0 }}>
+                    <span style={{ fontSize:10, color:subjColor, fontFamily:"'JetBrains Mono', monospace", textTransform:"uppercase", letterSpacing:"0.06em" }}>{c.subject}</span>
+                    <button onClick={() => setSelectedCourse(c)} style={{ display:"block", fontSize:14, fontWeight:600, color:hasSched ? "#818cf8" : txt, marginTop:2, lineHeight:1.3, background:"none", border:"none", padding:0, cursor:"pointer", textAlign:"left" }}>
+                      {hasSched && <span style={{ fontSize:10, color:"#6366f1", marginRight:4 }}>📋</span>}
+                      {c.name}
+                    </button>
+                    <div style={{ fontSize:11, color:sub, marginTop:2 }}>{c.institution} · {c.source}</div>
+                    {(PREREQS[c.id] || []).length > 0 && (
+                      <div style={{ marginTop:4, display:"flex", gap:4, flexWrap:"wrap" }}>
+                        {prereqsDone(c.id, courseProgress)
+                          ? <span style={{ fontSize:9, color:"#10b981", background:"rgba(16,185,129,0.1)", border:"1px solid rgba(16,185,129,0.2)", padding:"1px 6px", borderRadius:3 }}>✓ prereqs done</span>
+                          : (PREREQS[c.id]||[]).slice(0,2).map(depId => {
+                              const dep = LIVE_COURSES.find(x => x.id === depId)
+                              return dep ? <span key={depId} style={{ fontSize:9, color:"#C17F3A", background:"rgba(193,127,58,0.08)", border:"1px solid rgba(193,127,58,0.2)", padding:"1px 6px", borderRadius:3 }}>🔒 {dep.code}</span> : null
+                            })
+                        }
+                      </div>
+                    )}
+                  </div>
+                  <span style={{ fontSize:10, color: c.priority === "A" ? "#C17F3A" : sub, border:"1px solid", borderColor: c.priority === "A" ? "rgba(193,127,58,0.3)" : "rgba(100,116,139,0.2)", padding:"2px 6px", borderRadius:4, whiteSpace:"nowrap" }}>P-{c.priority}</span>
+                </div>
+
+                <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center" }}>
+                  <span style={{ fontSize:11, color:sub, fontFamily:"'JetBrains Mono', monospace" }}>📹 {c.lectures}</span>
+                  <div style={{ display:"flex", gap:8, alignItems:"center" }}>
+                    {c.link && c.link.startsWith("http") && (
+                      <a href={c.link} target="_blank" rel="noreferrer" style={{ fontSize:11, color:"#6366f1", textDecoration:"none" }}>Course →</a>
+                    )}
+                    <button onClick={() => toggle(c.id)} style={{ fontSize:11, color, background:"transparent", border:`1px solid ${color}30`, padding:"3px 10px", borderRadius:4, cursor:"pointer", fontFamily:"'JetBrains Mono', monospace" }}>
+                      {label}
+                    </button>
+                  </div>
+                </div>
+              </div>
+            )
+          })}
+        </div>
+      </>)}
+    </div>
+  )
+}
+
+// ─────────────────────────────────────────────
+//  MODULE: COMPETITION TRACKER
+// ─────────────────────────────────────────────
+
+
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+// FILE: src/components/modules/CompetitionTracker.jsx  (when splitting)
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+const CompetitionTracker = ({ bookmarks, setBookmarks, T, aiSettings, githubData = {} }) => {
+  const LIVE_COMPS = githubData.competitions || COMPETITIONS
+  const [search, setSearch] = useState("")
+  const [filterStatus, setFilterStatus] = useState("All")
+  const [filterCat, setFilterCat] = useState("All")
+  const [filterMode, setFilterMode] = useState("All")
+  const [sortBy, setSortBy] = useState("deadline")
+  const [liveResults, setLiveResults] = useState([])
+  const [liveLoading, setLiveLoading] = useState(false)
+  const [liveQuery, setLiveQuery] = useState("")
+  const [liveError, setLiveError] = useState("")
+  const [showLive, setShowLive] = useState(false)
+  const [mainTab, setMainTab]   = useState("competitions")
+
+  const [compNotes,    setCompNotes]      = useStorage("comp_notes_v1", {})
+  const [openNotes,    setOpenNotes]      = useState({})
+
+  const bg   = T?.cardBg    || "rgba(255,255,255,0.02)"
+  const bdr  = T?.cardBorder|| "rgba(255,255,255,0.07)"
+  const txt  = T?.text      || "#f1f5f9"
+  const sub  = T?.textSub   || "#64748b"
+  const muted= T?.textMuted || "#475569"
+  const inBg = T?.inputBg   || "rgba(255,255,255,0.04)"
+  const selBg= T?.selectBg  || "#111120"
+
+  const categories = ["All", ...Array.from(new Set(COMPETITIONS.map(c => c.category))).sort()]
+  const modes = ["All","Online","In-Person","Hybrid"]
+
+  const exportICS = () => {
+    const toICSDate = (str) => {
+      if (!str || str.includes("TBA")) return null
+      const d = new Date(str); if (isNaN(d)) return null
+      return d.toISOString().replace(/-|:|\.\d{3}/g,"").slice(0,15)+"Z"
+    }
+    const lines = ["BEGIN:VCALENDAR","VERSION:2.0","PRODID:-//QuantOS//Competitions//EN","CALSCALE:GREGORIAN"]
+    LIVE_COMPS.filter(c=>c.status!=="closed").forEach(c=>{
+      const dt = toICSDate(c.deadline); if(!dt) return
+      lines.push("BEGIN:VEVENT",
+        `DTSTART:${dt}`, `DTEND:${dt}`,
+        `SUMMARY:DEADLINE: ${c.name}`,
+        `DESCRIPTION:${c.desc?.replace(/\n/g,"\\n")||""} | ${c.link||""}`,
+        `URL:${c.link||""}`,
+        `LOCATION:${c.location||""}`,
+        `UID:quantos-${c.id}@competitions`,
+        "END:VEVENT")
+    })
+    lines.push("END:VCALENDAR")
+    const blob = new Blob([lines.join("\r\n")],{type:"text/calendar"})
+    const a = document.createElement("a"); a.href=URL.createObjectURL(blob)
+    a.download="QuantOS_Competitions_2026.ics"; a.click(); URL.revokeObjectURL(a.href)
+  }
+
+  const toggleBookmark = (id) => {
+    setBookmarks(prev => prev.includes(id) ? prev.filter(b => b !== id) : [...prev, id])
+  }
+
+  let filtered = LIVE_COMPS.filter(c => {
+    if (filterStatus !== "All" && filterStatus === "open"       && c.status !== "open")   return false
+    if (filterStatus !== "All" && filterStatus === "tba"        && c.status !== "tba")    return false
+    if (filterStatus !== "All" && filterStatus === "closed"     && c.status !== "closed") return false
+    if (filterStatus === "bookmarked" && !bookmarks.includes(c.id)) return false
+    if (filterCat  !== "All" && c.category !== filterCat)  return false
+    if (filterMode !== "All" && !c.mode.includes(filterMode)) return false
+    if (search && !c.name.toLowerCase().includes(search.toLowerCase()) && !c.org.toLowerCase().includes(search.toLowerCase())) return false
+    return true
+  })
+
+  if (sortBy === "deadline") {
+    filtered.sort((a, b) => {
+      const da = daysUntil(a.deadline), db = daysUntil(b.deadline)
+      if (da === null && db === null) return 0
+      if (da === null) return 1; if (db === null) return -1
+      return da - db
+    })
+  } else if (sortBy === "name")     { filtered.sort((a, b) => a.name.localeCompare(b.name)) }
+    else if (sortBy === "category") { filtered.sort((a, b) => a.category.localeCompare(b.category)) }
+
+  // ── Live AI Search via Anthropic API ──
+  const fetchLiveCompetitions = async () => {
+    if (!liveQuery.trim()) return
+    setLiveLoading(true)
+    setLiveError("")
+    setShowLive(true)
+    try {
+      const prompt = `You are a quant finance expert. Search your knowledge for quant trading competitions, datathons, or research programs related to: "${liveQuery}".
+
+Return ONLY a JSON array (no markdown, no preamble) of up to 8 results. Each object must have exactly these fields:
+{
+  "name": "Competition Name",
+  "org": "Organizing Firm",
+  "deadline": "YYYY-MM-DD or TBA",
+  "start": "YYYY-MM-DD",
+  "mode": "Online|In-Person|Hybrid",
+  "location": "City, Country or Global",
+  "status": "open|tba|closed",
+  "category": "one of: ML & Data Science|Algo Trading|Options & Market Making|Portfolio Management|Discovery Program|Conference|Competitive Programming|Research",
+  "prize": "prize description or —",
+  "link": "https://...",
+  "desc": "2-sentence description"
+}
+
+Focus on real, verifiable competitions. If deadline is unknown use TBA. Today is ${new Date().toISOString().slice(0,10)}.`
+
+      if (!aiSettings?.key) throw new Error("NO_KEY")
+      const raw = await callAI({ prompt, maxTokens: 2000, aiSettings })
+      const clean = raw.replace(/```json|```/g,"").trim()
+      const parsed = JSON.parse(clean)
+      const enriched = parsed.map((c,i) => ({ ...c, id:`live_${Date.now()}_${i}`, isLive:true }))
+      setLiveResults(enriched)
+    } catch(e) {
+      setLiveError("Search failed. Try a different query.")
+      setLiveResults([])
+    }
+    setLiveLoading(false)
+  }
+
+  const StatusBadge = ({ status }) => {
+    const cfg = { open:{label:"✅ OPEN",color:"#10b981"}, tba:{label:"🔜 TBA",color:"#C17F3A"}, closed:{label:"⛔ CLOSED",color:"#ef4444"} }
+    const { label, color } = cfg[status] || cfg.tba
+    return <span style={{ fontSize:10, color, fontFamily:"'JetBrains Mono', monospace", border:`1px solid ${color}30`, padding:"2px 8px", borderRadius:4 }}>{label}</span>
+  }
+
+  const CompCard = ({ c }) => {
+    const days = daysUntil(c.deadline)
+    const catColor = CATEGORY_COLORS[c.category] || "#64748b"
+    const isBookmarked = bookmarks.includes(c.id)
+    return (
+      <div style={{ background:bg, border:`1px solid ${c.status==="open"?"rgba(16,185,129,0.2)":c.isLive?"rgba(193,127,58,0.2)":bdr}`, borderRadius:12, padding:"16px 18px", display:"flex", flexDirection:"column", gap:10 }}>
+        <div style={{ display:"flex", justifyContent:"space-between", alignItems:"flex-start" }}>
+          <div style={{ flex:1, minWidth:0 }}>
+            <div style={{ display:"flex", gap:6, alignItems:"center", marginBottom:4, flexWrap:"wrap" }}>
+              <span style={{ fontSize:10, color:catColor, background:`${catColor}15`, padding:"2px 8px", borderRadius:4, fontFamily:"'JetBrains Mono', monospace", textTransform:"uppercase", letterSpacing:"0.05em" }}>{c.category}</span>
+              <StatusBadge status={c.status} />
+              {c.isLive && <span style={{ fontSize:9, color:"#C17F3A", background:"rgba(193,127,58,0.1)", padding:"2px 6px", borderRadius:3 }}>✦ AI</span>}
+            </div>
+            <div style={{ fontSize:14, fontWeight:700, color:txt, lineHeight:1.3 }}>{c.name}</div>
+            <div style={{ fontSize:11, color:sub, marginTop:2 }}>{c.org} · {c.location}</div>
+          </div>
+          <button onClick={() => toggleBookmark(c.id)} style={{ background:"none", border:"none", cursor:"pointer", fontSize:16, marginLeft:8, color:isBookmarked?"#C17F3A":muted }}>
+            {isBookmarked ? "★" : "☆"}
+          </button>
+        </div>
+        <p style={{ fontSize:12, color:sub, margin:0, lineHeight:1.5 }}>{c.desc}</p>
+        <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:8 }}>
+          <div>
+            <div style={{ fontSize:10, color:muted, marginBottom:2 }}>DEADLINE</div>
+            <div style={{ fontSize:12, fontFamily:"'JetBrains Mono', monospace", color:days!==null&&days<=7?"#ef4444":days!==null&&days<=14?"#C17F3A":txt }}>
+              {days !== null ? `${days}d → ${formatDate(c.deadline)}` : c.deadline==="N/A"?"N/A":"TBA"}
+            </div>
+          </div>
+          <div>
+            <div style={{ fontSize:10, color:muted, marginBottom:2 }}>MODE</div>
+            <div style={{ fontSize:12, color:sub, fontFamily:"'JetBrains Mono', monospace" }}>{c.mode.split(" ")[0]}</div>
+          </div>
+          {c.prize && c.prize !== "—" && (
+            <div>
+              <div style={{ fontSize:10, color:muted, marginBottom:2 }}>PRIZE</div>
+              <div style={{ fontSize:12, color:"#C17F3A", fontFamily:"'JetBrains Mono', monospace" }}>{c.prize}</div>
+            </div>
+          )}
+          <div style={{ display:"flex", alignItems:"flex-end", gap:6 }}>
+            <a href={c.link} target="_blank" rel="noreferrer" style={{ fontSize:12, color:"#C17F3A", textDecoration:"none", border:"1px solid rgba(193,127,58,0.3)", padding:"4px 12px", borderRadius:6 }}>Register →</a>
+            <button onClick={()=>setOpenNotes(p=>({...p,[c.id]:!p[c.id]}))}
+              style={{ fontSize:11,padding:"4px 8px",borderRadius:6,cursor:"pointer",
+                border:`1px solid ${compNotes[c.id]?"rgba(99,102,241,0.4)":"rgba(255,255,255,0.1)"}`,
+                background:compNotes[c.id]?"rgba(99,102,241,0.12)":"transparent",
+                color:compNotes[c.id]?"#818cf8":"#475569" }}>
+              {openNotes[c.id]?"✕":"📝"}
+            </button>
+          </div>
+        </div>
+        {openNotes[c.id] && (
+          <div style={{ marginTop:10, paddingTop:10, borderTop:`1px solid ${bdr}` }}>
+            <textarea
+              value={compNotes[c.id]||""}
+              onChange={e=>setCompNotes(p=>({...p,[c.id]:e.target.value}))}
+              placeholder="Personal notes, team info, requirements..."
+              style={{ width:"100%", minHeight:60, background:inBg,
+                border:"1px solid rgba(99,102,241,0.25)", borderRadius:8,
+                padding:"8px 12px", color:txt, fontSize:12, resize:"vertical",
+                outline:"none", fontFamily:"inherit", lineHeight:1.5, boxSizing:"border-box" }}
+            />
+          </div>
+        )}
+      </div>
+    )
+  }
+
+  return (
+    <div>
+      <div style={{ marginBottom:20, display:"flex", alignItems:"flex-start", justifyContent:"space-between", gap:12, flexWrap:"wrap" }}>
+        <div>
+          <h1 style={{ fontSize:26, fontWeight:700, color:txt, fontFamily:"'Syne', sans-serif", margin:0 }}>Competitions</h1>
+          <p style={{ color:sub, margin:"4px 0 0", fontSize:13 }}>{LIVE_COMPS.length} competitions · Track your applications</p>
+        </div>
+        <button onClick={exportICS}
+          title="Download all open competition deadlines as a .ics calendar file"
+          style={{ padding:"7px 16px", borderRadius:10, border:"1px solid rgba(16,185,129,0.3)",
+            background:"rgba(16,185,129,0.08)", color:"#10b981", fontSize:11,
+            cursor:"pointer", fontFamily:"'JetBrains Mono',monospace", letterSpacing:"0.06em",
+            whiteSpace:"nowrap", flexShrink:0 }}>
+          📅 Export to Calendar (.ics)
+        </button>
+      </div>
+
+      {/* ══ COMPETITIONS ══ */}
+      <>
+      {/* ── AI Live Search bar ── */}
+      <div style={{ background:"rgba(193,127,58,0.06)", border:"1px solid rgba(193,127,58,0.2)", borderRadius:12, padding:"14px 18px", marginBottom:20 }}>
+        <div style={{ fontSize:11, color:"#C17F3A", fontFamily:"'JetBrains Mono',monospace", marginBottom:8, letterSpacing:"0.08em" }}>✦ AI LIVE SEARCH — discover competitions beyond the curated list</div>
+        <div style={{ display:"flex", gap:8 }}>
+          <input value={liveQuery} onChange={e=>setLiveQuery(e.target.value)}
+            onKeyDown={e=>e.key==="Enter"&&fetchLiveCompetitions()}
+            placeholder='e.g. "crypto quant competitions 2026" or "ML datathon London"...'
+            style={{ flex:1, background:inBg, border:`1px solid rgba(193,127,58,0.25)`, borderRadius:8, padding:"8px 14px", color:txt, fontSize:13, outline:"none" }} />
+          <button onClick={fetchLiveCompetitions} disabled={liveLoading}
+            style={{ background:"rgba(193,127,58,0.2)", border:"1px solid rgba(193,127,58,0.4)", borderRadius:8, padding:"8px 20px", color:"#C17F3A", fontSize:13, cursor:"pointer", fontWeight:600, whiteSpace:"nowrap" }}>
+            {liveLoading ? "Searching..." : "🔍 Search"}
+          </button>
+          {showLive && <button onClick={() => { setShowLive(false); setLiveResults([]) }}
+            style={{ background:"transparent", border:`1px solid ${bdr}`, borderRadius:8, padding:"8px 14px", color:muted, fontSize:12, cursor:"pointer" }}>
+            ✕ Hide
+          </button>}
+        </div>
+        {liveError && <div style={{ fontSize:12, color:"#ef4444", marginTop:8 }}>{liveError}</div>}
+      </div>
+
+      {/* ── Live Results ── */}
+      {showLive && liveResults.length > 0 && (
+        <div style={{ marginBottom:24 }}>
+          <div style={{ fontSize:12, color:"#C17F3A", fontFamily:"'JetBrains Mono',monospace", marginBottom:12 }}>✦ AI RESULTS ({liveResults.length}) — verify deadlines on official sites</div>
+          <div style={{ display:"grid", gridTemplateColumns:"repeat(auto-fill, minmax(340px, 1fr))", gap:12 }}>
+            {liveResults.map((c,i) => <CompCard key={i} c={c} />)}
+          </div>
+          <div style={{ height:1, background:`linear-gradient(90deg,rgba(193,127,58,0.3),transparent)`, margin:"24px 0" }} />
+        </div>
+      )}
+
+      {/* ── Filters ── */}
+      <div style={{ display:"flex", gap:10, marginBottom:16, flexWrap:"wrap", alignItems:"center" }}>
+        <input value={search} onChange={e => setSearch(e.target.value)} placeholder="Search competitions & firms..."
+          style={{ background:inBg, border:`1px solid ${bdr}`, borderRadius:8, padding:"7px 14px", color:txt, fontSize:13, outline:"none", minWidth:240 }} />
+        <div style={{ display:"flex", gap:6, flexWrap:"wrap" }}>
+          {[["All","All"],["open","Open Now"],["tba","TBA"],["closed","Closed"],["bookmarked","★ Saved"]].map(([val, label]) => (
+            <button key={val} onClick={() => setFilterStatus(val)} style={{ padding:"6px 12px", borderRadius:6, border:"1px solid", fontSize:12, cursor:"pointer",
+              borderColor:filterStatus===val?"#10b981":bdr,
+              background:filterStatus===val?"rgba(16,185,129,0.15)":"transparent",
+              color:filterStatus===val?"#10b981":sub }}>{label}</button>
+          ))}
+        </div>
+        <select value={filterCat} onChange={e=>setFilterCat(e.target.value)} style={{ background:selBg, border:`1px solid ${bdr}`, borderRadius:6, padding:"6px 10px", color:sub, fontSize:12, cursor:"pointer" }}>
+          {categories.map(c => <option key={c} value={c}>{c}</option>)}
+        </select>
+        <select value={filterMode} onChange={e=>setFilterMode(e.target.value)} style={{ background:selBg, border:`1px solid ${bdr}`, borderRadius:6, padding:"6px 10px", color:sub, fontSize:12, cursor:"pointer" }}>
+          {modes.map(m => <option key={m}>{m}</option>)}
+        </select>
+        <select value={sortBy} onChange={e=>setSortBy(e.target.value)} style={{ background:selBg, border:`1px solid ${bdr}`, borderRadius:6, padding:"6px 10px", color:sub, fontSize:12, cursor:"pointer" }}>
+          <option value="deadline">Sort: Deadline</option>
+          <option value="name">Sort: Name</option>
+          <option value="category">Sort: Category</option>
+        </select>
+        <span style={{ fontSize:12, color:muted, marginLeft:"auto" }}>{filtered.length} shown</span>
+      </div>
+
+      {/* ── Curated Grid ── */}
+      <div style={{ display:"grid", gridTemplateColumns:"repeat(auto-fill, minmax(340px, 1fr))", gap:12 }}>
+        {filtered.map(c => <CompCard key={c.id} c={c} />)}
+      </div>
+      </>
+    </div>
+  )
+}
+
+// ─────────────────────────────────────────────
+//  InternshipsTab + JobsTab — used inside CareerPrep
+// ─────────────────────────────────────────────
+const InternshipsTab = ({ T, githubData = {} }) => {
+  const LIVE_INTERNSHIPS = githubData.internships || INTERNSHIPS
+  const bg    = T?.cardBg    || "rgba(255,255,255,0.04)"
+  const bdr   = T?.cardBorder|| "rgba(180,90,40,0.18)"
+  const txt   = T?.text      || "#E8D5C0"
+  const sub   = T?.textSub   || "#8B6250"
+  const muted = T?.textMuted || "#5a3828"
+  const inBg  = T?.inputBg   || "rgba(255,255,255,0.05)"
+  const selBg = T?.inputBg   || "rgba(255,255,255,0.05)"
+
+  const [trackedApps, setTrackedApps] = useStorage("comp_applications_v1", {})
+  const [internSearch, setInternSearch] = useState("")
+  const [internType,   setInternType]   = useState("All")
+  const [internStatus, setInternStatus] = useState("All")
+
+  const APP_STATES = ["None", "Applied", "Interviewing", "Offer", "Rejected"]
+  const APP_COLORS = { None:"#475569", Applied:"#6366f1", Interviewing:"#C17F3A", Offer:"#10b981", Rejected:"#ef4444" }
+
+  const internTypes = ["All", ...Array.from(new Set(LIVE_INTERNSHIPS.map(i => i.type))).sort()]
+  const filtered = LIVE_INTERNSHIPS.filter(i => {
+    if (internType   !== "All" && i.type   !== internType)   return false
+    if (internStatus !== "All" && i.status !== internStatus) return false
+    if (internSearch && !i.company.toLowerCase().includes(internSearch.toLowerCase()) &&
+        !i.role.toLowerCase().includes(internSearch.toLowerCase())) return false
+    return true
+  })
+  const stats = {
+    Applied:      Object.values(trackedApps).filter(s=>s==="Applied").length,
+    Interviewing: Object.values(trackedApps).filter(s=>s==="Interviewing").length,
+    Offer:        Object.values(trackedApps).filter(s=>s==="Offer").length,
+  }
+
+  return (
+    <div>
+      {/* Stats row */}
+      <div style={{ display:"flex", gap:12, marginBottom:20, flexWrap:"wrap" }}>
+        {Object.entries(stats).map(([k,v])=>(
+          <div key={k} style={{ background:bg, border:`1px solid ${bdr}`, borderRadius:10, padding:"10px 18px", textAlign:"center" }}>
+            <div style={{ fontSize:22, fontWeight:800, color:APP_COLORS[k], fontFamily:"'Syne',sans-serif" }}>{v}</div>
+            <div style={{ fontSize:10, color:muted, fontFamily:"'JetBrains Mono',monospace" }}>{k}</div>
+          </div>
+        ))}
+        <div style={{ background:bg, border:`1px solid ${bdr}`, borderRadius:10, padding:"10px 18px", textAlign:"center" }}>
+          <div style={{ fontSize:22, fontWeight:800, color:txt, fontFamily:"'Syne',sans-serif" }}>{filtered.length}</div>
+          <div style={{ fontSize:10, color:muted, fontFamily:"'JetBrains Mono',monospace" }}>Shown</div>
+        </div>
+      </div>
+
+      {/* Filters */}
+      <div style={{ display:"flex", gap:8, marginBottom:16, flexWrap:"wrap" }}>
+        <input value={internSearch} onChange={e=>setInternSearch(e.target.value)} placeholder="Search company / role…"
+          style={{ background:inBg, border:`1px solid ${bdr}`, borderRadius:8, padding:"7px 14px", color:txt, fontSize:13, outline:"none", minWidth:200 }}/>
+        <select value={internType} onChange={e=>setInternType(e.target.value)}
+          style={{ background:selBg, border:`1px solid ${bdr}`, borderRadius:6, padding:"7px 10px", color:sub, fontSize:12, cursor:"pointer" }}>
+          {internTypes.map(t=><option key={t}>{t}</option>)}
+        </select>
+        <select value={internStatus} onChange={e=>setInternStatus(e.target.value)}
+          style={{ background:selBg, border:`1px solid ${bdr}`, borderRadius:6, padding:"7px 10px", color:sub, fontSize:12, cursor:"pointer" }}>
+          {["All","open","tba","closed"].map(s=><option key={s}>{s}</option>)}
+        </select>
+      </div>
+
+      {/* Cards */}
+      <div style={{ display:"grid", gridTemplateColumns:"repeat(auto-fill,minmax(340px,1fr))", gap:12 }}>
+        {filtered.map(i => {
+          const app = trackedApps[i.id]||"None"
+          const ac  = APP_COLORS[app]||"#475569"
+          const sc  = i.status==="open"?"#10b981":i.status==="tba"?"#C17F3A":"#475569"
+          return (
+            <div key={i.id} style={{ background:bg, border:`1px solid ${bdr}`, borderRadius:12, padding:"16px 20px" }}>
+              <div style={{ display:"flex", justifyContent:"space-between", alignItems:"flex-start", gap:8, marginBottom:8 }}>
+                <div style={{ flex:1, minWidth:0 }}>
+                  <div style={{ fontSize:15, fontWeight:700, color:txt, marginBottom:2 }}>{i.company}</div>
+                  <div style={{ fontSize:12, color:sub }}>{i.role}</div>
+                  <div style={{ fontSize:11, color:muted, marginTop:2 }}>📍 {i.location}</div>
+                </div>
+                <span style={{ fontSize:9, color:sc, fontFamily:"'JetBrains Mono',monospace", background:`${sc}14`, border:`1px solid ${sc}30`, padding:"2px 7px", borderRadius:4, flexShrink:0 }}>● {i.status}</span>
+              </div>
+              {i.notes && <div style={{ fontSize:11, color:muted, marginBottom:10, lineHeight:1.5, fontStyle:"italic" }}>{i.notes}</div>}
+              <div style={{ display:"flex", alignItems:"center", gap:8 }}>
+                <a href={i.link} target="_blank" rel="noreferrer"
+                  style={{ fontSize:12, color:"#C17F3A", border:"1px solid rgba(193,127,58,0.3)", padding:"5px 14px", borderRadius:6, textDecoration:"none", background:"rgba(193,127,58,0.08)", fontWeight:600 }}>Apply →</a>
+                <select value={app} onChange={e=>setTrackedApps(p=>({...p,[i.id]:e.target.value}))}
+                  style={{ background:selBg, border:`1px solid ${ac}40`, borderRadius:6, padding:"5px 10px", color:ac, fontSize:11, cursor:"pointer", flex:1 }}>
+                  {APP_STATES.map(s=><option key={s}>{s}</option>)}
+                </select>
+              </div>
+            </div>
+          )
+        })}
+      </div>
+    </div>
+  )
+}
+
+const JobsTab = ({ T, githubData = {} }) => {
+  const LIVE_JOBS = githubData.jobs || JOBS
+  const bg    = T?.cardBg    || "rgba(255,255,255,0.04)"
+  const bdr   = T?.cardBorder|| "rgba(180,90,40,0.18)"
+  const txt   = T?.text      || "#E8D5C0"
+  const sub   = T?.textSub   || "#8B6250"
+  const muted = T?.textMuted || "#5a3828"
+  const inBg  = T?.inputBg   || "rgba(255,255,255,0.05)"
+  const selBg = T?.inputBg   || "rgba(255,255,255,0.05)"
+
+  const [jobApps, setJobApps]     = useStorage("job_applications_v1", {})
+  const [jobSearch, setJobSearch] = useState("")
+  const [jobType,   setJobType]   = useState("All")
+  const [jobStatus, setJobStatus] = useState("All")
+
+  const JOB_TYPES  = ["All","QR","QT","QD","SWE","Risk","Other"]
+  const JOB_STATES = ["—","saved","applied","interviewing","offer","rejected"]
+  const JOB_STATE_COLORS = { saved:"#6366f1", applied:"#0ea5e9", interviewing:"#C17F3A", offer:"#10b981", rejected:"#475569" }
+
+  const filtered = LIVE_JOBS.filter(j=>{
+    if (jobType   !== "All" && j.type   !== jobType)   return false
+    if (jobStatus !== "All" && j.status !== jobStatus) return false
+    if (jobSearch && !j.company.toLowerCase().includes(jobSearch.toLowerCase()) &&
+        !j.role.toLowerCase().includes(jobSearch.toLowerCase())) return false
+    return true
+  })
+
+  return (
+    <div>
+      {/* Filters */}
+      <div style={{ display:"flex", gap:8, marginBottom:16, flexWrap:"wrap", alignItems:"center" }}>
+        <input value={jobSearch} onChange={e=>setJobSearch(e.target.value)} placeholder="Search company or role…"
+          style={{ background:inBg, border:`1px solid ${bdr}`, borderRadius:8, padding:"7px 14px", color:txt, fontSize:13, outline:"none", minWidth:200 }}/>
+        <select value={jobType} onChange={e=>setJobType(e.target.value)}
+          style={{ background:selBg, border:`1px solid ${bdr}`, borderRadius:6, padding:"7px 10px", color:sub, fontSize:12, cursor:"pointer" }}>
+          {JOB_TYPES.map(t=><option key={t}>{t}</option>)}
+        </select>
+        <select value={jobStatus} onChange={e=>setJobStatus(e.target.value)}
+          style={{ background:selBg, border:`1px solid ${bdr}`, borderRadius:6, padding:"7px 10px", color:sub, fontSize:12, cursor:"pointer" }}>
+          {["All","open","rolling","closed"].map(s=><option key={s}>{s}</option>)}
+        </select>
+        <span style={{ fontSize:12, color:muted, marginLeft:"auto" }}>{filtered.length} roles</span>
+      </div>
+      {/* Legend */}
+      <div style={{ display:"flex", gap:10, marginBottom:14, flexWrap:"wrap" }}>
+        {[["QR","Quant Researcher","#C17F3A"],["QT","Quant Trader","#10b981"],["QD","Quant Developer","#6366f1"],["SWE","Software Eng","#0ea5e9"]].map(([t,l,c])=>(
+          <span key={t} style={{ fontSize:10, color:c, background:`${c}12`, border:`1px solid ${c}30`, padding:"2px 8px", borderRadius:4, fontFamily:"'JetBrains Mono',monospace" }}>{t} · {l}</span>
+        ))}
+      </div>
+      {/* Cards */}
+      <div style={{ display:"grid", gridTemplateColumns:"repeat(auto-fill,minmax(360px,1fr))", gap:12 }}>
+        {filtered.map(j=>{
+          const typeColors = { QR:"#C17F3A", QT:"#10b981", QD:"#6366f1", SWE:"#0ea5e9", Risk:"#ec4899", Other:"#94a3b8" }
+          const tc  = typeColors[j.type]||"#94a3b8"
+          const app = jobApps[j.id]||"—"
+          const ac  = JOB_STATE_COLORS[app]||"#475569"
+          const sc  = j.status==="open"?"#10b981":j.status==="rolling"?"#C17F3A":"#475569"
+          return (
+            <div key={j.id} style={{ background:bg, border:`1px solid ${bdr}`, borderRadius:12, padding:"16px 20px", borderLeft:`3px solid ${tc}` }}>
+              <div style={{ display:"flex", justifyContent:"space-between", alignItems:"flex-start", gap:8, marginBottom:10 }}>
+                <div style={{ flex:1, minWidth:0 }}>
+                  <div style={{ display:"flex", alignItems:"center", gap:6, marginBottom:4, flexWrap:"wrap" }}>
+                    <span style={{ fontSize:10, color:tc, background:`${tc}14`, border:`1px solid ${tc}30`, padding:"2px 7px", borderRadius:4, fontFamily:"'JetBrains Mono',monospace", fontWeight:700 }}>{j.type}</span>
+                    <span style={{ fontSize:10, color:sc, fontFamily:"'JetBrains Mono',monospace" }}>● {j.status}</span>
+                  </div>
+                  <div style={{ fontSize:15, fontWeight:700, color:txt, lineHeight:1.3, marginBottom:3 }}>{j.role}</div>
+                  <div style={{ fontSize:13, color:sub }}>{j.company}</div>
+                  <div style={{ fontSize:11, color:muted, marginTop:2 }}>📍 {j.location}</div>
+                </div>
+              </div>
+              {j.notes && <div style={{ fontSize:11, color:muted, marginBottom:12, lineHeight:1.5, fontStyle:"italic" }}>{j.notes}</div>}
+              <div style={{ display:"flex", alignItems:"center", gap:8 }}>
+                <a href={j.link} target="_blank" rel="noreferrer"
+                  style={{ fontSize:12, color:tc, textDecoration:"none", border:`1px solid ${tc}35`, padding:"5px 14px", borderRadius:6, background:`${tc}10`, fontWeight:600 }}>Apply →</a>
+                <select value={app} onChange={e=>setJobApps(p=>({...p,[j.id]:e.target.value}))}
+                  style={{ background:selBg, border:`1px solid ${ac}40`, borderRadius:6, padding:"5px 10px", color:ac, fontSize:11, cursor:"pointer", flex:1 }}>
+                  {JOB_STATES.map(s=><option key={s} value={s}>{s==="—"?"Track status…":s}</option>)}
+                </select>
+              </div>
+            </div>
+          )
+        })}
+      </div>
+    </div>
+  )
+}
+//  MODULE: INTERVIEW PREP (Claude AI)
+// ─────────────────────────────────────────────
+
+
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+// FILE: src/components/modules/InterviewPrep.jsx  (when splitting)
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+// FILE: src/components/modules/PracticeHub.jsx
+// Unified practice module: Interview Prep + Flashcards in one place
+// Two top-level tabs keep all features intact while halving sidebar clutter
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+const PracticeHub = ({ T, isMobile, aiSettings, markStudyToday = ()=>{} }) => {
+  const bg   = T?.cardBg    || "rgba(255,255,255,0.04)"
+  const bdr  = T?.cardBorder|| "rgba(255,255,255,0.08)"
+  const txt  = T?.text      || "#f1f5f9"
+  const sub  = T?.textSub   || "#64748b"
+  const muted= T?.textMuted || "#475569"
+  const inBg = T?.inputBg   || "rgba(255,255,255,0.055)"
+  const selBg= T?.selectBg  || "#0c0c1e"
+
+  // ── Top-level tab ──────────────────────────────────────────────────────────
+  const [mainTab, setMainTab] = useState("interview")  // "interview" | "flashcards"
+
+  // ══ INTERVIEW STATE ════════════════════════════════════════════════════════
+  const [category,        setCategory]       = useState("Probability & Stats")
+  const [difficulty,      setDifficulty]     = useState("Medium")
+  const [question,        setQuestion]       = useState("")
+  const [userAnswer,      setUserAnswer]     = useState("")
+  const [feedback,        setFeedback]       = useState(null)
+  const [loading,         setLoading]        = useState(false)
+  const [loadingQ,        setLoadingQ]       = useState(false)
+  const [score,           setScore]          = useState(null)
+  const [history,         setHistory]        = useStorage("interview_history", [])
+  const [customCards,     setCustomCards]    = useStorage("custom_flashcards_v1", [])
+  const [savedToFlashcard,setSavedToFlashcard] = useState(false)
+  const [mode,            setMode]           = useState("ai")  // "ai" | "bank"
+  const [bankIdx,         setBankIdx]        = useState(0)
+
+  // ══ FLASHCARD STATE ════════════════════════════════════════════════════════
+  const CUSTOM_DECK = { id:"custom", name:"📌 From Interview", color:"#818cf8",
+    cards: customCards.map(c => ({ q:c.q, a:c.a })) }
+  const ALL_DECKS   = customCards.length > 0 ? [...FLASHCARD_DECKS, CUSTOM_DECK] : FLASHCARD_DECKS
+
+  const [activeDeck, setActiveDeck] = useState(FLASHCARD_DECKS[0].id)
+  const [cardIdx,    setCardIdx]    = useState(0)
+  const [flipped,    setFlipped]    = useState(false)
+  const [scores,     setScores]     = useStorage("flashcard_scores_v1", {})
+
+  const deck    = ALL_DECKS.find(d => d.id === activeDeck) || ALL_DECKS[0]
+  const card    = deck.cards[cardIdx % Math.max(deck.cards.length, 1)]
+  const total   = deck.cards.length
+  const cardKey = `${deck.id}_${cardIdx}`
+
+  const rate = (rating) => {
+    markStudyToday(); setScores(prev => ({ ...prev, [cardKey]: rating }))
+    setCardIdx(i => (i + 1) % Math.max(total, 1))
+    setFlipped(false)
+  }
+
+  const deckStats = (d) => {
+    const easy = d.cards.filter((_, i) => scores[`${d.id}_${i}`] === "easy").length
+    return { easy, pct: Math.round(d.cards.length ? (easy / d.cards.length) * 100 : 0) }
+  }
+
+  // ══ INTERVIEW HELPERS ══════════════════════════════════════════════════════
+  const DIFF_PROMPTS = { Easy:"beginner-friendly", Medium:"intermediate", Hard:"challenging hedge fund interview level" }
+
+  const generateQuestion = async () => {
+    setLoadingQ(true); setQuestion(""); setFeedback(null); setUserAnswer(""); setScore(null)
+    try {
+      if (!aiSettings?.key) { setQuestion("Set your AI provider key in ⚙ Settings to generate questions."); setLoadingQ(false); return }
+      const result = await callAI({
+        system: `You are an expert quant finance interviewer at a top HFT firm. Generate a single ${DIFF_PROMPTS[difficulty]} interview question for the category: ${category}. Output ONLY the question text, no preamble, no answer.`,
+        prompt: `Generate a ${difficulty} ${category} question. Just the question, no explanation.`,
+        maxTokens: 500, aiSettings
+      })
+      setQuestion(result || "Failed to generate.")
+    } catch { setQuestion("Could not connect to AI. Try the Question Bank instead.") }
+    setLoadingQ(false)
+  }
+
+  const evalAnswer = async () => {
+    if (!userAnswer.trim()) return
+    setLoading(true); setFeedback(null)
+    try {
+      if (!aiSettings?.key) { setFeedback("Set your AI provider key in ⚙ Settings to get feedback."); setLoading(false); return }
+      const text = await callAI({
+        system: "You are an expert quant interviewer. Evaluate the student's answer. Be constructive. Format: SCORE: X/10\n\nFEEDBACK: ...\n\nIDEAL ANSWER: ...",
+        prompt: `Question: ${question}\n\nStudent Answer: ${userAnswer}\n\nEvaluate this answer. Difficulty: ${difficulty}.`,
+        maxTokens: 800, aiSettings
+      })
+      setFeedback(text)
+      const match = text.match(/SCORE:\s*(\d+)\/10/)
+      const s = match ? parseInt(match[1]) : null
+      setScore(s)
+      if (s !== null) { markStudyToday(); setHistory(prev => [{ question, answer:userAnswer, score:s, category, difficulty, date:new Date().toLocaleDateString() }, ...prev].slice(0,20)) }
+    } catch { setFeedback("Could not evaluate. Check connection.") }
+    setLoading(false)
+  }
+
+  const saveToFlashcard = () => {
+    const q = mode === "bank" ? bankQ[bankIdx % bankQ.length] : question
+    if (!q || !feedback) return
+    const idealMatch = feedback.match(/IDEAL ANSWER:\s*([\s\S]+)/)
+    const a = idealMatch ? idealMatch[1].trim().slice(0,400) : feedback.slice(0,400)
+    setCustomCards(prev => [{ q, a, category, addedAt:new Date().toLocaleDateString() }, ...prev].slice(0,50))
+    setSavedToFlashcard(true)
+    setTimeout(() => setSavedToFlashcard(false), 2000)
+  }
+
+  const bankQ = INTERVIEW_QS[category] || []
+  const currentBankQ = bankQ[bankIdx % Math.max(bankQ.length, 1)]
+  const avgScore = history.length > 0 ? Math.round(history.reduce((a,b) => a+b.score, 0) / history.length * 10) / 10 : null
+  const totalCards = ALL_DECKS.reduce((a,d) => a+d.cards.length, 0)
+
+  return (
+    <div>
+      {/* ── Header ── */}
+      <div style={{ marginBottom:20 }}>
+        <h1 style={{ fontSize:26, fontWeight:700, color:txt, fontFamily:"'Syne',sans-serif", margin:0 }}>Practice</h1>
+        <p style={{ color:sub, margin:"4px 0 0", fontSize:13 }}>
+          {history.length} interview sessions{avgScore ? ` · avg ${avgScore}/10` : ""} · {totalCards} flashcards across {ALL_DECKS.length} decks
+        </p>
+      </div>
+
+      {/* ── Main tab switcher ── */}
+      <div style={{ display:"flex", gap:8, marginBottom:22, borderBottom:`1px solid ${bdr}`, paddingBottom:14 }}>
+        {[["interview","◉ Interview Prep"],["flashcards","▣ Flashcards"]].map(([id,label]) => (
+          <button key={id} onClick={() => setMainTab(id)} style={{
+            padding:"9px 22px", borderRadius:10, border:"1px solid", fontSize:13, cursor:"pointer", fontWeight:600,
+            borderColor: mainTab===id ? "#6366f1" : bdr,
+            background:  mainTab===id ? "rgba(99,102,241,0.15)" : "transparent",
+            color:       mainTab===id ? "#818cf8" : sub,
+            boxShadow:   mainTab===id ? "0 0 0 1px rgba(99,102,241,0.2) inset" : "none",
+          }}>{label}</button>
+        ))}
+        {customCards.length > 0 && mainTab === "flashcards" && (
+          <span style={{ marginLeft:"auto", fontSize:11, color:"#818cf8", alignSelf:"center", fontFamily:"'JetBrains Mono',monospace" }}>
+            {customCards.length} saved from Interview
+          </span>
+        )}
+      </div>
+
+      {/* ══════════════════════════════════════════════════════════════════════
+          INTERVIEW PREP TAB
+      ══════════════════════════════════════════════════════════════════════ */}
+      {mainTab === "interview" && (
+        <div style={{ display:"grid", gridTemplateColumns:isMobile?"1fr":"1fr 280px", gap:18 }}>
+          <div>
+            {/* Controls */}
+            <div style={{ display:"flex", gap:10, marginBottom:16, flexWrap:"wrap", alignItems:"center" }}>
+              <select value={category} onChange={e => setCategory(e.target.value)}
+                style={{ background:selBg, border:`1px solid ${bdr}`, borderRadius:8, padding:"8px 12px", color:txt, fontSize:13, cursor:"pointer" }}>
+                {Object.keys(INTERVIEW_QS).map(c => <option key={c}>{c}</option>)}
+              </select>
+              <select value={difficulty} onChange={e => setDifficulty(e.target.value)}
+                style={{ background:selBg, border:`1px solid ${bdr}`, borderRadius:8, padding:"8px 12px", color:txt, fontSize:13, cursor:"pointer" }}>
+                {["Easy","Medium","Hard"].map(d => <option key={d}>{d}</option>)}
+              </select>
+              <div style={{ display:"flex", gap:6 }}>
+                {[["ai","🤖 AI Generate"],["bank","📚 Question Bank"]].map(([m,label]) => (
+                  <button key={m} onClick={() => setMode(m)} style={{ padding:"7px 14px", borderRadius:8, border:"1px solid", fontSize:12, cursor:"pointer",
+                    borderColor: mode===m ? "#6366f1" : bdr,
+                    background:  mode===m ? "rgba(99,102,241,0.2)" : "transparent",
+                    color:       mode===m ? "#818cf8" : sub }}>{label}</button>
+                ))}
+              </div>
+            </div>
+
+            {/* Question Card */}
+            <div style={{ background:bg, border:`1px solid ${bdr}`, borderRadius:12, padding:"20px 24px", marginBottom:14 }}>
+              {mode === "ai" ? (
+                <>
+                  <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:14 }}>
+                    <span style={{ fontSize:11, color:"#6366f1", fontFamily:"'JetBrains Mono',monospace", textTransform:"uppercase" }}>AI Question · {category}</span>
+                    <button onClick={generateQuestion} disabled={loadingQ}
+                      style={{ background:"rgba(99,102,241,0.2)", border:"1px solid rgba(99,102,241,0.4)", borderRadius:8, padding:"7px 16px", color:"#818cf8", fontSize:12, cursor:"pointer" }}>
+                      {loadingQ ? "Generating..." : "Generate Question →"}
+                    </button>
+                  </div>
+                  <div style={{ fontSize:15, color:question ? txt : muted, lineHeight:1.6, minHeight:60 }}>
+                    {question || "Click 'Generate Question' to get an AI-crafted interview question."}
+                  </div>
+                </>
+              ) : (
+                <>
+                  <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:14 }}>
+                    <span style={{ fontSize:11, color:"#C17F3A", fontFamily:"'JetBrains Mono',monospace", textTransform:"uppercase" }}>Question Bank · {bankIdx+1}/{bankQ.length}</span>
+                    <div style={{ display:"flex", gap:8 }}>
+                      <button onClick={() => { setBankIdx(b => Math.max(0,b-1)); setFeedback(null); setUserAnswer(""); setScore(null) }}
+                        style={{ background:"rgba(193,127,58,0.1)", border:"1px solid rgba(193,127,58,0.3)", borderRadius:6, padding:"6px 12px", color:"#C17F3A", fontSize:12, cursor:"pointer" }}>←</button>
+                      <button onClick={() => { setBankIdx(b => (b+1)%bankQ.length); setFeedback(null); setUserAnswer(""); setScore(null) }}
+                        style={{ background:"rgba(193,127,58,0.1)", border:"1px solid rgba(193,127,58,0.3)", borderRadius:6, padding:"6px 12px", color:"#C17F3A", fontSize:12, cursor:"pointer" }}>→</button>
+                    </div>
+                  </div>
+                  <div style={{ fontSize:15, color:txt, lineHeight:1.6 }}>{currentBankQ}</div>
+                </>
+              )}
+            </div>
+
+            {/* Answer Box */}
+            {(question || mode === "bank") && (
+              <div style={{ marginBottom:14 }}>
+                <textarea value={userAnswer} onChange={e => setUserAnswer(e.target.value)}
+                  placeholder="Type your answer here..."
+                  style={{ width:"100%", minHeight:120, background:inBg, border:`1px solid ${bdr}`, borderRadius:10, padding:"14px 16px", color:txt, fontSize:13, resize:"vertical", outline:"none", fontFamily:"inherit", boxSizing:"border-box", lineHeight:1.6 }}
+                />
+                <button onClick={async () => {
+                  if (mode === "bank") {
+                    setLoading(true); setFeedback(null)
+                    try {
+                      if (!aiSettings?.key) { setFeedback("Set your AI key in ⚙ Settings to get feedback."); setLoading(false); return }
+                      const text = await callAI({
+                        system: "You are an expert quant interviewer. Evaluate the answer. Format: SCORE: X/10\n\nFEEDBACK: ...\n\nIDEAL ANSWER: ...",
+                        prompt: `Question: ${currentBankQ}\n\nAnswer: ${userAnswer}\n\nCategory: ${category}, Difficulty: ${difficulty}`,
+                        maxTokens: 800, aiSettings
+                      })
+                      setFeedback(text)
+                      const m = text.match(/SCORE:\s*(\d+)\/10/)
+                      if (m) { const s=parseInt(m[1]); setScore(s); markStudyToday(); setHistory(prev=>[{ question:currentBankQ, answer:userAnswer, score:s, category, difficulty, date:new Date().toLocaleDateString() },...prev].slice(0,20)) }
+                    } catch { setFeedback("Eval failed.") }
+                    setLoading(false)
+                  } else { evalAnswer() }
+                }} disabled={loading||!userAnswer.trim()}
+                  style={{ marginTop:10, background:"rgba(16,185,129,0.2)", border:"1px solid rgba(16,185,129,0.4)", borderRadius:8, padding:"9px 20px", color:"#10b981", fontSize:13, cursor:"pointer", fontWeight:600 }}>
+                  {loading ? "Evaluating..." : "Submit Answer for AI Review →"}
+                </button>
+              </div>
+            )}
+
+            {/* Feedback */}
+            {feedback && (
+              <div style={{ background:bg, border:`1px solid ${bdr}`, borderRadius:12, padding:"20px 24px" }}>
+                {score !== null && (
+                  <div style={{ display:"flex", alignItems:"center", gap:12, marginBottom:16 }}>
+                    <div style={{ fontSize:42, fontWeight:800, fontFamily:"'Syne',sans-serif", color: score>=8?"#10b981":score>=5?"#C17F3A":"#ef4444" }}>{score}</div>
+                    <div>
+                      <div style={{ fontSize:16, color:sub }}>/ 10</div>
+                      <div style={{ fontSize:11, color:muted }}>{score>=8?"Excellent!":score>=5?"Good progress":"Keep practicing"}</div>
+                    </div>
+                    <button onClick={() => { saveToFlashcard(); if(!savedToFlashcard) setMainTab("flashcards") }}
+                      style={{ marginLeft:"auto", padding:"7px 14px", borderRadius:8, whiteSpace:"nowrap", transition:"all 0.2s",
+                        border:`1px solid ${savedToFlashcard?"rgba(16,185,129,0.4)":"rgba(99,102,241,0.3)"}`,
+                        background:savedToFlashcard?"rgba(16,185,129,0.12)":"rgba(99,102,241,0.10)",
+                        color:savedToFlashcard?"#10b981":"#818cf8",
+                        fontSize:11, cursor:"pointer", fontFamily:"'JetBrains Mono',monospace" }}>
+                      {savedToFlashcard ? "✓ Saved! → Flashcards" : "▣ Save to Flashcards"}
+                    </button>
+                  </div>
+                )}
+                <div style={{ fontSize:13, color:txt, lineHeight:1.8, whiteSpace:"pre-wrap" }}>{feedback}</div>
+              </div>
+            )}
+          </div>
+
+          {/* ── History Sidebar ── */}
+          <div>
+            <div style={{ background:bg, border:`1px solid ${bdr}`, borderRadius:12, padding:"16px 18px" }}>
+
+              {/* Spaced Repetition — weak categories */}
+              {history.length >= 3 && (() => {
+                const catScores = Object.keys(INTERVIEW_QS).map(cat => {
+                  const sessions = history.filter(h => h.category===cat)
+                  if (!sessions.length) return null
+                  const avg = sessions.reduce((a,b) => a+b.score,0)/sessions.length
+                  return { cat, avg, count:sessions.length }
+                }).filter(Boolean).sort((a,b) => a.avg-b.avg)
+                const weak = catScores.filter(c => c.avg < 6)
+                if (!weak.length) return null
+                return (
+                  <div style={{ marginBottom:14, padding:"10px 12px", background:"rgba(239,68,68,0.06)", borderRadius:8, border:"1px solid rgba(239,68,68,0.18)" }}>
+                    <div style={{ fontSize:9, color:"#ef4444", fontFamily:"'JetBrains Mono',monospace", letterSpacing:"0.1em", marginBottom:6 }}>🔁 REVIEW NEEDED</div>
+                    <div style={{ fontSize:11, color:sub, marginBottom:8, lineHeight:1.5 }}>Your weakest areas:</div>
+                    {weak.slice(0,3).map(w => (
+                      <div key={w.cat} onClick={() => { setCategory(w.cat); setMode("bank") }}
+                        style={{ display:"flex", alignItems:"center", justifyContent:"space-between", padding:"5px 8px", borderRadius:6, cursor:"pointer", marginBottom:4, background:"rgba(239,68,68,0.04)", border:"1px solid rgba(239,68,68,0.1)" }}>
+                        <span style={{ fontSize:11, color:txt }}>{w.cat}</span>
+                        <span style={{ fontSize:10, color:"#ef4444", fontFamily:"'JetBrains Mono',monospace", fontWeight:700 }}>avg {w.avg.toFixed(1)}/10</span>
+                      </div>
+                    ))}
+                  </div>
+                )
+              })()}
+
+              {/* Score trend sparkline */}
+              {history.length >= 3 && (() => {
+                const last10 = history.slice(0,10).reverse()
+                const W=240, H=48, max=10
+                return (
+                  <div style={{ marginBottom:14, padding:"12px 14px", background:"rgba(99,102,241,0.06)", borderRadius:8, border:"1px solid rgba(99,102,241,0.15)" }}>
+                    <div style={{ fontSize:10, color:muted, fontFamily:"'JetBrains Mono',monospace", marginBottom:8 }}>SCORE TREND (last {last10.length})</div>
+                    <svg width="100%" viewBox={`0 0 ${W} ${H}`} style={{ overflow:"visible" }}>
+                      <polyline
+                        points={last10.map((s,i) => `${(i/(last10.length-1))*(W-16)+8},${H-((s.score/max)*(H-8))-4}`).join(" ")}
+                        fill="none" stroke="#6366f1" strokeWidth="2" strokeLinejoin="round" />
+                      {last10.map((s,i) => {
+                        const x=(i/(last10.length-1))*(W-16)+8, y=H-((s.score/max)*(H-8))-4
+                        return <circle key={i} cx={x} cy={y} r="3" fill={s.score>=8?"#10b981":s.score>=5?"#C17F3A":"#ef4444"} />
+                      })}
+                    </svg>
+                    {(() => {
+                      const cc=history.reduce((a,h)=>{a[h.category]=(a[h.category]||0)+1;return a},{})
+                      const top=Object.entries(cc).sort((a,b)=>b[1]-a[1])[0]
+                      return top && <div style={{ fontSize:10, color:muted, marginTop:4 }}>Most practiced: <span style={{ color:"#818cf8" }}>{top[0]}</span> ({top[1]}×)</div>
+                    })()}
+                  </div>
+                )
+              })()}
+
+              <div style={{ fontSize:11, color:muted, textTransform:"uppercase", letterSpacing:"0.08em", marginBottom:12, fontFamily:"'JetBrains Mono',monospace" }}>Recent Sessions</div>
+              {history.length===0 && <p style={{ color:muted, fontSize:12 }}>No sessions yet. Start practicing!</p>}
+              {history.slice(0,10).map((h,i) => (
+                <div key={i} style={{ marginBottom:10, padding:"10px 12px", background:bg, borderRadius:8, borderLeft:`3px solid ${h.score>=8?"#10b981":h.score>=5?"#C17F3A":"#ef4444"}` }}>
+                  <div style={{ display:"flex", justifyContent:"space-between", marginBottom:4 }}>
+                    <span style={{ fontSize:12, fontWeight:700, color:h.score>=8?"#10b981":h.score>=5?"#C17F3A":"#ef4444" }}>{h.score}/10</span>
+                    <span style={{ fontSize:10, color:muted }}>{h.date}</span>
+                  </div>
+                  <div style={{ fontSize:11, color:sub }}>{h.category} · {h.difficulty}</div>
+                  <div style={{ fontSize:11, color:sub, marginTop:3, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>{h.question?.slice(0,55)}...</div>
+                </div>
+              ))}
+              {history.length > 0 && (
+                <button onClick={() => setHistory([])} style={{ marginTop:8, fontSize:11, color:"#ef4444", background:"none", border:"none", cursor:"pointer", padding:0 }}>Clear History</button>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ══════════════════════════════════════════════════════════════════════
+          FLASHCARDS TAB
+      ══════════════════════════════════════════════════════════════════════ */}
+      {mainTab === "flashcards" && (
+        <div>
+          {/* Deck selector */}
+          <div style={{ display:"flex", gap:10, flexWrap:"wrap", marginBottom:24 }}>
+            {ALL_DECKS.map(d => {
+              const s = deckStats(d)
+              return (
+                <button key={d.id} onClick={() => { setActiveDeck(d.id); setCardIdx(0); setFlipped(false) }}
+                  style={{ padding:"10px 16px", borderRadius:10, border:"1px solid", cursor:"pointer", textAlign:"left", minWidth:140,
+                    borderColor: activeDeck===d.id ? d.color : bdr,
+                    background:  activeDeck===d.id ? `${d.color}15` : bg }}>
+                  <div style={{ fontSize:13, fontWeight:600, color: activeDeck===d.id ? d.color : txt }}>{d.name}</div>
+                  <div style={{ fontSize:10, color:muted, marginTop:3 }}>{d.cards.length} cards · {s.pct}% mastered</div>
+                  <div style={{ height:3, borderRadius:2, background:"rgba(255,255,255,0.06)", marginTop:6, overflow:"hidden" }}>
+                    <div style={{ height:"100%", borderRadius:2, background:d.color, width:`${s.pct}%`, transition:"width 0.5s ease" }} />
+                  </div>
+                </button>
+              )
+            })}
+          </div>
+
+          {/* Card area */}
+          <div style={{ maxWidth:680, margin:"0 auto" }}>
+            <div style={{ marginBottom:12, display:"flex", justifyContent:"space-between", alignItems:"center" }}>
+              <span style={{ fontSize:11, color:muted, fontFamily:"'JetBrains Mono',monospace" }}>
+                {deck.name} · Card {(cardIdx % Math.max(total,1))+1} / {total}
+              </span>
+              <div style={{ display:"flex", gap:6 }}>
+                <button onClick={() => { setCardIdx(i => (i-1+total)%total); setFlipped(false) }}
+                  style={{ background:bg, border:`1px solid ${bdr}`, borderRadius:6, padding:"4px 12px", color:sub, fontSize:12, cursor:"pointer" }}>←</button>
+                <button onClick={() => { setCardIdx(i => (i+1)%total); setFlipped(false) }}
+                  style={{ background:bg, border:`1px solid ${bdr}`, borderRadius:6, padding:"4px 12px", color:sub, fontSize:12, cursor:"pointer" }}>→</button>
+              </div>
+            </div>
+
+            {/* Flip card */}
+            <div onClick={() => setFlipped(f => !f)}
+              style={{ cursor:"pointer", background:bg, border:`2px solid ${flipped?deck.color+"60":bdr}`, borderRadius:16, padding:"40px 36px", minHeight:200, display:"flex", flexDirection:"column", justifyContent:"center", transition:"border-color 0.25s", position:"relative" }}>
+              <div style={{ position:"absolute", top:14, right:18, fontSize:10, color:muted, fontFamily:"'JetBrains Mono',monospace" }}>
+                {flipped ? "ANSWER" : "QUESTION — click to reveal"}
+              </div>
+              <div style={{ fontSize:16, color:flipped?txt:sub, lineHeight:1.65, transition:"color 0.2s" }}>
+                {card ? (flipped ? card.a : card.q) : "No cards in this deck."}
+              </div>
+            </div>
+
+            {/* Rating buttons */}
+            {flipped && (
+              <div style={{ display:"flex", gap:10, marginTop:14, justifyContent:"center" }}>
+                <button onClick={() => rate("skip")} style={{ flex:1, padding:"11px 0", borderRadius:8, border:`1px solid ${bdr}`, background:"transparent", color:muted, fontSize:13, cursor:"pointer" }}>⏭ Skip</button>
+                <button onClick={() => rate("hard")} style={{ flex:1, padding:"11px 0", borderRadius:8, border:"1px solid rgba(239,68,68,0.4)", background:"rgba(239,68,68,0.1)", color:"#ef4444", fontSize:13, cursor:"pointer", fontWeight:600 }}>😓 Hard</button>
+                <button onClick={() => rate("easy")} style={{ flex:2, padding:"11px 0", borderRadius:8, border:"1px solid rgba(16,185,129,0.4)", background:"rgba(16,185,129,0.12)", color:"#10b981", fontSize:13, cursor:"pointer", fontWeight:700 }}>✓ Got it!</button>
+              </div>
+            )}
+            {!flipped && total > 0 && (
+              <div style={{ textAlign:"center", marginTop:14 }}>
+                <button onClick={() => setFlipped(true)}
+                  style={{ padding:"11px 40px", borderRadius:8, border:`1px solid ${deck.color}50`, background:`${deck.color}12`, color:deck.color, fontSize:13, cursor:"pointer", fontWeight:600 }}>
+                  Reveal Answer
+                </button>
+              </div>
+            )}
+
+            {/* Custom deck management */}
+            {activeDeck === "custom" && customCards.length > 0 && (
+              <div style={{ marginTop:20, padding:"14px 18px", background:bg, border:`1px solid ${"#818cf8"}25`, borderRadius:12 }}>
+                <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center" }}>
+                  <span style={{ fontSize:11, color:"#818cf8", fontFamily:"'JetBrains Mono',monospace" }}>
+                    {customCards.length} cards saved from Interview Prep
+                  </span>
+                  <button onClick={() => { setCustomCards([]); setActiveDeck(FLASHCARD_DECKS[0].id) }}
+                    style={{ fontSize:11, color:"#ef4444", background:"none", border:"none", cursor:"pointer" }}>
+                    Clear all
+                  </button>
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+    </div>
+  )
+}
+
+// ─────────────────────────────────────────────
+//  MODULE: RESOURCE HUB
+// ─────────────────────────────────────────────
+
+
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+// FILE: src/components/modules/ResourceHub.jsx  (when splitting)
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+const ResourceHub = ({ T }) => {
+  const [papers, setPapers] = useState([])
+  const [loadingPapers, setLoadingPapers] = useState(false)
+  const [activeTab, setActiveTab] = useState("platforms")
+  const [firmSearch, setFirmSearch] = useState("")
+  const [firmType, setFirmType] = useState("All")
+  const [firmCountry, setFirmCountry] = useState("All")
+  const [savedPapers, setSavedPapers] = useStorage("saved_papers_v2", [])
+  const [readPapers,  setReadPapers]  = useStorage("read_papers_v1",  [])
+  const [paperTab, setPaperTab] = useState("browse")   // browse | saved
+  const [paperQuery, setPaperQuery] = useState("q-fin")
+  const [aiQuery, setAiQuery] = useState("")
+
+  const bg   = T?.cardBg    || "rgba(255,255,255,0.02)"
+  const bdr  = T?.cardBorder|| "rgba(255,255,255,0.07)"
+  const txt  = T?.text      || "#f1f5f9"
+  const sub  = T?.textSub   || "#64748b"
+  const muted= T?.textMuted || "#475569"
+  const inBg = T?.inputBg   || "rgba(255,255,255,0.04)"
+  const selBg= T?.selectBg  || "#111120"
+
+  const QF_TOPICS = [
+    { label:"All q-fin",         query:"q-fin" },
+    { label:"Portfolio Opt.",    query:"q-fin.PM" },
+    { label:"Statistical Arb",   query:"q-fin.ST" },
+    { label:"Derivatives",       query:"q-fin.PR" },
+    { label:"Risk Management",   query:"q-fin.RM" },
+    { label:"Market Microstr.",  query:"q-fin.TR" },
+    { label:"ML in Finance",     query:"cat:q-fin+AND+machine+learning" },
+    { label:"LLMs for Finance",  query:"cat:q-fin+AND+large+language+model" },
+  ]
+
+  const TYPE_COLOR = {
+    "HFT / Market Making":"#C17F3A","HFT / ETF Market Making":"#C17F3A","HFT / Prop Trading":"#fb923c",
+    "Prop Trading":"#f97316","Prop Trading / HFT":"#fb923c","Algorithmic Market Making":"#C17F3A",
+    "Options Market Making":"#fbbf24","Options / Prop Trading":"#f97316",
+    "Quant Hedge Fund":"#6366f1","Multi-Strategy HF":"#8b5cf6","Systematic HF":"#a78bfa",
+    "Macro Quant HF":"#c4b5fd","Macro / Systematic HF":"#c4b5fd","Systematic HF (Point72)":"#a78bfa",
+    "Systematic CTA":"#818cf8",
+    "Bank Quant Desk":"#0ea5e9","Bank Quant Research":"#38bdf8",
+    "Quant Asset Manager":"#10b981","Index & Risk Analytics":"#34d399",
+    "Sovereign Wealth Quant":"#14b8a6","Pension Fund Quant":"#22d3ee",
+    "Financial Technology":"#94a3b8","Financial Data Analytics":"#64748b",
+    "Market Data Infrastructure":"#94a3b8","Exchange / Quant Research":"#38bdf8",
+    "Crypto Market Making":"#ec4899","Crypto Quant / MM":"#f472b6",
+    "Crypto Quant":"#fb7185","Crypto-incentivized Quant":"#f472b6",
+    "AI for Finance":"#a78bfa","HFT / Quant":"#C17F3A",
+  }
+
+  const firmTypes     = ["All", ...Array.from(new Set(QUANT_FIRMS.map(f => f.t))).sort()]
+  const firmCountries = ["All", ...Array.from(new Set(QUANT_FIRMS.map(f => f.co))).sort()]
+
+  const filteredFirms = QUANT_FIRMS.filter(f => {
+    if (firmType !== "All" && f.t !== firmType) return false
+    if (firmCountry !== "All" && f.co !== firmCountry) return false
+    if (firmSearch && !f.n.toLowerCase().includes(firmSearch.toLowerCase()) && !f.c.toLowerCase().includes(firmSearch.toLowerCase())) return false
+    return true
+  })
+
+  // Auto-load latest q-fin papers when the component first mounts
+  useEffect(() => { fetchPapers("q-fin") }, [])
+
+  const fetchPapers = async (q = paperQuery) => {
+    setLoadingPapers(true)
+    try {
+      const searchQ = q.includes("+") ? q : `cat:${q}`
+      const res = await fetch(`https://export.arxiv.org/api/query?search_query=${searchQ}&sortBy=submittedDate&sortOrder=descending&max_results=12`)
+      const text = await res.text()
+      const parser = new DOMParser()
+      const xml = parser.parseFromString(text, "text/xml")
+      const entries = Array.from(xml.querySelectorAll("entry")).map(e => ({
+        id:      e.querySelector("id")?.textContent?.trim(),
+        title:   e.querySelector("title")?.textContent?.replace(/\s+/g," ").trim(),
+        authors: Array.from(e.querySelectorAll("author name")).slice(0,3).map(a => a.textContent).join(", "),
+        summary: e.querySelector("summary")?.textContent?.replace(/\s+/g," ").trim().slice(0,220) + "...",
+        link:    e.querySelector("id")?.textContent?.trim(),
+        date:    e.querySelector("published")?.textContent?.slice(0,10),
+        cats:    Array.from(e.querySelectorAll("category")).map(c=>c.getAttribute("term")).join(", "),
+      }))
+      setPapers(entries)
+    } catch { setPapers([]) }
+    setLoadingPapers(false)
+  }
+
+  const toggleRead  = (id) => setReadPapers(prev => prev.includes(id) ? prev.filter(x=>x!==id) : [...prev, id])
+  const isRead      = (id) => readPapers.includes(id)
+  const toggleSave  = (paper) => {
+    setSavedPapers(prev => {
+      const exists = prev.find(p => p.id === paper.id)
+      return exists ? prev.filter(p => p.id !== paper.id) : [paper, ...prev]
+    })
+  }
+  const isSaved = (id) => savedPapers.some(p => p.id === id)
+
+  const handleAiSearch = async () => {
+    if (!aiQuery.trim()) return
+    const q = `cat:q-fin+AND+${encodeURIComponent(aiQuery.trim().replace(/\s+/g,"+"))}`
+    setPaperQuery(q)
+    await fetchPapers(q)
+  }
+
+  const catGroups = PLATFORMS.reduce((acc, p) => {
+    if (!acc[p.category]) acc[p.category] = []
+    acc[p.category].push(p)
+    return acc
+  }, {})
+
+  const PaperCard = ({ p, showRemove }) => {
+    // Match paper title keywords to relevant courses
+    const titleWords = (p.title||"").toLowerCase().split(/\W+/).filter(w=>w.length>4)
+    const related = COURSES.filter(c=>{
+      const cName = c.name.toLowerCase()
+      return titleWords.some(w=>cName.includes(w))
+    }).slice(0,3)
+
+    return (
+    <div style={{ marginBottom:12, background:bg, border:`1px solid ${isSaved(p.id)?"rgba(193,127,58,0.3)":bdr}`, borderRadius:12, padding:"16px 20px", transition:"border-color 0.2s" }}>
+      <div style={{ display:"flex", justifyContent:"space-between", alignItems:"flex-start", gap:12, marginBottom:8 }}>
+        <div style={{ flex:1 }}>
+          <div style={{ display:"flex", gap:8, alignItems:"center", marginBottom:6, flexWrap:"wrap" }}>
+            <span style={{ fontSize:10, color:"#6366f1", fontFamily:"'JetBrains Mono', monospace" }}>arXiv · {p.date}</span>
+            {p.cats && <span style={{ fontSize:10, color:muted, fontFamily:"'JetBrains Mono',monospace" }}>{p.cats.split(", ")[0]}</span>}
+          </div>
+          <a href={p.link} target="_blank" rel="noreferrer" style={{ fontSize:14, color:txt, fontWeight:600, lineHeight:1.4, marginBottom:6, display:"block", textDecoration:"none" }}
+            onMouseEnter={e=>e.currentTarget.style.color="#C17F3A"}
+            onMouseLeave={e=>e.currentTarget.style.color=txt}>
+            {p.title}
+          </a>
+          <div style={{ fontSize:12, color:sub, marginBottom:6 }}>{p.authors}</div>
+          <div style={{ fontSize:12, color:sub, lineHeight:1.5 }}>{p.summary}</div>
+        </div>
+        <div style={{ display:"flex", flexDirection:"column", gap:6, flexShrink:0 }}>
+          <button onClick={() => toggleSave(p)}
+            title={isSaved(p.id) ? "Remove from saved" : "Save paper"}
+            style={{ background:isSaved(p.id)?"rgba(193,127,58,0.2)":bg, border:`1px solid ${isSaved(p.id)?"rgba(193,127,58,0.5)":bdr}`, borderRadius:8, padding:"6px 10px", color:isSaved(p.id)?"#C17F3A":sub, cursor:"pointer", fontSize:14 }}>
+            {isSaved(p.id) ? "🔖" : "📌"}
+          </button>
+          <button onClick={()=>toggleRead(p.id)}
+            title={isRead(p.id) ? "Mark as unread" : "Mark as read"}
+            style={{ background:isRead(p.id)?"rgba(16,185,129,0.18)":bg,
+              border:`1px solid ${isRead(p.id)?"rgba(16,185,129,0.45)":bdr}`,
+              borderRadius:8, padding:"6px 10px", color:isRead(p.id)?"#10b981":sub,
+              cursor:"pointer", fontSize:12, fontFamily:"'JetBrains Mono',monospace" }}>
+            {isRead(p.id) ? "✓" : "○"}
+          </button>
+          <a href={p.link} target="_blank" rel="noreferrer" style={{ background:"rgba(99,102,241,0.1)", border:"1px solid rgba(99,102,241,0.2)", borderRadius:8, padding:"6px 10px", color:"#818cf8", textDecoration:"none", fontSize:11, textAlign:"center" }}>PDF →</a>
+        </div>
+      </div>
+      {/* Related courses */}
+      {related.length>0 && (
+        <div style={{ marginTop:8, display:"flex", alignItems:"center", gap:6, flexWrap:"wrap" }}>
+          <span style={{ fontSize:9, color:muted, fontFamily:"'JetBrains Mono',monospace", letterSpacing:"0.08em" }}>RELATED:</span>
+          {related.map(c=>(
+            <span key={c.id} style={{ fontSize:10, color:SUBJECT_COLORS[c.subject]||"#6366f1",
+              background:`${SUBJECT_COLORS[c.subject]||"#6366f1"}10`,
+              border:`1px solid ${SUBJECT_COLORS[c.subject]||"#6366f1"}30`,
+              padding:"2px 8px", borderRadius:4, fontFamily:"'JetBrains Mono',monospace" }}>
+              {c.code} · {c.name.split(" ").slice(0,3).join(" ")}
+            </span>
+          ))}
+        </div>
+      )}
+    </div>
+  )
+  }
+
+  return (
+    <div>
+      <div style={{ marginBottom:24 }}>
+        <h1 style={{ fontSize:26, fontWeight:700, color:txt, fontFamily:"'Syne', sans-serif", margin:0 }}>Resource Hub</h1>
+        <p style={{ color:sub, margin:"4px 0 0", fontSize:13 }}>{QUANT_FIRMS.length} quant firms worldwide · Free platforms · Live arXiv papers</p>
+      </div>
+
+      {/* Top-level tabs */}
+      <div style={{ display:"flex", gap:8, marginBottom:20 }}>
+        {[["platforms","📚 Platforms"],[`firms`,`🏢 ${QUANT_FIRMS.length} Firms`],["papers",`📄 Papers${savedPapers.length>0?` · ${readPapers.length}/${savedPapers.length} read`:""}`]].map(([id, label]) => (
+          <button key={id} onClick={() => { setActiveTab(id); if (id === "papers" && !papers.length) fetchPapers() }} style={{ padding:"8px 18px", borderRadius:8, border:"1px solid", fontSize:13, cursor:"pointer",
+            borderColor: activeTab === id ? "#C17F3A" : "rgba(255,255,255,0.1)",
+            background:  activeTab === id ? "rgba(193,127,58,0.12)" : "transparent",
+            color:       activeTab === id ? "#C17F3A" : sub }}>{label}</button>
+        ))}
+      </div>
+
+      {/* ── PLATFORMS ── */}
+      {activeTab === "platforms" && (
+        <div>
+          {Object.entries(catGroups).map(([cat, items]) => (
+            <div key={cat} style={{ marginBottom:24 }}>
+              <div style={{ fontSize:11, color:muted, textTransform:"uppercase", letterSpacing:"0.1em", fontFamily:"'JetBrains Mono', monospace", marginBottom:12 }}>{cat}</div>
+              <div style={{ display:"grid", gridTemplateColumns:"repeat(auto-fill, minmax(280px, 1fr))", gap:10 }}>
+                {items.map(p => (
+                  <a key={p.name} href={p.url} target="_blank" rel="noreferrer" style={{ background:bg, border:`1px solid ${bdr}`, borderRadius:10, padding:"14px 16px", textDecoration:"none", display:"block", transition:"border-color 0.2s" }}
+                    onMouseEnter={e => e.currentTarget.style.borderColor="rgba(193,127,58,0.4)"}
+                    onMouseLeave={e => e.currentTarget.style.borderColor=bdr}>
+                    <div style={{ fontSize:14, color:txt, fontWeight:600 }}>{p.name} →</div>
+                    <div style={{ fontSize:12, color:sub, marginTop:4, lineHeight:1.4 }}>{p.desc}</div>
+                  </a>
+                ))}
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+
+      {/* ── FIRMS ── */}
+      {activeTab === "firms" && (
+        <div>
+          <div style={{ display:"flex", gap:10, marginBottom:16, flexWrap:"wrap", alignItems:"center" }}>
+            <input value={firmSearch} onChange={e => setFirmSearch(e.target.value)} placeholder="Search firm or city..." style={{ background:inBg, border:`1px solid ${bdr}`, borderRadius:8, padding:"7px 14px", color:txt, fontSize:13, outline:"none", minWidth:220 }} />
+            <select value={firmType} onChange={e => setFirmType(e.target.value)} style={{ background:selBg, border:`1px solid ${bdr}`, borderRadius:6, padding:"7px 10px", color:sub, fontSize:12, cursor:"pointer", maxWidth:220 }}>
+              {firmTypes.map(t => <option key={t}>{t}</option>)}
+            </select>
+            <select value={firmCountry} onChange={e => setFirmCountry(e.target.value)} style={{ background:selBg, border:`1px solid ${bdr}`, borderRadius:6, padding:"7px 10px", color:sub, fontSize:12, cursor:"pointer" }}>
+              {firmCountries.map(c => <option key={c}>{c}</option>)}
+            </select>
+            <span style={{ fontSize:12, color:muted, marginLeft:"auto" }}>{filteredFirms.length} firms</span>
+          </div>
+          <div style={{ display:"grid", gridTemplateColumns:"repeat(auto-fill, minmax(340px, 1fr))", gap:10 }}>
+            {filteredFirms.map((f, i) => {
+              const typeColor = TYPE_COLOR[f.t] || "#64748b"
+              return (
+                <a key={i} href={f.l} target="_blank" rel="noreferrer" style={{ background:bg, border:`1px solid ${bdr}`, borderRadius:10, padding:"14px 16px", textDecoration:"none", display:"block", transition:"border-color 0.2s" }}
+                  onMouseEnter={e => e.currentTarget.style.borderColor=`${typeColor}40`}
+                  onMouseLeave={e => e.currentTarget.style.borderColor=bdr}>
+                  <div style={{ display:"flex", justifyContent:"space-between", alignItems:"flex-start", gap:8 }}>
+                    <div style={{ flex:1, minWidth:0 }}>
+                      <div style={{ fontSize:14, color:txt, fontWeight:700, marginBottom:3 }}>{f.n}</div>
+                      <div style={{ fontSize:11, color:sub }}>{f.co} · {f.c.split("·")[0].trim()}</div>
+                    </div>
+                    <div style={{ display:"flex", flexDirection:"column", alignItems:"flex-end", gap:4, flexShrink:0 }}>
+                      <span style={{ fontSize:10, color:typeColor, background:`${typeColor}12`, border:`1px solid ${typeColor}30`, padding:"2px 7px", borderRadius:3, fontFamily:"'JetBrains Mono',monospace" }}>{f.t}</span>
+                      <span style={{ fontSize:10, color:"#C17F3A" }}>Careers →</span>
+                    </div>
+                  </div>
+                  {f.c.includes("·") && <div style={{ marginTop:5, fontSize:10, color:muted, fontFamily:"'JetBrains Mono',monospace", lineHeight:1.6 }}>{f.c}</div>}
+                </a>
+              )
+            })}
+          </div>
+        </div>
+      )}
+
+      {/* ── PAPERS ── */}
+      {activeTab === "papers" && (
+        <div>
+          {/* Sub-tabs: Browse | Saved */}
+          <div style={{ display:"flex", gap:8, marginBottom:16 }}>
+            {[["browse","🔍 Browse Live"],["saved",`🔖 Saved (${savedPapers.length})`]].map(([id,label]) => (
+              <button key={id} onClick={() => setPaperTab(id)} style={{ padding:"6px 16px", borderRadius:6, border:"1px solid", fontSize:12, cursor:"pointer",
+                borderColor:paperTab===id?"#C17F3A":"rgba(255,255,255,0.1)",
+                background:paperTab===id?"rgba(193,127,58,0.12)":"transparent",
+                color:paperTab===id?"#C17F3A":sub }}>{label}</button>
+            ))}
+          </div>
+
+          {paperTab === "browse" && (
+            <>
+              {/* Topic quick-filters */}
+              <div style={{ display:"flex", gap:6, flexWrap:"wrap", marginBottom:12 }}>
+                {QF_TOPICS.map(t => (
+                  <button key={t.query} onClick={() => { setPaperQuery(t.query); fetchPapers(t.query) }}
+                    style={{ padding:"5px 12px", borderRadius:20, border:"1px solid", fontSize:11, cursor:"pointer",
+                      borderColor:paperQuery===t.query?"#C17F3A":"rgba(255,255,255,0.1)",
+                      background:paperQuery===t.query?"rgba(193,127,58,0.12)":"transparent",
+                      color:paperQuery===t.query?"#C17F3A":sub }}>{t.label}</button>
+                ))}
+              </div>
+              {/* Custom AI search */}
+              <div style={{ display:"flex", gap:8, marginBottom:16 }}>
+                <input value={aiQuery} onChange={e=>setAiQuery(e.target.value)}
+                  onKeyDown={e=>e.key==="Enter"&&handleAiSearch()}
+                  placeholder="Custom topic search, e.g. 'alpha decay', 'order book ML'..."
+                  style={{ flex:1, background:inBg, border:`1px solid ${bdr}`, borderRadius:8, padding:"8px 14px", color:txt, fontSize:13, outline:"none" }} />
+                <button onClick={handleAiSearch} disabled={loadingPapers}
+                  style={{ background:"rgba(193,127,58,0.15)", border:"1px solid rgba(193,127,58,0.3)", borderRadius:8, padding:"8px 18px", color:"#C17F3A", fontSize:13, cursor:"pointer", whiteSpace:"nowrap" }}>
+                  {loadingPapers ? "Searching..." : "🔍 Search arXiv"}
+                </button>
+                <button onClick={() => fetchPapers(paperQuery)} disabled={loadingPapers}
+                  style={{ background:"rgba(99,102,241,0.1)", border:"1px solid rgba(99,102,241,0.2)", borderRadius:8, padding:"8px 14px", color:"#818cf8", fontSize:13, cursor:"pointer" }}>
+                  ↻ Refresh
+                </button>
+              </div>
+
+              {papers.length === 0 && !loadingPapers && (
+                <div style={{ textAlign:"center", padding:"40px 0", color:muted }}>
+                  <div style={{ fontSize:32, marginBottom:8 }}>📄</div>
+                  <div style={{ fontSize:14, marginBottom:4 }}>No results for this query</div>
+                  <div style={{ fontSize:12 }}>Try a different topic or custom search above</div>
+                </div>
+              )}
+              {loadingPapers && (
+                <div style={{ textAlign:"center", padding:"40px 0", color:muted }}>
+                  <div style={{ fontSize:20, marginBottom:8 }}>⏳</div>
+                  <div>Fetching from arXiv...</div>
+                </div>
+              )}
+              {!loadingPapers && papers.map((p, i) => <PaperCard key={i} p={p} />)}
+            </>
+          )}
+
+          {paperTab === "saved" && (
+            <>
+              {savedPapers.length === 0 ? (
+                <div style={{ textAlign:"center", padding:"48px 0", color:muted }}>
+                  <div style={{ fontSize:40, marginBottom:12 }}>🔖</div>
+                  <div style={{ fontSize:15, color:sub, marginBottom:6 }}>No saved papers yet</div>
+                  <div style={{ fontSize:13 }}>Click 📌 on any paper in Browse to save it here</div>
+                </div>
+              ) : (
+                <>
+                  <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:16 }}>
+                    <span style={{ fontSize:13, color:sub }}>{savedPapers.length} paper{savedPapers.length!==1?"s":""} saved for later reading</span>
+                    <button onClick={() => setSavedPapers([])} style={{ fontSize:12, color:"#ef4444", background:"rgba(239,68,68,0.1)", border:"1px solid rgba(239,68,68,0.2)", borderRadius:6, padding:"4px 12px", cursor:"pointer" }}>Clear all</button>
+                  </div>
+                  {savedPapers.map((p, i) => <PaperCard key={i} p={p} showRemove />)}
+                </>
+              )}
+            </>
+          )}
+        </div>
+      )}
+    </div>
+  )
+}
+
+// ─────────────────────────────────────────────
+//  MAIN APP
+// ─────────────────────────────────────────────
+
+
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+// FILE: src/components/modules/NetworkingTracker.jsx
+// Track firms contacted, people met, competition connections, interview stages
+// Data stored in persistent browser storage (useStorage)
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+const NetworkingTracker = ({ T, aiSettings, markStudyToday = ()=>{} }) => {
+  const bg   = T?.cardBg    || "rgba(255,255,255,0.03)"
+  const bdr  = T?.cardBorder|| "rgba(255,255,255,0.07)"
+  const txt  = T?.text      || "#f1f5f9"
+  const sub  = T?.textSub   || "#64748b"
+  const muted= T?.textMuted || "#475569"
+  const inBg = T?.inputBg   || "rgba(255,255,255,0.04)"
+  const selBg= T?.selectBg  || "#111120"
+
+  const [contacts,     setContacts]     = useStorage("networking_contacts_v1", [])
+  const [showForm,     setShowForm]     = useState(false)
+  const [editId,       setEditId]       = useState(null)
+  const [filterStatus, setFilter]       = useState("All")
+  const [search,       setSearch]       = useState("")
+  const [mainTab,      setMainTab]      = useState("tracker")   // "tracker" | "discover"
+
+  // ── AI Discover state ──
+  const [discoverRole,    setDiscoverRole]    = useState("Quantitative Researcher")
+  const [discoverFirm,    setDiscoverFirm]    = useState("")
+  const [discoverGoal,    setDiscoverGoal]    = useState("Find a mentor who can advise on breaking into HFT")
+  const [discoverResults, setDiscoverResults] = useState([])
+  const [discoverLoading, setDiscoverLoading] = useState(false)
+  const [discoverError,   setDiscoverError]   = useState("")
+
+  const STATUSES      = ["Connected", "Messaged", "Replied", "Coffee Chat", "Referral", "Closed"]
+  const STATUS_COLORS = { Connected:"#6366f1", Messaged:"#0ea5e9", Replied:"#C17F3A", "Coffee Chat":"#10b981", Referral:"#C17F3A", Closed:"#475569" }
+  const MET_VIA       = ["Competition", "Conference", "LinkedIn", "Cold Email", "Referral", "Event", "AI Discover", "Other"]
+
+  const ROLES = [
+    "Quantitative Researcher","Quantitative Trader","Quantitative Developer","HFT Engineer",
+    "Portfolio Manager","Risk Quant","Options Trader","Machine Learning Engineer (Finance)",
+    "Algorithmic Trader","Data Scientist (Finance)","Financial Engineer","Derivatives Quant",
+  ]
+
+  const EMPTY_FORM = { name:"", firm:"", role:"", met_via:"Competition", date:new Date().toISOString().slice(0,10), notes:"", status:"Connected", linkedin:"" }
+  const [form, setForm] = useState(EMPTY_FORM)
+
+  const saveContact = () => {
+    if (!form.name.trim() || !form.firm.trim()) return
+    if (editId) {
+      markStudyToday(); setContacts(prev => prev.map(c => c.id === editId ? { ...form, id: editId } : c))
+      setEditId(null)
+    } else {
+      markStudyToday(); setContacts(prev => [{ ...form, id: Date.now().toString() }, ...prev])
+    }
+    setForm(EMPTY_FORM)
+    setShowForm(false)
+  }
+
+  const deleteContact = (id) => setContacts(prev => prev.filter(c => c.id !== id))
+  const startEdit = (c) => { setForm(c); setEditId(c.id); setShowForm(true); setMainTab("tracker") }
+
+  const filtered = contacts.filter(c => {
+    if (filterStatus !== "All" && c.status !== filterStatus) return false
+    if (search && !c.name.toLowerCase().includes(search.toLowerCase()) && !c.firm.toLowerCase().includes(search.toLowerCase())) return false
+    return true
+  })
+
+  const statCounts = STATUSES.reduce((acc, s) => { acc[s] = contacts.filter(c => c.status === s).length; return acc }, {})
+
+  // ── AI Discover: call Claude to generate targeted quant professionals ──────
+  const runDiscover = async () => {
+    if (!discoverGoal.trim()) return
+    setDiscoverLoading(true)
+    setDiscoverError("")
+    setDiscoverResults([])
+    try {
+      const prompt = `You are a quant career coach helping a student find the right people to connect with on LinkedIn.
+
+Student's target role they want to meet: "${discoverRole}"
+Specific firm (if any): "${discoverFirm || "any top quant firm"}"
+Networking goal: "${discoverGoal}"
+
+Generate 8 realistic LinkedIn profile archetypes for quant finance professionals this student should reach out to. 
+These should be realistic professional profiles — NOT real named individuals, but believable archetypes.
+
+Return ONLY a JSON array (no markdown, no preamble). Each object must have exactly:
+{
+  "name": "First Last (realistic name)",
+  "title": "Exact LinkedIn job title",
+  "firm": "Real quant firm name",
+  "location": "City, Country",
+  "background": "1-sentence background (e.g. PhD MIT → Jane Street → Two Sigma)",
+  "why_connect": "1 sentence on why connecting with this person would help the student's goal",
+  "linkedin_search_query": "Optimised LinkedIn search query string to find this type of person (use keywords, NOT the generated name)",
+  "topics_to_mention": ["topic1", "topic2", "topic3"],
+  "connection_note": "A ready-to-send 2-sentence LinkedIn connection request note"
+}`
+
+      if (!aiSettings?.key) { setDiscoverError("Set your AI key in ⚙ Settings to use AI discovery."); setDiscoverLoading(false); return }
+      const raw = await callAI({ prompt, maxTokens: 2000, aiSettings })
+      const clean = raw.replace(/```json|```/g,"").trim()
+      setDiscoverResults(JSON.parse(clean))
+    } catch(e) {
+      setDiscoverError("AI search failed — please try again.")
+    }
+    setDiscoverLoading(false)
+  }
+
+  // Build LinkedIn people-search URL from query string
+  const linkedInSearchUrl = (query) =>
+    `https://www.linkedin.com/search/results/people/?keywords=${encodeURIComponent(query)}&origin=GLOBAL_SEARCH_HEADER`
+
+  // Pre-fill add-contact form from a discovered archetype
+  const addFromDiscover = (p) => {
+    setForm({ ...EMPTY_FORM, role:p.title, firm:p.firm, met_via:"AI Discover",
+      notes:`Goal: ${discoverGoal}\nTopics: ${p.topics_to_mention?.join(", ")}\nConnection note: ${p.connection_note}` })
+    setMainTab("tracker")
+    setShowForm(true)
+  }
+
+  return (
+    <div>
+      <div style={{ display:"flex", justifyContent:"space-between", alignItems:"flex-start", marginBottom:20 }}>
+        <div>
+          <h1 style={{ fontSize:26, fontWeight:700, color:txt, fontFamily:"'Syne',sans-serif", margin:0 }}>Networking</h1>
+          <p style={{ color:sub, margin:"4px 0 0", fontSize:13 }}>{contacts.length} contacts tracked · AI-powered LinkedIn discovery</p>
+        </div>
+        {mainTab === "tracker" && (
+          <button onClick={() => { setShowForm(f => !f); setEditId(null); setForm(EMPTY_FORM) }}
+            style={{ padding:"9px 18px", borderRadius:8, border:"1px solid rgba(193,127,58,0.4)", background:"rgba(193,127,58,0.12)", color:"#C17F3A", fontSize:13, cursor:"pointer", fontWeight:600 }}>
+            {showForm ? "✕ Cancel" : "+ Add Contact"}
+          </button>
+        )}
+      </div>
+
+      {/* Main tabs */}
+      <div style={{ display:"flex", gap:8, marginBottom:20 }}>
+        {[["tracker",`📋 My Contacts (${contacts.length})`],["discover","✦ AI Discover"]].map(([id,label]) => (
+          <button key={id} onClick={() => setMainTab(id)} style={{ padding:"8px 20px", borderRadius:8, border:"1px solid", fontSize:13, cursor:"pointer",
+            borderColor: mainTab===id ? "#C17F3A" : bdr,
+            background:  mainTab===id ? "rgba(193,127,58,0.12)" : "transparent",
+            color:       mainTab===id ? "#C17F3A" : sub }}>{label}</button>
+        ))}
+      </div>
+
+      {/* ══ TRACKER TAB ══ */}
+      {mainTab === "tracker" && (<>
+        {/* Status pipeline */}
+        <div style={{ display:"flex", gap:8, flexWrap:"wrap", marginBottom:20 }}>
+          {STATUSES.map(s => (
+            <div key={s} style={{ background:bg, border:`1px solid ${bdr}`, borderRadius:8, padding:"10px 16px", textAlign:"center", minWidth:90 }}>
+              <div style={{ fontSize:22, fontWeight:800, color:STATUS_COLORS[s], fontFamily:"'Syne',sans-serif", lineHeight:1 }}>{statCounts[s]}</div>
+              <div style={{ fontSize:10, color:sub, marginTop:3, fontFamily:"'JetBrains Mono',monospace" }}>{s}</div>
+            </div>
+          ))}
+        </div>
+
+        {/* Add / Edit form */}
+        {showForm && (
+          <div style={{ background:bg, border:`1px solid rgba(193,127,58,0.3)`, borderRadius:12, padding:"20px 24px", marginBottom:20 }}>
+            <div style={{ fontSize:12, color:"#C17F3A", fontFamily:"'JetBrains Mono',monospace", marginBottom:16 }}>{editId ? "✎ EDIT CONTACT" : "+ NEW CONTACT"}</div>
+            <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:12 }}>
+              {[["name","Name *"],["firm","Firm *"],["role","Role"],["linkedin","LinkedIn URL"]].map(([key, label]) => (
+                <div key={key}>
+                  <div style={{ fontSize:11, color:sub, marginBottom:4 }}>{label}</div>
+                  <input value={form[key]} onChange={e => setForm(p => ({...p, [key]:e.target.value}))} placeholder={label}
+                    style={{ width:"100%", background:inBg, border:`1px solid ${bdr}`, borderRadius:8, padding:"8px 12px", color:txt, fontSize:13, outline:"none", boxSizing:"border-box" }} />
+                </div>
+              ))}
+              <div>
+                <div style={{ fontSize:11, color:sub, marginBottom:4 }}>Met Via</div>
+                <select value={form.met_via} onChange={e => setForm(p => ({...p, met_via:e.target.value}))}
+                  style={{ width:"100%", background:selBg, border:`1px solid ${bdr}`, borderRadius:8, padding:"8px 12px", color:txt, fontSize:13, cursor:"pointer" }}>
+                  {MET_VIA.map(m => <option key={m}>{m}</option>)}
+                </select>
+              </div>
+              <div>
+                <div style={{ fontSize:11, color:sub, marginBottom:4 }}>Status</div>
+                <select value={form.status} onChange={e => setForm(p => ({...p, status:e.target.value}))}
+                  style={{ width:"100%", background:selBg, border:`1px solid ${bdr}`, borderRadius:8, padding:"8px 12px", color:txt, fontSize:13, cursor:"pointer" }}>
+                  {STATUSES.map(s => <option key={s}>{s}</option>)}
+                </select>
+              </div>
+              <div>
+                <div style={{ fontSize:11, color:sub, marginBottom:4 }}>Date Met</div>
+                <input type="date" value={form.date} onChange={e => setForm(p => ({...p, date:e.target.value}))}
+                  style={{ width:"100%", background:inBg, border:`1px solid ${bdr}`, borderRadius:8, padding:"8px 12px", color:txt, fontSize:13, outline:"none", boxSizing:"border-box" }} />
+              </div>
+              <div style={{ gridColumn:"1/-1" }}>
+                <div style={{ fontSize:11, color:sub, marginBottom:4 }}>Notes</div>
+                <textarea value={form.notes} onChange={e => setForm(p => ({...p, notes:e.target.value}))} placeholder="How you met, topics discussed, follow-up needed..."
+                  style={{ width:"100%", background:inBg, border:`1px solid ${bdr}`, borderRadius:8, padding:"8px 12px", color:txt, fontSize:13, outline:"none", resize:"vertical", minHeight:72, boxSizing:"border-box", fontFamily:"inherit" }} />
+              </div>
+            </div>
+            <div style={{ marginTop:14, display:"flex", gap:8 }}>
+              <button onClick={saveContact} style={{ padding:"9px 24px", borderRadius:8, border:"1px solid rgba(16,185,129,0.4)", background:"rgba(16,185,129,0.15)", color:"#10b981", fontSize:13, cursor:"pointer", fontWeight:600 }}>
+                {editId ? "✓ Save Changes" : "✓ Add Contact"}
+              </button>
+              <button onClick={() => { setShowForm(false); setEditId(null); setForm(EMPTY_FORM) }}
+                style={{ padding:"9px 16px", borderRadius:8, border:`1px solid ${bdr}`, background:"transparent", color:sub, fontSize:13, cursor:"pointer" }}>Cancel</button>
+            </div>
+          </div>
+        )}
+
+        {/* Search + filter */}
+        <div style={{ display:"flex", gap:10, marginBottom:16, flexWrap:"wrap", alignItems:"center" }}>
+          <input value={search} onChange={e => setSearch(e.target.value)} placeholder="Search name or firm..."
+            style={{ background:inBg, border:`1px solid ${bdr}`, borderRadius:8, padding:"7px 14px", color:txt, fontSize:13, outline:"none", minWidth:220 }} />
+          <div style={{ display:"flex", gap:6, flexWrap:"wrap" }}>
+            {["All", ...STATUSES].map(s => (
+              <button key={s} onClick={() => setFilter(s)} style={{ padding:"5px 12px", borderRadius:6, border:"1px solid", fontSize:12, cursor:"pointer",
+                borderColor: filterStatus===s ? (STATUS_COLORS[s]||"#C17F3A") : bdr,
+                background:  filterStatus===s ? `${(STATUS_COLORS[s]||"#C17F3A")}18` : "transparent",
+                color:       filterStatus===s ? (STATUS_COLORS[s]||"#C17F3A") : sub }}>{s}</button>
+            ))}
+          </div>
+          <span style={{ fontSize:12, color:muted, marginLeft:"auto" }}>{filtered.length} contacts</span>
+        </div>
+
+        {/* Contact list */}
+        {filtered.length === 0 && (
+          <div style={{ textAlign:"center", padding:"60px 0", color:muted }}>
+            <div style={{ fontSize:40, marginBottom:12 }}>🤝</div>
+            <div style={{ fontSize:15, color:sub, marginBottom:6 }}>No contacts yet</div>
+            <div style={{ fontSize:13 }}>Use ✦ AI Discover to find quant professionals to reach out to, or add manually</div>
+          </div>
+        )}
+        <div style={{ display:"flex", flexDirection:"column", gap:10 }}>
+          {filtered.map(c => {
+            const sc = STATUS_COLORS[c.status] || "#6366f1"
+            return (
+              <div key={c.id} style={{ background:bg, border:`1px solid ${sc}25`, borderRadius:12, padding:"16px 20px" }}>
+                <div style={{ display:"flex", justifyContent:"space-between", alignItems:"flex-start", gap:12 }}>
+                  <div style={{ flex:1, minWidth:0 }}>
+                    <div style={{ display:"flex", alignItems:"center", gap:8, flexWrap:"wrap", marginBottom:4 }}>
+                      <span style={{ fontSize:15, fontWeight:700, color:txt }}>{c.name}</span>
+                      <span style={{ fontSize:10, color:sc, background:`${sc}15`, border:`1px solid ${sc}30`, padding:"2px 8px", borderRadius:4, fontFamily:"'JetBrains Mono',monospace" }}>{c.status}</span>
+                      <span style={{ fontSize:10, color:muted, fontFamily:"'JetBrains Mono',monospace" }}>via {c.met_via}</span>
+                    </div>
+                    <div style={{ fontSize:13, color:sub }}>{c.role} · {c.firm}</div>
+                    {c.notes && <div style={{ fontSize:12, color:muted, marginTop:6, lineHeight:1.5, whiteSpace:"pre-wrap" }}>{c.notes}</div>}
+                    <div style={{ fontSize:10, color:muted, marginTop:4 }}>Met: {formatDate(c.date)}</div>
+                  </div>
+                  <div style={{ display:"flex", flexDirection:"column", gap:6, flexShrink:0 }}>
+                    {c.linkedin && (
+                      <a href={c.linkedin} target="_blank" rel="noreferrer"
+                        style={{ fontSize:11, color:"#0ea5e9", textDecoration:"none", border:"1px solid rgba(14,165,233,0.3)", padding:"4px 10px", borderRadius:6, textAlign:"center" }}>LinkedIn</a>
+                    )}
+                    <select value={c.status} onChange={e => setContacts(prev => prev.map(x => x.id===c.id ? {...x, status:e.target.value} : x))}
+                      style={{ background:selBg, border:`1px solid ${sc}40`, borderRadius:6, padding:"3px 8px", color:sc, fontSize:11, cursor:"pointer" }}>
+                      {STATUSES.map(s => <option key={s}>{s}</option>)}
+                    </select>
+                    <button onClick={() => startEdit(c)} style={{ background:"transparent", border:`1px solid ${bdr}`, borderRadius:6, padding:"4px 10px", color:sub, fontSize:11, cursor:"pointer" }}>✎ Edit</button>
+                    <button onClick={() => deleteContact(c.id)} style={{ background:"rgba(239,68,68,0.08)", border:"1px solid rgba(239,68,68,0.2)", borderRadius:6, padding:"4px 10px", color:"#ef4444", fontSize:11, cursor:"pointer" }}>🗑</button>
+                  </div>
+                </div>
+              </div>
+            )
+          })}
+        </div>
+      </>)}
+
+      {/* ══ AI DISCOVER TAB ══ */}
+      {mainTab === "discover" && (
+        <div>
+          {/* Explainer */}
+          <div style={{ background:"rgba(193,127,58,0.06)", border:"1px solid rgba(193,127,58,0.2)", borderRadius:12, padding:"14px 18px", marginBottom:20 }}>
+            <div style={{ fontSize:11, color:"#C17F3A", fontFamily:"'JetBrains Mono',monospace", marginBottom:6, letterSpacing:"0.08em" }}>✦ AI-POWERED LINKEDIN DISCOVERY</div>
+            <div style={{ fontSize:12, color:sub, lineHeight:1.6 }}>
+              Describe the type of quant professional you want to connect with. Claude generates targeted profile archetypes and opens a pre-built LinkedIn People Search for each — so you can find and reach out immediately.
+            </div>
+          </div>
+
+          {/* Search form */}
+          <div style={{ background:bg, border:`1px solid ${bdr}`, borderRadius:12, padding:"20px 24px", marginBottom:20 }}>
+            <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:12, marginBottom:12 }}>
+              <div>
+                <div style={{ fontSize:11, color:sub, marginBottom:6 }}>TARGET ROLE</div>
+                <select value={discoverRole} onChange={e => setDiscoverRole(e.target.value)}
+                  style={{ width:"100%", background:selBg, border:`1px solid ${bdr}`, borderRadius:8, padding:"9px 12px", color:txt, fontSize:13, cursor:"pointer", outline:"none" }}>
+                  {ROLES.map(r => <option key={r}>{r}</option>)}
+                </select>
+              </div>
+              <div>
+                <div style={{ fontSize:11, color:sub, marginBottom:6 }}>FIRM (optional)</div>
+                <input value={discoverFirm} onChange={e => setDiscoverFirm(e.target.value)} placeholder="e.g. Jane Street, Two Sigma, Citadel..."
+                  style={{ width:"100%", background:inBg, border:`1px solid ${bdr}`, borderRadius:8, padding:"9px 12px", color:txt, fontSize:13, outline:"none", boxSizing:"border-box" }} />
+              </div>
+              <div style={{ gridColumn:"1/-1" }}>
+                <div style={{ fontSize:11, color:sub, marginBottom:6 }}>YOUR NETWORKING GOAL</div>
+                <input value={discoverGoal} onChange={e => setDiscoverGoal(e.target.value)}
+                  onKeyDown={e => e.key === "Enter" && runDiscover()}
+                  placeholder="e.g. Find a mentor in HFT, get a referral at Two Sigma, learn about options market making..."
+                  style={{ width:"100%", background:inBg, border:`1px solid rgba(193,127,58,0.3)`, borderRadius:8, padding:"9px 12px", color:txt, fontSize:13, outline:"none", boxSizing:"border-box" }} />
+              </div>
+            </div>
+            <button onClick={runDiscover} disabled={discoverLoading}
+              style={{ padding:"10px 28px", borderRadius:8, border:"1px solid rgba(193,127,58,0.4)", background:"rgba(193,127,58,0.15)", color:"#C17F3A", fontSize:14, cursor:"pointer", fontWeight:600 }}>
+              {discoverLoading ? "⏳ Generating..." : "✦ Find People to Connect With"}
+            </button>
+            {discoverError && <div style={{ fontSize:12, color:"#ef4444", marginTop:10 }}>{discoverError}</div>}
+          </div>
+
+          {/* Loading state */}
+          {discoverLoading && (
+            <div style={{ textAlign:"center", padding:"40px 0", color:muted }}>
+              <div style={{ fontSize:28, marginBottom:12, animation:"spin 1.5s linear infinite" }}>✦</div>
+              <div style={{ fontSize:14, color:sub }}>Claude is finding your ideal networking targets...</div>
+            </div>
+          )}
+
+          {/* Results */}
+          {!discoverLoading && discoverResults.length > 0 && (
+            <div>
+              <div style={{ fontSize:12, color:"#C17F3A", fontFamily:"'JetBrains Mono',monospace", marginBottom:14 }}>
+                ✦ {discoverResults.length} PROFILES FOUND — click LinkedIn Search to find real people matching each archetype
+              </div>
+              <div style={{ display:"grid", gridTemplateColumns:"repeat(auto-fill, minmax(380px, 1fr))", gap:14 }}>
+                {discoverResults.map((p, i) => (
+                  <div key={i} style={{ background:bg, border:`1px solid rgba(99,102,241,0.25)`, borderRadius:12, padding:"18px 20px" }}>
+                    {/* Header */}
+                    <div style={{ display:"flex", justifyContent:"space-between", alignItems:"flex-start", marginBottom:12 }}>
+                      <div style={{ flex:1, minWidth:0 }}>
+                        <div style={{ fontSize:10, color:"#6366f1", fontFamily:"'JetBrains Mono',monospace", marginBottom:4, letterSpacing:"0.06em" }}>ARCHETYPE #{i+1}</div>
+                        <div style={{ fontSize:15, fontWeight:700, color:txt, marginBottom:2 }}>{p.name}</div>
+                        <div style={{ fontSize:12, color:"#6366f1" }}>{p.title}</div>
+                        <div style={{ fontSize:12, color:sub, marginTop:1 }}>{p.firm} · {p.location}</div>
+                      </div>
+                    </div>
+
+                    {/* Background */}
+                    <div style={{ fontSize:12, color:sub, lineHeight:1.5, marginBottom:10, padding:"8px 12px", background:bg, borderRadius:7 }}>
+                      🎓 {p.background}
+                    </div>
+
+                    {/* Why connect */}
+                    <div style={{ fontSize:12, color:"#10b981", lineHeight:1.5, marginBottom:10 }}>
+                      💡 {p.why_connect}
+                    </div>
+
+                    {/* Topics */}
+                    {p.topics_to_mention && (
+                      <div style={{ display:"flex", gap:4, flexWrap:"wrap", marginBottom:12 }}>
+                        {p.topics_to_mention.map((t, j) => (
+                          <span key={j} style={{ fontSize:10, color:"#C17F3A", background:"rgba(193,127,58,0.1)", border:"1px solid rgba(193,127,58,0.2)", padding:"2px 8px", borderRadius:20 }}>{t}</span>
+                        ))}
+                      </div>
+                    )}
+
+                    {/* Connection note preview */}
+                    {p.connection_note && (
+                      <div style={{ fontSize:11, color:muted, lineHeight:1.5, marginBottom:14, padding:"8px 12px", background:"rgba(99,102,241,0.06)", borderRadius:7, border:"1px solid rgba(99,102,241,0.15)", fontStyle:"italic" }}>
+                        "{p.connection_note}"
+                      </div>
+                    )}
+
+                    {/* Actions */}
+                    <div style={{ display:"flex", gap:8 }}>
+                      <a href={linkedInSearchUrl(p.linkedin_search_query)} target="_blank" rel="noreferrer"
+                        style={{ flex:1, textAlign:"center", padding:"8px 12px", borderRadius:8, background:"rgba(14,165,233,0.15)", border:"1px solid rgba(14,165,233,0.3)", color:"#0ea5e9", fontSize:12, textDecoration:"none", fontWeight:600 }}>
+                        🔍 LinkedIn Search
+                      </a>
+                      <button onClick={() => addFromDiscover(p)}
+                        style={{ flex:1, padding:"8px 12px", borderRadius:8, background:"rgba(16,185,129,0.12)", border:"1px solid rgba(16,185,129,0.3)", color:"#10b981", fontSize:12, cursor:"pointer", fontWeight:600 }}>
+                        + Track Contact
+                      </button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Empty state */}
+          {!discoverLoading && discoverResults.length === 0 && (
+            <div style={{ textAlign:"center", padding:"60px 0", color:muted }}>
+              <div style={{ fontSize:40, marginBottom:12 }}>◎</div>
+              <div style={{ fontSize:15, color:sub, marginBottom:6 }}>Ready to discover your network</div>
+              <div style={{ fontSize:13 }}>Fill in your goal above and click "Find People to Connect With"</div>
+            </div>
+          )}
+        </div>
+      )}
+    </div>
+  )
+}
+
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+// FILE: src/constants/config.js  (when splitting into separate files)
+// Contains: NAV_ITEMS, theme tokens
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+// FILE: src/data/roadmapTracks.js
+// ROADMAP_TRACKS: target roles → required skills, course IDs, competitions, firms
+// To add a track: append a new object. To add a milestone: append to milestones[].
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+const ROADMAP_TRACKS = {
+  qr: {
+    id: "qr",
+    title: "Quantitative Researcher",
+    icon: "◉",
+    color: "#C17F3A",
+    desc: "Build alpha signals, statistical models and research systematic strategies at a hedge fund or prop shop.",
+    timeline: "18–24 months",
+    // Priority-A course IDs most relevant to this track
+    courses: ["m0","m1","m2","m3","m4","m5","ml0","ml1","ml2","ml3","ml4","f0","f1","f7","f16","f18","f22","p0","c0","c7","c10","c20"],
+    interview_cats: ["Probability & Stats","ML for Finance","Options & Derivatives","Brainteasers"],
+    comp_keywords: ["research","alpha","quant","kaggle","data","ML"],
+    firms: ["Jane Street","Two Sigma","D.E. Shaw","Renaissance Technologies","AQR Capital","Man Group","Citadel","Millennium Management","Cubist Systematic"],
+    milestones: [
+      { id:"ms_qr1", label:"Complete core probability & statistics sequence",   courses:["m0","m1","m2","m3","c1","c7"] },
+      { id:"ms_qr2", label:"Complete ML foundations (supervised + unsupervised)",courses:["ml0","ml1","ml2","ml3","ml4"] },
+      { id:"ms_qr3", label:"Complete quantitative finance sequence",             courses:["f0","f1","f7","f16","f18","f22"] },
+      { id:"ms_qr4", label:"Enter a quant research competition",                courses:[] },
+      { id:"ms_qr5", label:"Score 8+/10 on 3 consecutive interview sessions",   courses:[] },
+      { id:"ms_qr6", label:"Network with 5 QR professionals",                   courses:[] },
+    ],
+  },
+  qt: {
+    id: "qt",
+    title: "Quantitative Trader",
+    icon: "⬡",
+    color: "#10b981",
+    desc: "Execute trades, manage risk and build intuition for pricing and market microstructure at a trading firm.",
+    timeline: "12–18 months",
+    courses: ["m0","m1","m2","m3","m4","f0","f1","f2","f3","f4","f7","f13","f16","f18","c10","c13","c20","p0"],
+    interview_cats: ["Options & Derivatives","Market Making & Trading","Brainteasers","Probability & Stats"],
+    comp_keywords: ["trading","market making","options","simulation","competition"],
+    firms: ["Jane Street","Optiver","IMC Trading","SIG","Citadel Securities","Virtu Financial","Hudson River Trading","Jump Trading"],
+    milestones: [
+      { id:"ms_qt1", label:"Complete probability & statistics foundations",      courses:["m0","m1","m2","m3"] },
+      { id:"ms_qt2", label:"Complete derivatives & options sequence",            courses:["f0","f1","f2","f3","f4","f13"] },
+      { id:"ms_qt3", label:"Complete applied finance & microstructure",          courses:["f7","f16","f18","c13"] },
+      { id:"ms_qt4", label:"Enter a trading competition (IMC, Optiver, SIG)",    courses:[] },
+      { id:"ms_qt5", label:"Score 8+/10 on Options & Market Making interviews",  courses:[] },
+      { id:"ms_qt6", label:"Network with 5 traders at target firms",             courses:[] },
+    ],
+  },
+  qd: {
+    id: "qd",
+    title: "Quant Developer / SWE",
+    icon: "▣",
+    color: "#6366f1",
+    desc: "Build low-latency trading infrastructure, execution systems and research tooling in C++ and Python.",
+    timeline: "12–18 months",
+    courses: ["c0","c3","c4","c8","c9","c10","c15","c16","c20","p0","p1","p2","p3","p4","m0","m1","f22"],
+    interview_cats: ["Python & Algorithms","Brainteasers","Probability & Stats"],
+    comp_keywords: ["programming","algorithms","competitive","ICPC","HFT","systems"],
+    firms: ["Citadel Securities","Hudson River Trading","Optiver","Jump Trading","Squarepoint Capital","Two Sigma","Virtu Financial"],
+    milestones: [
+      { id:"ms_qd1", label:"Complete computer systems & architecture sequence",  courses:["c3","c4","c8","c15","c16"] },
+      { id:"ms_qd2", label:"Complete algorithms & performance engineering",       courses:["c10","c20","p0","p1","p2"] },
+      { id:"ms_qd3", label:"Complete parallel & distributed systems",            courses:["c9","c16"] },
+      { id:"ms_qd4", label:"Solve 50+ LeetCode medium/hard problems",           courses:[] },
+      { id:"ms_qd5", label:"Enter a competitive programming contest",            courses:[] },
+      { id:"ms_qd6", label:"Build a live trading system project",                courses:[] },
+    ],
+  },
+  risk: {
+    id: "risk",
+    title: "Risk Quant",
+    icon: "◎",
+    color: "#ec4899",
+    desc: "Model, measure and manage financial risk — market risk, credit risk and counterparty exposure.",
+    timeline: "12–18 months",
+    courses: ["m0","m1","m2","m3","m5","f0","f1","f3","f7","f13","f14","f16","f18","ml0","ml1","c1","c7"],
+    interview_cats: ["Probability & Stats","Options & Derivatives","ML for Finance"],
+    comp_keywords: ["risk","quantitative","finance","portfolio","modelling"],
+    firms: ["Goldman Sachs","J.P. Morgan","Morgan Stanley","Barclays","Citadel","AQR Capital","Man Group","Millennium Management"],
+    milestones: [
+      { id:"ms_rk1", label:"Complete probability & stochastic processes",        courses:["m0","m1","m2","m3","m5","c1"] },
+      { id:"ms_rk2", label:"Complete derivatives pricing & risk management",     courses:["f0","f1","f3","f13","f18"] },
+      { id:"ms_rk3", label:"Complete econometrics & financial modelling",        courses:["f7","f14","f16","ml0","ml1"] },
+      { id:"ms_rk4", label:"Enter a finance modelling competition",              courses:[] },
+      { id:"ms_rk5", label:"Score 8+/10 on Probability & Stats interviews",     courses:[] },
+      { id:"ms_rk6", label:"Network with 5 risk professionals",                 courses:[] },
+    ],
+  },
+}
+
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+// MODULE: CAREER ROADMAP
+// Personalized career OS — pick a target role, see exactly what to do next
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+const CareerRoadmap = ({ T, courseProgress, navigate, isMobile, isTablet, aiSettings, userContext }) => {
+  const bg    = T?.cardBg    || "rgba(255,255,255,0.04)"
+  const bdr   = T?.cardBorder|| "rgba(255,255,255,0.08)"
+  const txt   = T?.text      || "#f1f5f9"
+  const sub   = T?.textSub   || "#64748b"
+  const muted = T?.textMuted || "#475569"
+  const inBg  = T?.inputBg   || "rgba(255,255,255,0.055)"
+
+  const [track,        setTrack]       = useStorage("roadmap_track_v1", "qr")
+  const [aiAdvice,     setAiAdvice]    = useState("")
+  const [aiLoading,    setAiLoading]   = useState(false)
+  const [expanded,     setExpanded]    = useState(null)   // expanded milestone id
+
+  const t     = ROADMAP_TRACKS[track]
+  const color = t.color
+
+  // ── Per-track course completion ──────────────────────────────────────────────
+  const trackCourses = t.courses.map(id => COURSES.find(c => c.id === id)).filter(Boolean)
+  const doneCourses  = trackCourses.filter(c => courseProgress[c.id] === 1)
+  const pct          = trackCourses.length ? Math.round(doneCourses.length / trackCourses.length * 100) : 0
+
+  // ── Milestone completion ─────────────────────────────────────────────────────
+  const milestoneProgress = (ms) => {
+    if (!ms.courses.length) return null   // manual milestone — no auto tracking
+    const done = ms.courses.filter(id => courseProgress[id] === 1).length
+    return { done, total: ms.courses.length, pct: Math.round(done / ms.courses.length * 100) }
+  }
+
+  // ── Relevant open competitions ────────────────────────────────────────────────
+  const relevantComps = COMPETITIONS.filter(c =>
+    c.status !== "closed" &&
+    t.comp_keywords.some(kw => (c.name+c.desc+c.category).toLowerCase().includes(kw.toLowerCase()))
+  ).slice(0, 5)
+
+  // ── Relevant job openings ─────────────────────────────────────────────────────
+  const relevantJobs = JOBS.filter(j =>
+    j.status !== "closed" &&
+    (t.firms.includes(j.company) || j.type === (track==="qr"?"QR":track==="qt"?"QT":track==="qd"?"QD":"Risk"))
+  ).slice(0, 6)
+
+  // ── AI "What next?" ──────────────────────────────────────────────────────────
+  const getAiAdvice = async () => {
+    setAiLoading(true); setAiAdvice("")
+    const completedNames = doneCourses.map(c => c.name).join(", ") || "none yet"
+    const remainingNames = trackCourses.filter(c => courseProgress[c.id] !== 1).slice(0, 8).map(c => c.name).join(", ")
+    try {
+      if (!aiSettings?.key) { setAiAdvice("Set your AI provider key in ⚙ Settings to get personalised advice."); setAiLoading(false); return }
+      const uc = userContext || {}
+      const prompt = `You are a senior quant hiring manager. A student has asked for honest, specific next-step advice. Here is their full profile:
+
+TARGET ROLE: ${t.title}
+TRACK PROGRESS: ${pct}% of track courses complete (${doneCourses.length}/${trackCourses.length} courses)
+COMPLETED COURSES: ${completedNames || "none yet"}
+STILL NEEDED: ${remainingNames || "all done"}
+
+STUDY HABITS:
+- Current streak: ${uc.streak || 0} day(s)
+- Total study days logged: ${uc.totalStudyDays || 0}
+- Days since last study session: ${uc.daysSinceStudy === null ? "never logged" : uc.daysSinceStudy === 0 ? "studied today" : `${uc.daysSinceStudy} days ago`}
+- Lectures completed: ${uc.doneLectures || 0} across all courses
+
+INTERVIEW PRACTICE:
+- Total sessions: ${uc.totalSessions || 0}
+- Average score: ${uc.avgScore ? `${uc.avgScore}/10` : "no sessions yet"}
+- Weak categories: ${uc.weakCategories?.length ? uc.weakCategories.join(", ") : "none identified yet"}
+- Strong categories: ${uc.strongCategories?.length ? uc.strongCategories.join(", ") : "none yet"}
+
+COURSE REVIEWS:
+- Overdue reviews: ${uc.overdueReviews || 0}
+- Upcoming reviews scheduled: ${uc.upcomingReviews || 0}
+
+NETWORKING:
+- Total contacts added: ${uc.totalContacts || 0}
+- Overdue follow-ups: ${uc.overdueFollowups || 0}
+
+APPLICATIONS:
+- Competitions: ${uc.appSummary?.competitions?.applied || 0} applied, ${uc.appSummary?.competitions?.interviewing || 0} interviewing
+- Jobs/internships: ${uc.appSummary?.jobs?.applied || 0} applied, ${uc.appSummary?.jobs?.interviewing || 0} interviewing
+
+Based on this full picture, give ONE specific, honest, actionable piece of advice. 3-4 sentences max. Be direct — tell them exactly what to do next and why it matters most right now given their actual situation. If they haven't studied in days, say so. If their interview scores are weak, address that. Treat them like an intelligent adult who wants real feedback, not encouragement.`
+
+      const advice = await callAI({
+        system: "You are a senior quant hiring manager giving honest, direct career advice. No fluff, no generic tips. Respond based on the specific data provided.",
+        prompt,
+        maxTokens: 400, aiSettings
+      })
+      setAiAdvice(advice || "Could not load advice.")
+    } catch { setAiAdvice("AI advisor unavailable. Focus on the next incomplete milestone below.") }
+    setAiLoading(false)
+  }
+
+  // ── Radial progress ring ─────────────────────────────────────────────────────
+  const R = 36, C = 40, circ = 2 * Math.PI * R
+  const dash = (pct / 100) * circ
+
+  return (
+    <div style={{ padding: "0 0 40px", width: "100%", boxSizing: "border-box", overflowX: "hidden" }}>
+
+      {/* ── Header ── */}
+      <div style={{ marginBottom: 28, display: "flex", alignItems: "flex-start", justifyContent: "space-between", flexWrap: "wrap", gap: 16 }}>
+        <div>
+          <h1 style={{ fontSize: 26, fontWeight: 700, color: txt, fontFamily: "'Syne',sans-serif", margin: 0 }}>Career Roadmap</h1>
+          <p style={{ color: sub, margin: "4px 0 0", fontSize: 13 }}>
+            Your personalised path from student to quant — pick a target role and follow the steps
+          </p>
+        </div>
+      </div>
+
+      {/* ── Track selector ── */}
+      {(isMobile||isTablet) ? (
+        /* Mobile: compact horizontal chips */
+        <div style={{ display: "flex", gap: 8, overflowX: "auto", marginBottom: 20, paddingBottom: 4,
+          width: "100%", scrollbarWidth: "none", WebkitOverflowScrolling: "touch" }}>
+          {Object.values(ROADMAP_TRACKS).map(tr => (
+            <button key={tr.id} onClick={() => { setTrack(tr.id); setAiAdvice("") }}
+              style={{
+                flexShrink: 0, padding: "8px 14px", borderRadius: 20, cursor: "pointer",
+                display: "flex", alignItems: "center", gap: 6,
+                border: `1px solid ${track === tr.id ? tr.color : bdr}`,
+                background: track === tr.id ? `${tr.color}15` : bg,
+                transition: "all 0.2s",
+              }}>
+              <span style={{ fontSize: 14 }}>{tr.icon}</span>
+              <span style={{ fontSize: 12, fontWeight: 700, color: track === tr.id ? tr.color : txt, whiteSpace: "nowrap" }}>{tr.title}</span>
+            </button>
+          ))}
+        </div>
+      ) : (
+        /* Desktop: full cards */
+        <div style={{ display: "flex", gap: 10, flexWrap: "wrap", marginBottom: 28 }}>
+          {Object.values(ROADMAP_TRACKS).map(tr => (
+            <button key={tr.id} onClick={() => { setTrack(tr.id); setAiAdvice("") }}
+              style={{
+                padding: "12px 20px", borderRadius: 12, cursor: "pointer", textAlign: "left", minWidth: 180,
+                border: `1px solid ${track === tr.id ? tr.color : bdr}`,
+                background: track === tr.id ? `${tr.color}12` : bg,
+                transition: "all 0.2s",
+              }}>
+              <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 4 }}>
+                <span style={{ fontSize: 16, color: track === tr.id ? tr.color : muted }}>{tr.icon}</span>
+                <span style={{ fontSize: 13, fontWeight: 700, color: track === tr.id ? tr.color : txt }}>{tr.title}</span>
+              </div>
+              <div style={{ fontSize: 10, color: muted, lineHeight: 1.5 }}>{tr.timeline}</div>
+            </button>
+          ))}
+        </div>
+      )}
+
+      {/* ── Main 2-col layout ── */}
+      <div style={{ display: "grid", gridTemplateColumns: (isMobile||isTablet)?"1fr":"1fr 340px", gap: 20, alignItems: "start", width: "100%" }}>
+
+        {/* ── LEFT: milestones + course checklist ── */}
+        <div style={{ display: "flex", flexDirection: "column", gap: 16, width: "100%", minWidth: 0 }}>
+
+          {/* Track hero card */}
+          <div style={{ background: bg, border: `1px solid ${color}25`, borderRadius: 16, padding: (isMobile||isTablet) ? "14px 16px" : "22px 26px", borderLeft: `4px solid ${color}`, minWidth: 0 }}>
+            <div style={{ display: "flex", alignItems: "center", gap: (isMobile||isTablet) ? 14 : 20, minWidth: 0 }}>
+              {/* Progress ring */}
+              <svg width={C*2} height={C*2} style={{ flexShrink: 0 }}>
+                <circle cx={C} cy={C} r={R} fill="none" stroke="rgba(128,128,128,0.15)" strokeWidth={7} />
+                <circle cx={C} cy={C} r={R} fill="none" stroke={color} strokeWidth={7}
+                  strokeDasharray={`${dash} ${circ}`} strokeDashoffset={circ/4}
+                  strokeLinecap="round" style={{ transition: "stroke-dasharray 1s ease" }} />
+                <text x={C} y={C+1} textAnchor="middle" dominantBaseline="middle"
+                  fontSize={15} fontWeight={800} fill={color} fontFamily="'Syne',sans-serif">{pct}%</text>
+              </svg>
+              <div style={{ flex: 1, minWidth: 0 }}>
+                <div style={{ fontSize: (isMobile||isTablet) ? 15 : 18, fontWeight: 800, color: txt, fontFamily: "'Syne',sans-serif", marginBottom: 4,
+                  overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{t.title}</div>
+                {!(isMobile||isTablet) && <div style={{ fontSize: 12, color: sub, lineHeight: 1.5, marginBottom: 8,
+                  display: "-webkit-box", WebkitLineClamp: 2, WebkitBoxOrient: "vertical", overflow: "hidden" }}>{t.desc}</div>}
+                <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+                  <span style={{ fontSize: 10, color: color, background: `${color}12`, border: `1px solid ${color}25`, padding: "3px 10px", borderRadius: 20, fontFamily: "'JetBrains Mono',monospace" }}>⏱ {t.timeline}</span>
+                  <span style={{ fontSize: 10, color: "#10b981", background: "rgba(16,185,129,0.10)", border: "1px solid rgba(16,185,129,0.2)", padding: "3px 10px", borderRadius: 20, fontFamily: "'JetBrains Mono',monospace" }}>{doneCourses.length}/{trackCourses.length} courses</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* AI Advisor */}
+          <div style={{ background: bg, border: `1px solid rgba(193,127,58,0.15)`, borderRadius: 14, padding: (isMobile||isTablet) ? "12px 14px" : "18px 22px" }}>
+            <div style={{ display: "flex", alignItems: (isMobile||isTablet) ? "flex-start" : "center", flexDirection: (isMobile||isTablet) ? "column" : "row", gap: isMobile ? 8 : 0, justifyContent: "space-between", marginBottom: aiAdvice ? 12 : 0 }}>
+              <div style={{ fontSize: 11, color: "#C17F3A", textTransform: "uppercase", letterSpacing: "0.08em", fontFamily: "'JetBrains Mono',monospace" }}>
+                ✦ AI Career Advisor
+              </div>
+              <button onClick={getAiAdvice} disabled={aiLoading}
+                style={{ padding: "6px 16px", borderRadius: 8, border: "1px solid rgba(193,127,58,0.3)", background: "rgba(193,127,58,0.08)", color: "#C17F3A", fontSize: 11, cursor: aiLoading ? "wait" : "pointer", fontFamily: "'JetBrains Mono',monospace", transition: "all 0.2s" }}>
+                {aiLoading ? "Thinking…" : aiAdvice ? "↺ Refresh" : "What should I do next? →"}
+              </button>
+            </div>
+            {aiAdvice && (
+              <div style={{ fontSize: 13, color: sub, lineHeight: 1.8, borderTop: "1px solid rgba(255,255,255,0.06)", paddingTop: 12, fontStyle: "italic" }}>
+                "{aiAdvice}"
+              </div>
+            )}
+          </div>
+
+          {/* Milestones */}
+          <div style={{ background: bg, border: `1px solid ${bdr}`, borderRadius: 14, padding: isMobile ? "12px 14px" : "18px 22px" }}>
+            <div style={{ fontSize: 11, color: muted, textTransform: "uppercase", letterSpacing: "0.08em", marginBottom: 16, fontFamily: "'JetBrains Mono',monospace" }}>
+              🗺 Milestones
+            </div>
+            <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+              {t.milestones.map((ms, idx) => {
+                const mp   = milestoneProgress(ms)
+                const done = mp ? mp.pct === 100 : false
+                const isOpen = expanded === ms.id
+                return (
+                  <div key={ms.id} style={{ borderRadius: 10, border: `1px solid ${done ? `${color}30` : T?.rowBorder||"rgba(0,0,0,0.06)"}`, overflow: "hidden" }}>
+                    <div onClick={() => setExpanded(isOpen ? null : ms.id)}
+                      style={{ display: "flex", alignItems: "center", gap: 12, padding: "12px 16px", cursor: "pointer", background: done ? `${color}08` : "transparent" }}>
+                      {/* Status dot */}
+                      <div style={{ width: 22, height: 22, borderRadius: "50%", flexShrink: 0, display: "flex", alignItems: "center", justifyContent: "center",
+                        background: done ? color : T?.rowBg||"rgba(0,0,0,0.04)", border: `1px solid ${done ? color : T?.border||"rgba(0,0,0,0.10)"}` }}>
+                        {done ? <span style={{ fontSize: 11, color: "#000" }}>✓</span>
+                          : <span style={{ fontSize: 10, color: muted, fontFamily: "'JetBrains Mono',monospace" }}>{idx+1}</span>}
+                      </div>
+                      <div style={{ flex: 1 }}>
+                        <div style={{ fontSize: 13, color: done ? color : txt, fontWeight: done ? 600 : 400, lineHeight: 1.4, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{ms.label}</div>
+                        {mp && (
+                          <div style={{ marginTop: 5, height: 3, borderRadius: 3, background: "rgba(255,255,255,0.06)", overflow: "hidden" }}>
+                            <div style={{ height: "100%", borderRadius: 3, background: done ? color : `linear-gradient(90deg,${color}99,${color})`, width: `${mp.pct}%`, transition: "width 0.8s ease" }} />
+                          </div>
+                        )}
+                      </div>
+                      {mp && <span style={{ fontSize: 10, color: done ? color : muted, fontFamily: "'JetBrains Mono',monospace", flexShrink: 0 }}>{mp.done}/{mp.total}</span>}
+                      <span style={{ fontSize: 10, color: muted }}>{isOpen ? "▲" : "▼"}</span>
+                    </div>
+                    {/* Expanded: show courses in this milestone */}
+                    {isOpen && ms.courses.length > 0 && (
+                      <div style={{ padding: "0 16px 14px", borderTop: `1px solid ${T?.rowBorder||"rgba(0,0,0,0.06)"}` }}>
+                        {ms.courses.map(cid => {
+                          const c = COURSES.find(x => x.id === cid); if (!c) return null
+                          const status = courseProgress[c.id]
+                          const isDone = status === 1
+                          return (
+                            <div key={cid} onClick={() => navigate("learning")}
+                              style={{ display: "flex", alignItems: "center", gap: 10, padding: "8px 4px", cursor: "pointer", borderBottom: `1px solid ${T?.rowBorder||"rgba(0,0,0,0.04)"}` }}>
+                              <div style={{ width: 16, height: 16, borderRadius: 4, flexShrink: 0, display: "flex", alignItems: "center", justifyContent: "center",
+                                background: isDone ? `${color}25` : T?.rowBg||"rgba(0,0,0,0.04)", border: `1px solid ${isDone ? color+"50" : T?.border||"rgba(0,0,0,0.10)"}` }}>
+                                {isDone && <span style={{ fontSize: 9, color: color }}>✓</span>}
+                              </div>
+                              <div style={{ flex: 1, minWidth: 0 }}>
+                                <div style={{ fontSize: 12, color: isDone ? sub : txt, textDecoration: isDone ? "line-through" : "none", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{c.name}</div>
+                                <div style={{ fontSize: 9, color: muted, fontFamily: "'JetBrains Mono',monospace" }}>{c.code} · {c.institution}</div>
+                              </div>
+                              <span style={{ fontSize: 10, color: SUBJECT_COLORS[c.subject] || color, background: `${SUBJECT_COLORS[c.subject]||color}12`, padding: "2px 6px", borderRadius: 4, fontFamily: "'JetBrains Mono',monospace", flexShrink: 0 }}>{c.subject}</span>
+                            </div>
+                          )
+                        })}
+                      </div>
+                    )}
+                    {isOpen && !ms.courses.length && (
+                      <div style={{ padding: "10px 16px 14px", fontSize: 12, color: sub, borderTop: `1px solid ${T?.rowBorder||"rgba(0,0,0,0.06)"}` }}>
+                        Track this milestone manually — check it off when achieved.
+                      </div>
+                    )}
+                  </div>
+                )
+              })}
+            </div>
+          </div>
+
+          {/* Full course checklist */}
+          <div style={{ background: bg, border: `1px solid ${bdr}`, borderRadius: 14, padding: isMobile ? "12px 14px" : "18px 22px" }}>
+            <div style={{ fontSize: 11, color: muted, textTransform: "uppercase", letterSpacing: "0.08em", marginBottom: 14, fontFamily: "'JetBrains Mono',monospace" }}>
+              📚 Core Course Checklist ({doneCourses.length}/{trackCourses.length})
+            </div>
+            {isMobile ? (
+              /* Mobile: one horizontal scroll strip per subject */
+              (() => {
+                const bySubject = Object.keys(SUBJECT_COLORS).map(subj => ({
+                  subj,
+                  col: SUBJECT_COLORS[subj],
+                  courses: trackCourses.filter(c => c.subject === subj),
+                })).filter(g => g.courses.length > 0)
+                return (
+                  <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
+                    {bySubject.map(({ subj, col, courses }) => (
+                      <div key={subj}>
+                        {/* Subject label */}
+                        <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 8 }}>
+                          <div style={{ width: 8, height: 8, borderRadius: "50%", background: col, flexShrink: 0 }}/>
+                          <span style={{ fontSize: 10, color: col, fontFamily: "'JetBrains Mono',monospace",
+                            textTransform: "uppercase", letterSpacing: "0.08em", fontWeight: 700 }}>{subj}</span>
+                          <span style={{ fontSize: 9, color: muted, marginLeft: 4 }}>
+                            {courses.filter(c => courseProgress[c.id] === 1).length}/{courses.length}
+                          </span>
+                        </div>
+                        {/* Horizontal scroll row */}
+                        <div style={{ display: "flex", gap: 8, overflowX: "auto", paddingBottom: 4,
+                          width: "100%", scrollbarWidth: "none", WebkitOverflowScrolling: "touch" }}>
+                          {courses.map(c => {
+                            const status = courseProgress[c.id]
+                            const isDone = status === 1
+                            const isIP   = status === 0.5
+                            return (
+                              <div key={c.id} onClick={() => navigate("learning")}
+                                style={{ flexShrink: 0, width: 130, padding: "8px 10px", borderRadius: 8, cursor: "pointer",
+                                  display: "flex", alignItems: "center", gap: 7,
+                                  background: isDone ? `${col}10` : isIP ? `${col}07` : bg,
+                                  border: `1px solid ${isDone ? col+"35" : isIP ? col+"25" : T?.rowBorder||"rgba(0,0,0,0.06)"}`,
+                                  opacity: isDone ? 0.75 : 1 }}>
+                                {/* Checkbox */}
+                                <div style={{ width: 13, height: 13, borderRadius: 3, flexShrink: 0, display: "flex", alignItems: "center", justifyContent: "center",
+                                  background: isDone ? col : isIP ? `${col}30` : "transparent",
+                                  border: `1.5px solid ${isDone ? col : isIP ? col+"80" : T?.border||"rgba(0,0,0,0.15)"}` }}>
+                                  {isDone && <span style={{ fontSize: 7, color: "#000" }}>✓</span>}
+                                  {isIP  && <span style={{ fontSize: 7, color: col }}>◑</span>}
+                                </div>
+                                {/* Name + code stacked */}
+                                <div style={{ minWidth: 0 }}>
+                                  <div style={{ fontSize: 10, color: isDone ? sub : txt,
+                                    textDecoration: isDone ? "line-through" : "none",
+                                    lineHeight: 1.3, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                                    {c.name}
+                                  </div>
+                                  <div style={{ fontSize: 8, color: muted, fontFamily: "'JetBrains Mono',monospace", marginTop: 1 }}>{c.code}</div>
+                                </div>
+                              </div>
+                            )
+                          })}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )
+              })()
+            ) : (
+              /* Desktop: 2-col grid */
+              <div style={{ display: "grid", gridTemplateColumns: "minmax(0,1fr)", gap: 6 }}>
+                {trackCourses.map(c => {
+                  const status = courseProgress[c.id]
+                  const isDone = status === 1
+                  const isIP   = status === 0.5
+                  const col    = SUBJECT_COLORS[c.subject] || color
+                  return (
+                    <div key={c.id} onClick={() => navigate("learning")}
+                      style={{ display: "flex", alignItems: "center", gap: 8, padding: "8px 10px", borderRadius: 8, cursor: "pointer",
+                        background: isDone ? `${col}08` : T?.rowBg||"rgba(0,0,0,0.02)",
+                        border: `1px solid ${isDone ? col+"25" : T?.rowBorder||"rgba(0,0,0,0.05)"}`,
+                        opacity: isDone ? 0.8 : 1 }}>
+                      <div style={{ width: 14, height: 14, borderRadius: 3, flexShrink: 0, background: isDone ? col : isIP ? `${col}30` : "transparent", border: `1.5px solid ${isDone ? col : isIP ? col+"80" : T?.border||"rgba(0,0,0,0.15)"}`, display: "flex", alignItems: "center", justifyContent: "center" }}>
+                        {isDone && <span style={{ fontSize: 8, color: "#000" }}>✓</span>}
+                        {isIP  && <span style={{ fontSize: 8, color: col }}>◑</span>}
+                      </div>
+                      <div style={{ flex: 1, minWidth: 0 }}>
+                        <div style={{ fontSize: 11, color: isDone ? sub : txt, textDecoration: isDone ? "line-through" : "none", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", lineHeight: 1.3 }}>{c.name}</div>
+                        <div style={{ fontSize: 9, color: muted }}>{c.code}</div>
+                      </div>
+                    </div>
+                  )
+                })}
+              </div>
+            )}
+          </div>
+
+        </div>
+
+        {/* ── RIGHT sidebar: interview focus, competitions, firms ── */}
+        <div style={{ display: "flex", flexDirection: "column", gap: 14, width: "100%", minWidth: 0 }}>
+
+          {/* Interview focus */}
+          <div style={{ background: bg, border: `1px solid ${bdr}`, borderRadius: 14, padding: (isMobile||isTablet) ? "12px 14px" : "18px 20px" }}>
+            <div style={{ fontSize: 11, color: muted, textTransform: "uppercase", letterSpacing: "0.08em", marginBottom: 12, fontFamily: "'JetBrains Mono',monospace" }}>
+              ◉ Interview Focus
+            </div>
+            <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+              {t.interview_cats.map((cat, i) => (
+                <div key={cat} onClick={() => navigate("interview")}
+                  style={{ display: "flex", alignItems: "center", gap: 10, padding: "9px 12px", borderRadius: 8, cursor: "pointer",
+                    background: i === 0 ? `${color}10` : T?.rowBg||"rgba(0,0,0,0.025)",
+                    border: `1px solid ${i === 0 ? color+"30" : "rgba(255,255,255,0.06)"}` }}>
+                  <span style={{ fontSize: 11, color: i === 0 ? color : muted, fontFamily: "'JetBrains Mono',monospace", fontWeight: 700 }}>#{i+1}</span>
+                  <span style={{ fontSize: 12, color: i === 0 ? txt : sub }}>{cat}</span>
+                  {i === 0 && <span style={{ marginLeft: "auto", fontSize: 9, color: color }}>PRIMARY →</span>}
+                </div>
+              ))}
+            </div>
+            <button onClick={() => navigate("interview")}
+              style={{ marginTop: 12, width: "100%", padding: "8px", borderRadius: 8, border: `1px solid ${color}30`, background: `${color}08`, color: color, fontSize: 11, cursor: "pointer", fontFamily: "'JetBrains Mono',monospace" }}>
+              Practice now →
+            </button>
+          </div>
+
+          {/* Relevant competitions */}
+          <div style={{ background: bg, border: `1px solid ${bdr}`, borderRadius: 14, padding: (isMobile||isTablet) ? "12px 14px" : "18px 20px" }}>
+            <div style={{ fontSize: 11, color: muted, textTransform: "uppercase", letterSpacing: "0.08em", marginBottom: 12, fontFamily: "'JetBrains Mono',monospace" }}>
+              ⬡ Relevant Competitions
+            </div>
+            {relevantComps.length === 0 && <div style={{ fontSize: 12, color: muted }}>No open competitions right now.</div>}
+            {relevantComps.map(c => (
+              <div key={c.id} style={{ marginBottom: 8, padding: "9px 12px", borderRadius: 8, background: T?.rowBg||"rgba(0,0,0,0.025)", border: `1px solid ${T?.rowBorder||"rgba(0,0,0,0.06)"}` }}>
+                <div style={{ fontSize: 12, color: txt, fontWeight: 600, marginBottom: 2 }}>{c.name}</div>
+                <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+                  <span style={{ fontSize: 10, color: muted }}>{c.category}</span>
+                  <a href={c.link} target="_blank" rel="noreferrer"
+                    style={{ fontSize: 10, color: "#C17F3A", textDecoration: "none", border: "1px solid rgba(193,127,58,0.25)", padding: "2px 8px", borderRadius: 4 }}>Apply →</a>
+                </div>
+              </div>
+            ))}
+            <button onClick={() => navigate("competitions")}
+              style={{ marginTop: 4, width: "100%", padding: "7px", borderRadius: 8, border: "1px solid rgba(193,127,58,0.2)", background: "rgba(193,127,58,0.06)", color: "#C17F3A", fontSize: 11, cursor: "pointer", fontFamily: "'JetBrains Mono',monospace" }}>
+              All competitions →
+            </button>
+          </div>
+
+          {/* Target firms & open roles */}
+          <div style={{ background: bg, border: `1px solid ${bdr}`, borderRadius: 14, padding: (isMobile||isTablet) ? "12px 14px" : "18px 20px" }}>
+            <div style={{ fontSize: 11, color: muted, textTransform: "uppercase", letterSpacing: "0.08em", marginBottom: 12, fontFamily: "'JetBrains Mono',monospace" }}>
+              🏢 Target Firms
+            </div>
+            {relevantJobs.length > 0 && (
+              <div style={{ marginBottom: 10 }}>
+                <div style={{ fontSize: 10, color: muted, marginBottom: 6 }}>Open roles now:</div>
+                {relevantJobs.map(j => (
+                  <div key={j.id} style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 6, padding: "7px 10px", borderRadius: 7, background: `${color}08`, border: `1px solid ${color}18` }}>
+                    <span style={{ fontSize: 9, color: color, background: `${color}18`, padding: "2px 6px", borderRadius: 3, fontFamily: "'JetBrains Mono',monospace", flexShrink: 0 }}>{j.type}</span>
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                      <div style={{ fontSize: 11, color: txt, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{j.company}</div>
+                      <div style={{ fontSize: 9, color: muted, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{j.role}</div>
+                    </div>
+                    <a href={j.link} target="_blank" rel="noreferrer"
+                      style={{ fontSize: 10, color: color, textDecoration: "none", flexShrink: 0 }}>→</a>
+                  </div>
+                ))}
+              </div>
+            )}
+            <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
+              {t.firms.slice(0, relevantJobs.length > 0 ? 4 : 8).map(firm => (
+                <div key={firm} style={{ fontSize: 12, color: sub, padding: "5px 8px", borderRadius: 6, background: T?.rowBg||"rgba(0,0,0,0.025)", border: `1px solid ${T?.rowBorder||"rgba(0,0,0,0.05)"}` }}>
+                  {firm}
+                </div>
+              ))}
+            </div>
+            <button onClick={() => navigate("competitions")}
+              style={{ marginTop: 10, width: "100%", padding: "7px", borderRadius: 8, border: `1px solid ${color}20`, background: `${color}06`, color: color, fontSize: 11, cursor: "pointer", fontFamily: "'JetBrains Mono',monospace" }}>
+              Browse open roles →
+            </button>
+          </div>
+
+        </div>
+      </div>
+    </div>
+  )
+}
+
+// ── Custom SVG nav icons ────────────────────────────────────────────────────
+const NavIcon = ({ id, color, size = 22 }) => {
+  const s = { width:size, height:size, display:"block" }
+  const p = { fill:"none", stroke:color, strokeWidth:1.5, strokeLinecap:"round", strokeLinejoin:"round" }
+  switch(id) {
+    case "dashboard": return (
+      <svg style={s} viewBox="0 0 24 24" {...p}>
+        <polygon points="12,2 22,9 18,21 6,21 2,9"/>
+        <circle cx="12" cy="12" r="2.5" fill={color} stroke="none"/>
+        <line x1="12" y1="2" x2="12" y2="9.5"/>
+        <line x1="22" y1="9" x2="14.5" y2="11"/>
+        <line x1="18" y1="21" x2="13.5" y2="13.5"/>
+        <line x1="6" y1="21" x2="10.5" y2="13.5"/>
+        <line x1="2" y1="9" x2="9.5" y2="11"/>
+      </svg>)
+    case "roadmap": return (
+      <svg style={s} viewBox="0 0 24 24" {...p}>
+        <line x1="12" y1="21" x2="12" y2="14"/>
+        <line x1="12" y1="14" x2="6" y2="8"/>
+        <line x1="12" y1="14" x2="18" y2="8"/>
+        <line x1="6" y1="8" x2="4" y2="3"/>
+        <line x1="6" y1="8" x2="9" y2="3"/>
+        <line x1="18" y1="8" x2="15" y2="3"/>
+        <line x1="18" y1="8" x2="20" y2="3"/>
+        <circle cx="12" cy="21" r="1.5" fill={color} stroke="none"/>
+        <circle cx="6" cy="8" r="1.5" fill={color} stroke="none"/>
+        <circle cx="18" cy="8" r="1.5" fill={color} stroke="none"/>
+      </svg>)
+    case "learning": return (
+      <svg style={s} viewBox="0 0 24 24" {...p}>
+        <path d="M2 6 C2 6 7 5 12 7 C17 5 22 6 22 6 L22 19 C22 19 17 18 12 20 C7 18 2 19 2 19 Z"/>
+        <line x1="12" y1="7" x2="12" y2="20"/>
+        <line x1="7" y1="12" x2="11" y2="12"/>
+        <line x1="7" y1="14.5" x2="11" y2="14.5"/>
+        <line x1="13" y1="12" x2="17" y2="12"/>
+        <line x1="13" y1="14.5" x2="17" y2="14.5"/>
+      </svg>)
+    case "competitions": return (
+      <svg style={s} viewBox="0 0 24 24" {...p}>
+        <path d="M8 3 L16 3 L16 13 C16 16.3 14.2 18 12 18 C9.8 18 8 16.3 8 13 Z"/>
+        <path d="M5 5 L8 5 L8 11 C6.3 11 5 9.5 5 8 Z"/>
+        <path d="M19 5 L16 5 L16 11 C17.7 11 19 9.5 19 8 Z"/>
+        <line x1="9" y1="18" x2="9" y2="21"/>
+        <line x1="15" y1="18" x2="15" y2="21"/>
+        <line x1="7" y1="21" x2="17" y2="21"/>
+      </svg>)
+    case "career": return (
+      <svg style={s} viewBox="0 0 24 24" {...p}>
+        <rect x="2" y="8" width="20" height="13" rx="2"/>
+        <path d="M8 8 L8 5 C8 3.9 8.9 3 10 3 L14 3 C15.1 3 16 3.9 16 5 L16 8"/>
+        <line x1="2" y1="14" x2="22" y2="14"/>
+        <line x1="12" y1="14" x2="12" y2="17"/>
+      </svg>)
+    case "interview": return (
+      <svg style={s} viewBox="0 0 24 24" {...p}>
+        <path d="M3 5 C3 3.9 3.9 3 5 3 L19 3 C20.1 3 21 3.9 21 5 L21 15 C21 16.1 20.1 17 19 17 L8 17 L3 21 L3 5 Z"/>
+        <circle cx="8" cy="10" r="1.2" fill={color} stroke="none"/>
+        <circle cx="12" cy="10" r="1.2" fill={color} stroke="none"/>
+        <circle cx="16" cy="10" r="1.2" fill={color} stroke="none"/>
+      </svg>)
+    case "networking": return (
+      <svg style={s} viewBox="0 0 24 24" {...p}>
+        <circle cx="12" cy="12" r="2.5"/>
+        <circle cx="4" cy="6" r="2"/>
+        <circle cx="20" cy="6" r="2"/>
+        <circle cx="4" cy="18" r="2"/>
+        <circle cx="20" cy="18" r="2"/>
+        <line x1="9.6" y1="10.5" x2="5.8" y2="7.7"/>
+        <line x1="14.4" y1="10.5" x2="18.2" y2="7.7"/>
+        <line x1="9.6" y1="13.5" x2="5.8" y2="16.3"/>
+        <line x1="14.4" y1="13.5" x2="18.2" y2="16.3"/>
+      </svg>)
+    case "resources": return (
+      <svg style={s} viewBox="0 0 24 24" {...p}>
+        <rect x="4" y="15" width="16" height="6" rx="1"/>
+        <rect x="5" y="9" width="14" height="6" rx="1"/>
+        <rect x="6" y="3" width="12" height="6" rx="1"/>
+        <line x1="8" y1="3" x2="8" y2="9"/>
+        <line x1="8" y1="9" x2="8" y2="15"/>
+      </svg>)
+    case "skilltree": return (
+      <svg style={s} viewBox="0 0 24 24" {...p}>
+        <circle cx="12" cy="20" r="2"/>
+        <line x1="12" y1="18" x2="12" y2="14"/>
+        <line x1="12" y1="14" x2="7" y2="10"/>
+        <line x1="12" y1="14" x2="17" y2="10"/>
+        <circle cx="7" cy="10" r="1.8"/>
+        <line x1="7" y1="8.2" x2="4" y2="5"/>
+        <line x1="7" y1="8.2" x2="10" y2="5"/>
+        <circle cx="4" cy="4" r="1.5" fill={color} stroke="none"/>
+        <circle cx="10" cy="4" r="1.5" fill={color} stroke="none"/>
+        <circle cx="17" cy="10" r="1.8"/>
+        <line x1="17" y1="8.2" x2="14" y2="5"/>
+        <line x1="17" y1="8.2" x2="20" y2="5"/>
+        <circle cx="14" cy="4" r="1.5" fill={color} stroke="none"/>
+        <circle cx="20" cy="4" r="1.5" fill={color} stroke="none"/>
+      </svg>)
+    default: return <span style={{ fontSize:17, color }}>{id}</span>
+  }
+}
+
+const NAV_ITEMS = [
+  { id:"dashboard",    label:"Dashboard" },
+  { id:"roadmap",      label:"Career Roadmap" },
+  { id:"learning",     label:"Learning Path" },
+  { id:"competitions", label:"Competitions" },
+  { id:"career",       label:"Career Prep",   mobileOnly:true  },
+  { id:"interview",    label:"Practice",      desktopOnly:true },
+  { id:"networking",   label:"Networking",    desktopOnly:true },
+  { id:"resources",    label:"Resource Hub" },
+]
+
+// ─────────────────────────────────────────────
+//  GOOGLE AUTH COMPONENT
+// ─────────────────────────────────────────────
+const AVATARS = ["🧑‍💻","👩‍💻","🧑‍🔬","👩‍🔬","🧑‍🎓","👩‍🎓","🦊","🐺","🦁","🐯","🦅","🐉"]
+
+const WelcomeScreen = ({ onLogin, isDark }) => {
+  const [name, setName]     = useState("")
+  const [avatar, setAvatar] = useState("🧑‍💻")
+  const [step, setStep]     = useState(0) // 0=intro, 1=setup
+
+  const text = "#E8D5C0"
+  const sub  = "#9A7A62"
+  const bdr  = "rgba(180, 90, 40, 0.22)"
+  const card = "rgba(255,255,255,0.04)"
+
+  const bgMesh = `#110703`
+
+  const handleStart = () => {
+    const finalName = name.trim() || "Quant Student"
+    onLogin({ name: finalName, avatar, email: null, picture: null })
+  }
+
+  return (
+    <div style={{ minHeight:"100vh", width:"100%", background:bgMesh, display:"flex", alignItems:"center",
+      justifyContent:"center", fontFamily:"'DM Sans',sans-serif" }}>
+      <style>{`
+        @import url('https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=JetBrains+Mono:wght@400;500&family=DM+Sans:wght@400;500;600&display=swap');
+        html, body, #root { margin: 0; padding: 0; width: 100%; background: #110703; }
+        *, *::before, *::after { box-sizing: border-box; }
+      `}</style>
+
+      <div style={{ textAlign:"center", width:"100%", maxWidth:420, padding:"0 24px" }}>
+
+        {/* Logo — wordmark only */}
+        <div style={{ marginBottom: step === 0 ? 40 : 24 }}>
+          <div style={{ fontSize:42, fontWeight:800, fontFamily:"'Syne',sans-serif", letterSpacing:"-0.03em", lineHeight:1 }}>
+            <span style={{ color:"#C17F3A" }}>Quant</span><span style={{ color:text }}>OS</span>
+          </div>
+          <div style={{ fontSize:10, color:sub, fontFamily:"'JetBrains Mono',monospace", letterSpacing:"0.14em", marginTop:6 }}>
+            CAREER OPERATING SYSTEM · {APP_VERSION}
+          </div>
+        </div>
+
+        {/* Card */}
+        <div style={{ background:card, backdropFilter:"blur(20px)", WebkitBackdropFilter:"blur(20px)",
+          border:`1px solid ${bdr}`, borderRadius:24, padding:"36px 32px",
+          boxShadow: isDark ? "0 8px 32px rgba(0,0,0,0.40)" : "0 8px 40px rgba(0,0,0,0.08)" }}>
+
+          {step === 0 ? (
+            /* ── Intro step ── */
+            <>
+              <div style={{ fontSize:22, marginBottom:12 }}>👋</div>
+              <h2 style={{ fontSize:18, fontWeight:700, color:text, marginBottom:8, letterSpacing:"-0.01em" }}>
+                Free. Open source. Yours.
+              </h2>
+              <p style={{ fontSize:13, color:sub, lineHeight:1.7, marginBottom:28 }}>
+                Everything runs on your device — no accounts, no servers, no data leaves your browser.
+                Your progress is always private and always yours.
+              </p>
+
+              {/* Feature pills */}
+              {[
+                ["📚","Courses & Skill Tree"],
+                ["🏆","Competition Tracker"],
+                ["🎯","Interview Practice"],
+                ["🗺","Career Roadmap"],
+              ].map(([icon, label]) => (
+                <div key={label} style={{ display:"flex", alignItems:"center", gap:10, padding:"8px 0",
+                  borderBottom:`1px solid ${bdr}`, textAlign:"left" }}>
+                  <span style={{ fontSize:14 }}>{icon}</span>
+                  <span style={{ fontSize:12, color:sub }}>{label}</span>
+                </div>
+              ))}
+
+              <button onClick={() => setStep(1)}
+                style={{ marginTop:24, width:"100%", padding:"12px", borderRadius:12, border:"none",
+                  background:"#C17F3A", color:"#000", fontSize:14, fontWeight:700,
+                  cursor:"pointer", fontFamily:"'Syne',sans-serif", letterSpacing:"0.01em" }}>
+                Get Started →
+              </button>
+            </>
+          ) : (
+            /* ── Profile setup step ── */
+            <>
+              <h2 style={{ fontSize:17, fontWeight:700, color:text, marginBottom:4 }}>Quick setup</h2>
+              <p style={{ fontSize:12, color:sub, marginBottom:24 }}>Takes 10 seconds. You can change this later.</p>
+
+              {/* Avatar picker */}
+              <div style={{ marginBottom:20 }}>
+                <div style={{ fontSize:10, color:sub, textTransform:"uppercase", letterSpacing:"0.08em",
+                  fontFamily:"'JetBrains Mono',monospace", marginBottom:10, textAlign:"left" }}>Pick an avatar</div>
+                <div style={{ display:"flex", flexWrap:"wrap", gap:8, justifyContent:"center" }}>
+                  {AVATARS.map(a => (
+                    <button key={a} onClick={() => setAvatar(a)}
+                      style={{ width:42, height:42, borderRadius:10, border:`2px solid ${a===avatar?"#C17F3A":bdr}`,
+                        background: a===avatar ? "rgba(193,127,58,0.12)" : "transparent",
+                        fontSize:20, cursor:"pointer", transition:"all 0.15s" }}>
+                      {a}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Name input */}
+              <div style={{ marginBottom:24, textAlign:"left" }}>
+                <div style={{ fontSize:10, color:sub, textTransform:"uppercase", letterSpacing:"0.08em",
+                  fontFamily:"'JetBrains Mono',monospace", marginBottom:8 }}>Your name (optional)</div>
+                <input
+                  type="text"
+                  value={name}
+                  onChange={e => setName(e.target.value)}
+                  onKeyDown={e => e.key === "Enter" && handleStart()}
+                  placeholder="e.g. Arjun, Sarah, Anonymous..."
+                  maxLength={32}
+                  style={{ width:"100%", padding:"10px 14px", borderRadius:10,
+                    border:`1px solid ${bdr}`,
+                    background: "rgba(255,255,255,0.05)",
+                    color:text, fontSize:13, outline:"none", boxSizing:"border-box",
+                    fontFamily:"'DM Sans',sans-serif" }}
+                />
+              </div>
+
+              {/* Preview */}
+              <div style={{ display:"flex", alignItems:"center", gap:12, padding:"12px 14px",
+                borderRadius:10, background: isDark ? "rgba(193,127,58,0.06)" : "rgba(193,127,58,0.05)",
+                border:"1px solid rgba(193,127,58,0.15)", marginBottom:20 }}>
+                <span style={{ fontSize:24 }}>{avatar}</span>
+                <div style={{ textAlign:"left" }}>
+                  <div style={{ fontSize:13, fontWeight:600, color:text }}>{name.trim() || "Quant Student"}</div>
+                  <div style={{ fontSize:10, color:sub, fontFamily:"'JetBrains Mono',monospace" }}>All data saved locally on this device</div>
+                </div>
+              </div>
+
+              <button onClick={handleStart}
+                style={{ width:"100%", padding:"12px", borderRadius:12, border:"none",
+                  background:"#C17F3A", color:"#000", fontSize:14, fontWeight:700,
+                  cursor:"pointer", fontFamily:"'Syne',sans-serif" }}>
+                Enter QuantOS →
+              </button>
+
+              <button onClick={() => setStep(0)}
+                style={{ marginTop:10, background:"none", border:"none", color:sub,
+                  fontSize:12, cursor:"pointer", padding:4 }}>← Back</button>
+            </>
+          )}
+        </div>
+
+        <p style={{ marginTop:16, fontSize:11, color:sub, lineHeight:1.6 }}>
+          Open source · No accounts · No tracking · Your data stays on your device
+        </p>
+      </div>
+    </div>
+  )
+}
+
+// ─────────────────────────────────────────────
+//  RESPONSIVE BREAKPOINT HOOK
+// ─────────────────────────────────────────────
+const useBreakpoint = () => {
+  const [w, setW] = useState(typeof window !== "undefined" ? window.innerWidth : 1200)
+  useEffect(() => {
+    const handler = () => setW(window.innerWidth)
+    window.addEventListener("resize", handler)
+    return () => window.removeEventListener("resize", handler)
+  }, [])
+  // mobile < 640 | tablet 640–1023 | desktop ≥ 1024
+  return { w, isMobile: w < 640, isTablet: w >= 640 && w < 1024, isDesktop: w >= 1024 }
+}
+
+
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+// FILE: src/App.jsx  (main shell — theme, layout, routing)
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+// AI SETTINGS MODAL
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+const AISettingsModal = ({ onClose, aiSettings, setAiSettings, T, isDark }) => {
+  const [localProvider, setLocalProvider] = useState(aiSettings.provider || "groq")
+  const [localKey, setLocalKey]           = useState(aiSettings.key || "")
+  const [showKey, setShowKey]             = useState(false)
+  const [testStatus, setTestStatus]       = useState(null) // null | "testing" | "ok" | "fail"
+
+  const txt  = T?.text    || "#f1f5f9"
+  const sub  = T?.textSub || "#64748b"
+  const bg   = T?.bg      || "#050510"
+  const card = T?.cardBg  || "rgba(255,255,255,0.04)"
+  const bdr  = T?.cardBorder || "rgba(255,255,255,0.08)"
+  const muted= T?.textMuted || "#475569"
+
+  const p = AI_PROVIDERS[localProvider]
+
+  const testConnection = async () => {
+    setTestStatus("testing")
+    try {
+      const result = await callAI({
+        system: "You are a test assistant.",
+        prompt: "Reply with exactly: OK",
+        maxTokens: 10,
+        aiSettings: { provider: localProvider, key: localKey }
+      })
+      setTestStatus(result.includes("OK") || result.length > 0 ? "ok" : "fail")
+    } catch { setTestStatus("fail") }
+  }
+
+  const save = () => {
+    setAiSettings({ provider: localProvider, key: localKey })
+    onClose()
+  }
+
+  return (
+    <div style={{ position:"fixed", inset:0, zIndex:9999, display:"flex", alignItems:"center", justifyContent:"center",
+      background:"rgba(0,0,0,0.6)", backdropFilter:"blur(8px)" }} onClick={onClose}>
+      <div onClick={e => e.stopPropagation()}
+        style={{ width:"min(480px, 92vw)", borderRadius:20, background: "#1a0b05",
+          border:`1px solid ${bdr}`, padding:"28px 28px 24px",
+          boxShadow: "0 24px 80px rgba(0,0,0,0.6)" }}>
+
+        {/* Header */}
+        <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", marginBottom:24 }}>
+          <div>
+            <div style={{ fontSize:17, fontWeight:800, color:txt, fontFamily:"'Syne',sans-serif" }}>⚙ AI Settings</div>
+            <div style={{ fontSize:11, color:muted, marginTop:2 }}>Your key stays on your device. We never see it.</div>
+          </div>
+          <button onClick={onClose} style={{ background:"none", border:"none", color:muted, fontSize:20, cursor:"pointer", padding:4 }}>✕</button>
+        </div>
+
+        {/* Provider selector */}
+        <div style={{ marginBottom:20 }}>
+          <div style={{ fontSize:10, color:muted, textTransform:"uppercase", letterSpacing:"0.08em", marginBottom:10,
+            fontFamily:"'JetBrains Mono',monospace" }}>Choose provider</div>
+          <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:8 }}>
+            {Object.entries(AI_PROVIDERS).map(([id, prov]) => (
+              <button key={id} onClick={() => { setLocalProvider(id); setTestStatus(null) }}
+                style={{ padding:"10px 12px", borderRadius:10, cursor:"pointer", textAlign:"left",
+                  border:`1px solid ${localProvider === id ? prov.badgeColor+"60" : bdr}`,
+                  background: localProvider === id ? `${prov.badgeColor}10` : card,
+                  transition:"all 0.15s" }}>
+                <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", marginBottom:3 }}>
+                  <span style={{ fontSize:12, fontWeight:700, color: localProvider === id ? prov.badgeColor : txt }}>{prov.label}</span>
+                  <span style={{ fontSize:8, color: prov.badgeColor, background:`${prov.badgeColor}18`,
+                    border:`1px solid ${prov.badgeColor}30`, padding:"1px 5px", borderRadius:4,
+                    fontFamily:"'JetBrains Mono',monospace", fontWeight:700 }}>{prov.badge}</span>
+                </div>
+                <div style={{ fontSize:9, color:muted, lineHeight:1.4 }}>{prov.hint}</div>
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {/* API Key input */}
+        <div style={{ marginBottom:16 }}>
+          <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", marginBottom:8 }}>
+            <div style={{ fontSize:10, color:muted, textTransform:"uppercase", letterSpacing:"0.08em",
+              fontFamily:"'JetBrains Mono',monospace" }}>API Key</div>
+            <a href={p.keyUrl} target="_blank" rel="noreferrer"
+              style={{ fontSize:10, color:"#C17F3A", textDecoration:"none", fontFamily:"'JetBrains Mono',monospace" }}>
+              Get free key →
+            </a>
+          </div>
+          <div style={{ display:"flex", gap:8, alignItems:"center" }}>
+            <input
+              type={showKey ? "text" : "password"}
+              value={localKey}
+              onChange={e => { setLocalKey(e.target.value); setTestStatus(null) }}
+              placeholder={p.keyPlaceholder}
+              style={{ flex:1, background: "rgba(255,255,255,0.055)",
+                border:`1px solid ${bdr}`, borderRadius:8, padding:"9px 12px",
+                color:txt, fontSize:12, outline:"none", fontFamily:"'JetBrains Mono',monospace" }}
+            />
+            <button onClick={() => setShowKey(s => !s)}
+              style={{ padding:"9px 12px", borderRadius:8, border:`1px solid ${bdr}`,
+                background:card, color:muted, fontSize:11, cursor:"pointer" }}>
+              {showKey ? "Hide" : "Show"}
+            </button>
+          </div>
+        </div>
+
+        {/* Test + status */}
+        <div style={{ display:"flex", alignItems:"center", gap:10, marginBottom:20 }}>
+          <button onClick={testConnection} disabled={!localKey.trim() || testStatus === "testing"}
+            style={{ padding:"7px 16px", borderRadius:8, border:"1px solid rgba(99,102,241,0.4)",
+              background:"rgba(99,102,241,0.08)", color:"#818cf8", fontSize:11, cursor:"pointer",
+              fontFamily:"'JetBrains Mono',monospace", opacity: !localKey.trim() ? 0.5 : 1 }}>
+            {testStatus === "testing" ? "Testing…" : "Test connection"}
+          </button>
+          {testStatus === "ok"   && <span style={{ fontSize:11, color:"#10b981" }}>✓ Connected</span>}
+          {testStatus === "fail" && <span style={{ fontSize:11, color:"#ef4444" }}>✗ Failed — check key</span>}
+        </div>
+
+        {/* Save */}
+        <button onClick={save}
+          style={{ width:"100%", padding:"11px", borderRadius:10, border:"none",
+            background: localKey.trim() ? "#C17F3A" : "rgba(193,127,58,0.2)",
+            color: localKey.trim() ? "#000" : "#C17F3A",
+            fontSize:13, fontWeight:700, cursor: localKey.trim() ? "pointer" : "default",
+            fontFamily:"'Syne',sans-serif", transition:"all 0.2s" }}>
+          {localKey.trim() ? "Save & Enable AI Features" : "Enter a key to enable AI"}
+        </button>
+
+        {/* No key message */}
+        {!aiSettings.key && (
+          <div style={{ marginTop:12, padding:"10px 14px", borderRadius:8,
+            background:"rgba(193,127,58,0.06)", border:"1px solid rgba(193,127,58,0.15)" }}>
+            <div style={{ fontSize:11, color:"#C17F3A", lineHeight:1.6 }}>
+              💡 AI features (interview feedback, career advice, competition search) need a key.
+              Everything else works without one — progress tracking, courses, competitions list, skill tree.
+            </div>
+          </div>
+        )}
+      </div>
+    </div>
+  )
+}
+
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+// COMPONENT: CareerPrep — mobile-only tab merging Practice + Networking
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+const CareerPrep = ({ T, isMobile, aiSettings, githubData = {}, markStudyToday = ()=>{} }) => {
+  const [tab, setTab] = useState("practice")
+  const sub = T?.textSub  || "#8B6250"
+  const bdr = T?.cardBorder|| "rgba(180,90,40,0.18)"
+  const TABS = [
+    { id:"practice",     label:"◉ Practice"     },
+    { id:"networking",   label:"◎ Networking"   },
+    { id:"internships",  label:"💼 Internships"  },
+    { id:"jobs",         label:"🏢 Jobs"          },
+  ]
+  return (
+    <div>
+      <div style={{ display:"flex", gap:4, marginBottom:20, borderBottom:`1px solid ${bdr}`, paddingBottom:0, overflowX:"auto", scrollbarWidth:"none" }}>
+        {TABS.map(t=>(
+          <button key={t.id} onClick={()=>setTab(t.id)}
+            style={{ padding:"8px 16px", border:"none", borderRadius:"10px 10px 0 0", cursor:"pointer", flexShrink:0,
+              background: tab===t.id ? T?.accentDim||"rgba(193,127,58,0.15)" : "transparent",
+              color: tab===t.id ? T?.accent||"#C17F3A" : sub,
+              fontSize:11, fontWeight:700, fontFamily:"'JetBrains Mono',monospace",
+              borderBottom: tab===t.id ? `2px solid ${T?.accent||"#C17F3A"}` : "2px solid transparent",
+              transition:"all 0.18s" }}>
+            {t.label}
+          </button>
+        ))}
+      </div>
+      {tab === "practice"    && <PracticeHub      T={T} isMobile={isMobile} aiSettings={aiSettings} />}
+      {tab === "networking"  && <NetworkingTracker T={T} aiSettings={aiSettings} />}
+      {tab === "internships" && <InternshipsTab    T={T} githubData={githubData} />}
+      {tab === "jobs"        && <JobsTab           T={T} githubData={githubData} />}
+    </div>
+  )
+}
+
+export default function QuantOS() {
+  const [active, setActive]                     = useState("dashboard")
+  const { githubData, loading: dataLoading, isLive, loadedKeys } = useGithubData()
+  const [courseProgress, setCourseProgress]     = useStorage("course_progress_v2", {})
+  const [bookmarks, setBookmarks]               = useStorage("comp_bookmarks_v2", [])
+  const [user, setUser]                         = useStorage("auth_user_v2", null)
+  // ── Tantra theme: fixed warm-dark palette — no toggle ───────────────────────
+  const isDark = true   // always dark; toggle removed
+  const [onboardingDone, setOnboardingDone]     = useStorage("onboarding_done_v1", false)
+  const [showOnboarding, setShowOnboarding]     = useState(false)
+  const { isMobile, isTablet, isDesktop }       = useBreakpoint()
+
+  // ── Tantra background: deep reddish-brown, meditatively grounding ───────────
+  const bgMesh = `#110703`
+
+  // ── Glass theme tokens — tantra palette ─────────────────────────────────────
+  const T = {
+    bg:           bgMesh,
+    bgSolid:      "#130804",
+    // sidebar glass
+    sidebarBg:    "rgba(16, 5, 2, 0.80)",
+    sidebarBlur:  "blur(24px) saturate(140%)",
+    // borders
+    border:       "rgba(180, 90, 40, 0.18)",
+    borderHi:     "rgba(240, 190, 110, 0.22)",
+    borderGlow:   "rgba(193, 127, 58, 0.32)",
+    // text hierarchy — warm off-white body, tacao headings, opium secondary
+    textHeading:  "#C8956A",          // tacao — headings & labels only
+    text:         "#E8D5C0",          // warm off-white — instantly readable body text
+    textSub:      "#9A7A62",          // muted warm — secondary info (lifted slightly)
+    textMuted:    "#5a3828",          // dark earth — hints, disabled
+    // accent — deep saffron (replaces harsh amber)
+    accent:       "#C17F3A",
+    accentHi:     "#D4923F",          // hover / active state
+    accentDim:    "rgba(193,127,58,0.15)",
+    accentBorder: "rgba(193,127,58,0.30)",
+    // ── GLASS CARDS — two hierarchy levels ────────────────────────────────────
+    cardBg:       "rgba(255,255,255,0.030)",   // default surface
+    cardBgHi:     "rgba(255,255,255,0.055)",   // elevated / primary card
+    cardBorder:   "rgba(180, 90, 40, 0.18)",
+    // ── INNER ROW ITEMS ───────────────────────────────────────────────────────
+    rowBg:        "rgba(255,255,255,0.020)",
+    rowBorder:    "rgba(180, 90, 40, 0.10)",
+    // ── PROGRESS TRACK ────────────────────────────────────────────────────────
+    trackBg:      "rgba(255,255,255,0.07)",
+    // ── INPUTS / TEXTAREAS ───────────────────────────────────────────────────
+    inputBg:      "rgba(255,255,255,0.050)",
+    inputBorder:  "rgba(180, 90, 40, 0.22)",
+    // ── FUTURE / DISABLED ─────────────────────────────────────────────────────
+    textDisabled: "rgba(255,255,255,0.14)",
+    // nav
+    activeNav:    "rgba(193,127,58,0.16)",
+    activeNavC:   "#C17F3A",
+    // misc
+    scrollThumb:  "rgba(180, 90, 40, 0.28)",
+    selectBg:     "#1a0b05",
+    bottomNav:    "rgba(14, 5, 2, 0.88)",
+    // ── SKILL TREE PANEL ──────────────────────────────────────────────────────
+    panelBg:      "rgba(255,255,255,0.028)",
+    panelText:    "#C8956A",
+    panelMuted:   "#7a5040",
+  }
+
+  // ── All hooks ABOVE the early return (Rules of Hooks) ──────────────────────
+  const [reviewScheduleShell]  = useStorage("review_schedule_v1",      {})
+  const [netContactsShell]     = useStorage("networking_contacts_v1",   [])
+  const [interviewHistoryShell]= useStorage("interview_history",         [])
+  const [showShortcuts, setShowShortcuts] = useState(false)
+  // ── Badge "seen" state — stores last-visited ISO date per tab ───────────────
+  const [badgeSeen, setBadgeSeen] = useStorage("badge_seen_v1", {})
+  // ── AI provider settings ────────────────────────────────────────────────────
+  const [aiSettings, setAiSettings] = useStorage("ai_settings_v1", { provider: "groq", key: "" })
+  const [showAISettings, setShowAISettings] = useState(false)
+  // ── Extra context for AI advisor ────────────────────────────────────────────
+  const [studyLogShell, setStudyLogShell] = useStorage("study_log_v1", {})
+  const markStudyToday = useCallback(() => {
+    const today = new Date().toISOString().slice(0, 10)
+    setStudyLogShell(prev => prev[today] ? prev : { ...prev, [today]: 1 })
+  }, [])
+  const [lectureProgressShell] = useStorage("lecture_progress_v2",      {})
+  const [trackedAppsShell]     = useStorage("tracked_applications_v1",  {})
+  const [jobAppsShell]         = useStorage("job_applications_v1",      {})
+
+  useEffect(() => {
+    setCourseProgress(prev => {
+      const init = { ...prev }; let changed = false
+      COURSES.forEach(c => { if (!(c.id in init)) { init[c.id] = 0; changed = true } })
+      return changed ? init : prev
+    })
+  }, [])
+
+  useEffect(()=>{
+    let lastG = false
+    const handler = (e) => {
+      if (e.target.tagName === "INPUT" || e.target.tagName === "TEXTAREA" || e.target.tagName === "SELECT") return
+      if (e.key === "?" && !e.shiftKey) { setShowShortcuts(s=>!s); return }
+      if (e.key === "Escape") { setShowShortcuts(false); return }
+      if (lastG) {
+        const map = { d:"dashboard", l:"learning", c:"competitions", i:"interview", f:"interview", n:"networking", r:"resources", m:"roadmap" }
+        if (map[e.key]) { setActive(map[e.key]); lastG=false; return }
+        lastG = false; return
+      }
+      if (e.key === "g") { lastG=true; setTimeout(()=>{lastG=false},1500) }
+    }
+    window.addEventListener("keydown", handler)
+    return ()=>window.removeEventListener("keydown", handler)
+  }, [])
+
+  const navigate = (id) => {
+    setActive(id)
+    // Mark tab as visited so badge clears
+    setBadgeSeen(prev => ({ ...prev, [id]: new Date().toISOString() }))
+  }
+
+  if (!user) return <WelcomeScreen onLogin={u => { setUser(u); if(!onboardingDone) setShowOnboarding(true) }} isDark={isDark} />
+  if (dataLoading) return (
+    <div style={{ minHeight:"100vh", display:"flex", flexDirection:"column", alignItems:"center", justifyContent:"center",
+      background:"#110703", fontFamily:"'JetBrains Mono',monospace", gap:16 }}>
+      <div style={{ fontSize:28, fontWeight:800, fontFamily:"'Syne',sans-serif" }}>
+        <span style={{ color:"#C17F3A" }}>Quant</span><span style={{ color:"#E8D5C0" }}>OS</span>
+      </div>
+      <div style={{ fontSize:12, color:"#9A7A62", letterSpacing:"0.1em" }}>LOADING DATA...</div>
+      <div style={{ width:120, height:2, background:"rgba(193,127,58,0.15)", borderRadius:99, overflow:"hidden" }}>
+        <div style={{ height:"100%", background:"#C17F3A", borderRadius:99, animation:"qos-load 1.2s ease-in-out infinite" }}/>
+      </div>
+      <style>{`@keyframes qos-load { 0%{width:0%} 50%{width:100%} 100%{width:0%;margin-left:100%} }`}</style>
+    </div>
+  )
+
+  // ── Sidebar alert badges (plain computation — no hooks) ───────────────────
+  const today = new Date().toISOString().slice(0,10)
+
+  // Helper: has the user visited this tab since the last time urgency changed?
+  const seenSince = (tabId, sinceDate) => {
+    const s = badgeSeen[tabId]
+    return s && s >= sinceDate
+  }
+
+  // Competitions: only badge if deadline ≤ 3 days AND user hasn't visited since it became urgent
+  const urgentComps = COMPETITIONS.filter(c => {
+    const d = daysUntil(c.deadline); return c.status === "open" && d !== null && d >= 0 && d <= 3
+  })
+  const urgentCompetitions = seenSince("competitions", today) ? 0 : urgentComps.length
+
+  // Learning: course reviews overdue
+  const overdueReviews = Object.values(reviewScheduleShell).filter(d => d <= today)
+  const reviewsDueBadge = seenSince("learning", today) ? 0 : overdueReviews.length
+
+  // Networking: follow-ups overdue
+  const overdueFollowups = netContactsShell.filter(c => {
+    if (!c.date || c.status === "Closed") return false
+    return Math.floor((new Date() - new Date(c.date)) / 86400000) >= 21 && ["Connected","Messaged","Replied"].includes(c.status)
+  })
+  const followUpsBadge = seenSince("networking", today) ? 0 : overdueFollowups.length
+
+  // Interview: only badge if there are weak categories (avg < 6) AND user hasn't practiced today
+  const interviewBadge = (() => {
+    if (seenSince("interview", today)) return 0
+    if (!interviewHistoryShell.length) return 0   // no history yet — no nag
+    const weakCats = Object.keys(INTERVIEW_QS).filter(cat => {
+      const sessions = interviewHistoryShell.filter(h => h.category === cat)
+      if (!sessions.length) return false
+      return sessions.reduce((a, b) => a + b.score, 0) / sessions.length < 6
+    })
+    return weakCats.length
+  })()
+
+  const NAV_BADGES = {
+    competitions: urgentCompetitions,
+    learning:     reviewsDueBadge,
+    networking:   followUpsBadge,
+    interview:    interviewBadge,
+  }
+
+  const renderModule = () => {
+    // ── Rich context for AI advisor — built fresh every render ─────────────────
+    const todayStr = new Date().toISOString().slice(0, 10)
+    const totalCourses = COURSES.length
+    const completedCourses = Object.values(courseProgress).filter(v => v === 1).length
+    const inProgressCourses = Object.values(courseProgress).filter(v => v === 0.5).length
+
+    // Study streak
+    const studyDays = Object.keys(studyLogShell).sort().reverse()
+    let streak = 0
+    for (let i = 0; i < studyDays.length; i++) {
+      const expected = new Date(Date.now() - i * 86400000).toISOString().slice(0,10)
+      if (studyDays[i] === expected) streak++; else break
+    }
+    const totalStudyDays = studyDays.length
+    const lastStudyDate  = studyDays[0] || null
+    const daysSinceStudy = lastStudyDate
+      ? Math.floor((Date.now() - new Date(lastStudyDate)) / 86400000) : null
+
+    // Lecture progress
+    const totalLectures    = Object.keys(lectureProgressShell).length
+    const doneLectures     = Object.values(lectureProgressShell).filter(v => v === 1).length
+
+    // Interview stats
+    const allScores  = interviewHistoryShell.map(h => h.score).filter(Boolean)
+    const avgScore   = allScores.length ? (allScores.reduce((a,b)=>a+b,0)/allScores.length).toFixed(1) : null
+    const totalSessions = interviewHistoryShell.length
+    const recentSessions = interviewHistoryShell.slice(0, 5)
+    const categoryBreakdown = {}
+    interviewHistoryShell.forEach(h => {
+      if (!categoryBreakdown[h.category]) categoryBreakdown[h.category] = []
+      categoryBreakdown[h.category].push(h.score)
+    })
+    const weakCategories = Object.entries(categoryBreakdown)
+      .map(([cat, scores]) => ({ cat, avg: (scores.reduce((a,b)=>a+b,0)/scores.length).toFixed(1) }))
+      .filter(c => parseFloat(c.avg) < 6)
+      .map(c => `${c.cat} (avg ${c.avg}/10)`)
+    const strongCategories = Object.entries(categoryBreakdown)
+      .map(([cat, scores]) => ({ cat, avg: (scores.reduce((a,b)=>a+b,0)/scores.length).toFixed(1) }))
+      .filter(c => parseFloat(c.avg) >= 7)
+      .map(c => `${c.cat} (avg ${c.avg}/10)`)
+
+    // Review schedule
+    const overdueReviews = Object.values(reviewScheduleShell).filter(d => d <= todayStr).length
+    const upcomingReviews = Object.values(reviewScheduleShell).filter(d => d > todayStr).length
+
+    // Networking
+    const totalContacts = netContactsShell.length
+    const contactsByStatus = {}
+    netContactsShell.forEach(c => { contactsByStatus[c.status] = (contactsByStatus[c.status]||0)+1 })
+    const overdueFollowups = netContactsShell.filter(c => {
+      if (!c.date || c.status === "Closed") return false
+      return Math.floor((Date.now()-new Date(c.date))/86400000) >= 21
+    }).length
+
+    // Applications
+    const compApps  = Object.values(trackedAppsShell)
+    const jobAppArr = Object.values(jobAppsShell)
+    const appSummary = {
+      competitions: {
+        applied:      compApps.filter(s=>s==="Applied").length,
+        interviewing: compApps.filter(s=>s==="Interviewing").length,
+        offer:        compApps.filter(s=>s==="Offer").length,
+      },
+      jobs: {
+        saved:        jobAppArr.filter(s=>s==="saved").length,
+        applied:      jobAppArr.filter(s=>s==="applied").length,
+        interviewing: jobAppArr.filter(s=>s==="interviewing").length,
+        offer:        jobAppArr.filter(s=>s==="offer").length,
+      }
+    }
+
+    const userContext = {
+      // Identity
+      name: user?.name || "Student",
+      // Courses
+      totalCourses, completedCourses, inProgressCourses,
+      courseCompletionPct: Math.round(completedCourses / totalCourses * 100),
+      // Study habit
+      streak, totalStudyDays, daysSinceStudy,
+      lastStudyDate,
+      // Lectures
+      totalLectures, doneLectures,
+      // Interview
+      avgScore, totalSessions, weakCategories, strongCategories,
+      recentSessions,
+      // Reviews
+      overdueReviews, upcomingReviews,
+      // Networking
+      totalContacts, contactsByStatus, overdueFollowups,
+      // Applications
+      appSummary,
+    }
+
+    switch (active) {
+      case "dashboard":    return <Dashboard courseProgress={courseProgress} bookmarks={bookmarks} T={T} onStartTour={()=>setShowOnboarding(true)} navigate={setActive} isMobile={isMobile} />
+      case "learning":     return <LearningPath courseProgress={courseProgress} setCourseProgress={setCourseProgress} T={T} user={user} aiSettings={aiSettings} githubData={githubData} markStudyToday={markStudyToday} />
+      case "competitions": return <CompetitionTracker bookmarks={bookmarks} setBookmarks={setBookmarks} T={T} aiSettings={aiSettings} githubData={githubData} />
+      case "interview":    return <PracticeHub T={T} isMobile={isMobile} aiSettings={aiSettings} markStudyToday={markStudyToday} />
+      case "resources":    return <ResourceHub T={T} />
+      case "networking":   return <NetworkingTracker T={T} aiSettings={aiSettings} markStudyToday={markStudyToday} />
+      case "career":       return <CareerPrep T={T} isMobile={isMobile} aiSettings={aiSettings} githubData={githubData} markStudyToday={markStudyToday} />
+      case "roadmap":      return <CareerRoadmap T={T} courseProgress={courseProgress} navigate={setActive} isMobile={isMobile} isTablet={isTablet} aiSettings={aiSettings} userContext={userContext} />
+      default: return null
+    }
+  }
+
+  // ── Icon-only sidebar rail ──────────────────────────────────────────────────
+  const SidebarRail = () => (
+    <div style={{
+      width: 68, flexShrink: 0,
+      background: T.sidebarBg,
+      backdropFilter: T.sidebarBlur, WebkitBackdropFilter: T.sidebarBlur,
+      borderRight: "none",
+      display: "flex", flexDirection: "column", alignItems: "center",
+      padding: "20px 0",
+      position: "sticky", top: 0, height: "100vh",
+      boxShadow: isDark
+        ? "8px 0 32px rgba(0,0,0,0.35), 1px 0 0 rgba(255,255,255,0.03)"
+        : "8px 0 40px rgba(0,0,0,0.06), 1px 0 0 rgba(255,255,255,0.9)",
+      zIndex: 10,
+    }}>
+      {/* Logo badge */}
+      <div style={{
+        width: 38, height: 38, borderRadius: 11, marginBottom: 24,
+        background: isDark
+          ? "rgba(193,127,58,0.12)"
+          : "rgba(255,255,255,0.80)",
+        backdropFilter: "blur(8px)", WebkitBackdropFilter: "blur(8px)",
+        border: `1px solid ${T.borderGlow}`,
+        display: "flex", alignItems: "center", justifyContent: "center",
+        boxShadow: "0 2px 16px rgba(193,127,58,0.18)",
+      }}>
+        <span style={{ fontSize: 16, fontWeight: 800, fontFamily: "'Syne',sans-serif", color: "#C17F3A" }}>Q</span>
+      </div>
+   
+        <div
+        title={isLive ? `Live data: ${loadedKeys.join(", ")}` : "Using local fallback data"}
+        style={{
+          fontSize:9, fontFamily:"'JetBrains Mono',monospace",
+          color:      isLive ? "#10b981" : "#C17F3A",
+          background: isLive ? "rgba(16,185,129,0.12)" : "rgba(193,127,58,0.12)",
+          border:    `1px solid ${isLive ? "rgba(16,185,129,0.25)" : "rgba(193,127,58,0.25)"}`,
+          borderRadius:4, padding:"2px 5px", marginBottom:8,
+          letterSpacing:"0.04em", cursor:"default", userSelect:"none",
+        }}>
+        {isLive ? "GH ✓" : "LOCAL"}
+      </div>
+
+      {/* Nav */}
+      <nav style={{ flex: 1, display: "flex", flexDirection: "column", gap: 3, width: "100%", padding: "0 8px" }}>
+        {NAV_ITEMS.filter(item => !item.mobileOnly).map(item => {
+          const isActive = active === item.id
+          return (
+            <button key={item.id} onClick={() => navigate(item.id)}
+              data-tip={item.label} className="qos-tip"
+              style={{
+                width: "100%", height: 44,
+                display: "flex", alignItems: "center", justifyContent: "center",
+                borderRadius: 10, border: "none", cursor: "pointer",
+                transition: "all 0.18s",
+                background: isActive
+                  ? isDark ? "rgba(193,127,58,0.14)" : "rgba(255,255,255,0.70)"
+                  : "transparent",
+                backdropFilter: isActive ? "blur(8px)" : "none",
+                WebkitBackdropFilter: isActive ? "blur(8px)" : "none",
+                color: isActive ? (isDark ? "#C17F3A" : "#c97a04") : T.textSub,
+                boxShadow: isActive
+                  ? isDark
+                    ? "0 0 0 1px rgba(193,127,58,0.28) inset, 0 2px 8px rgba(0,0,0,0.2)"
+                    : "0 0 0 1px rgba(193,127,58,0.25) inset, 0 2px 12px rgba(0,0,0,0.06)"
+                  : "none",
+                position: "relative",
+              }}>
+              <NavIcon id={item.id} size={20} color={isActive ? "#C17F3A" : T.textSub} />
+              {/* Alert badge */}
+              {NAV_BADGES[item.id] > 0 && (
+                <div style={{
+                  position:"absolute", top:6, right:6,
+                  width:8, height:8, borderRadius:"50%",
+                  background:"#ef4444",
+                  boxShadow:"none",
+                  border:`1px solid ${isDark?"rgba(7,7,15,0.9)":"rgba(255,255,255,0.9)"}`,
+                }}/>
+              )}
+              {isActive && (
+                <div style={{
+                  position: "absolute", right: 0, top: "50%", transform: "translateY(-50%)",
+                  width: 3, height: 20, borderRadius: "3px 0 0 3px",
+                  background: "linear-gradient(180deg,#C17F3A,#A86B2E)",
+                  boxShadow: "none",
+                }} />
+              )}
+            </button>
+          )
+        })}
+      </nav>
+
+      {/* Footer */}
+      <div style={{ display:"flex", flexDirection:"column", alignItems:"center", gap:8, padding:"12px 8px 0", borderTop:`1px solid ${T.border}`, width:"100%" }}>
+        <button onClick={() => setShowShortcuts(s=>!s)}
+          data-tip="Keyboard shortcuts (?)" className="qos-tip"
+          style={{
+            width:"100%", height:32, borderRadius:8,
+            border:`1px solid ${showShortcuts?"rgba(193,127,58,0.35)":T.border}`,
+            background:showShortcuts?"rgba(193,127,58,0.10)":"transparent",
+            color:showShortcuts?"#C17F3A":T.textMuted, cursor:"pointer",
+            display:"flex", alignItems:"center", justifyContent:"center", fontSize:12,
+            fontFamily:"'JetBrains Mono',monospace", transition:"all 0.18s",
+          }}>?</button>
+        {/* AI Settings button — glows if no key set */}
+        <button onClick={() => setShowAISettings(true)}
+          data-tip="AI Settings" className="qos-tip"
+          style={{
+            width:"100%", height:32, borderRadius:8, position:"relative",
+            border:`1px solid ${aiSettings.key ? T.border : "rgba(193,127,58,0.4)"}`,
+            background: aiSettings.key ? "transparent" : "rgba(193,127,58,0.08)",
+            color: aiSettings.key ? T.textMuted : "#C17F3A",
+            cursor:"pointer", display:"flex", alignItems:"center", justifyContent:"center",
+            fontSize:13, transition:"all 0.18s",
+          }}>
+          ⚙
+          {!aiSettings.key && (
+            <div style={{ position:"absolute", top:4, right:4, width:6, height:6, borderRadius:"50%",
+              background:"#C17F3A" }}/>
+          )}
+        </button>
+        {user.picture
+          ? <img src={user.picture} onClick={() => setUser(null)}
+              data-tip="Sign out" className="qos-tip"
+              style={{ width:32, height:32, borderRadius:"50%", cursor:"pointer",
+                border:`2px solid ${isDark ? "rgba(255,255,255,0.10)" : "rgba(255,255,255,0.85)"}`,
+                boxShadow:"0 2px 8px rgba(0,0,0,0.12)", objectFit:"cover" }} />
+          : <div onClick={() => setUser(null)}
+              data-tip={`${user.name||"Guest"} · Sign out`} className="qos-tip"
+              style={{
+                width:32, height:32, borderRadius:"50%", cursor:"pointer",
+                background: isDark ? "rgba(193,127,58,0.18)" : "rgba(255,255,255,0.75)",
+                backdropFilter:"blur(8px)", WebkitBackdropFilter:"blur(8px)",
+                border:`1px solid ${T.borderGlow}`,
+                display:"flex", alignItems:"center", justifyContent:"center",
+                fontSize:13, fontWeight:700, color:"#C17F3A",
+                boxShadow:"0 2px 8px rgba(193,127,58,0.15)",
+              }}>
+              {user.avatar || user.name?.[0] || "G"}
+            </div>
+        }
+      </div>
+    </div>
+  )
+
+  const contentPad = isMobile ? "16px 16px 70px" : isDesktop ? "32px 40px" : "24px 28px"
+
+  return (
+    <>
+      <style>{`
+        @import url('https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=JetBrains+Mono:wght@400;500;700&family=Inter:wght@300;400;500;600&display=swap');
+        html, body, #root { margin: 0; padding: 0; width: 100%; min-height: 100%; background: #110703; }
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+        ::-webkit-scrollbar { width: 3px; height: 3px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: ${T.scrollThumb}; border-radius: 99px; }
+        textarea::placeholder, input::placeholder { color: ${T.textMuted}; }
+        select option { background: ${T.selectBg}; color: ${T.text}; }
+        iframe { border: none; }
+
+        /* ── Global glass surface propagation ──
+           Modules set background: T.cardBg inline. We add backdrop-filter + the
+           inner top-edge highlight via a global rule so every card glows correctly
+           without touching any module code.                                       */
+        .qos-root * {
+          /* pass-through — no global override needed; blur handled per-element */
+        }
+        /* Glass card surfaces */
+        [style*="rgba(255,255,255,0.035)"] { backdrop-filter:blur(14px) saturate(150%); -webkit-backdrop-filter:blur(14px) saturate(150%); }
+        /* Inputs */
+        [style*="rgba(255,255,255,0.055)"] { backdrop-filter:blur(10px); -webkit-backdrop-filter:blur(10px); }
+
+        /* ── CSS tooltip (icon rail) ── */
+        .qos-tip { position: relative; }
+        .qos-tip::after {
+          content: attr(data-tip);
+          position: absolute; left: calc(100% + 14px); top: 50%;
+          transform: translateY(-50%) scale(0.94);
+          background: rgba(26,11,5,0.95);
+          backdrop-filter: blur(16px) saturate(180%);
+          -webkit-backdrop-filter: blur(16px) saturate(180%);
+          color: ${T.text}; padding: 5px 12px; border-radius: 9px;
+          font-size: 11px; font-family: 'DM Sans', sans-serif; font-weight: 500;
+          white-space: nowrap; pointer-events: none; opacity: 0;
+          transition: opacity 0.16s, transform 0.16s;
+          border: 1px solid rgba(193,127,58,0.22);
+          box-shadow: 0 4px 20px rgba(0,0,0,0.12);
+          z-index: 999;
+        }
+        .qos-tip:hover::after { opacity: 1; transform: translateY(-50%) scale(1); }
+
+
+        /* ── Glass shadow system ────────────────────────────────────────────────────
+           Panels, tiles, and cards automatically pick up depth via CSS attribute
+           selectors targeting T.cardBg values. No module code changes needed.     */
+
+        /* Tantra card shadow */
+        [style*="rgba(255,255,255,0.035)"] {
+          box-shadow:
+            0 1px 0 rgba(255,255,255,0.04) inset,
+            0 4px 16px rgba(0,0,0,0.35),
+            0 16px 48px rgba(0,0,0,0.28) !important;
+        }
+        /* Sidebar shadow */
+        [style*="rgba(16, 5, 2, 0.80)"] {
+          box-shadow:
+            2px 0 0 rgba(255,255,255,0.03) inset,
+            4px 0 32px rgba(0,0,0,0.25) !important;
+        }
+        /* Orange accent hover glow on interactive tiles */
+        .qos-tile-hover:hover {
+          box-shadow:
+            0 0 0 1px rgba(193,127,58,0.22),
+            0 8px 32px rgba(193,127,58,0.08),
+            0 2px 8px rgba(0,0,0,0.10) !important;
+          transform: translateY(-1px);
+          transition: all 0.2s ease;
+        }
+        @keyframes qos-fade { from{opacity:0;transform:translateY(8px)} to{opacity:1;transform:translateY(0)} }
+      `}</style>
+
+      <div className="qos-root" style={{
+        display:"flex", minHeight:"100vh",
+        background: T.bg,
+        fontFamily:"'Inter',system-ui,sans-serif", color:T.text,
+        transition:"background 0.5s, color 0.3s",
+        overflowX:"hidden",
+        width:"100%",
+      }}>
+        {!isMobile && <SidebarRail />}
+
+        {/* Main content */}
+        <div style={{ flex:1, overflowY:"auto", overflowX:"clip", maxHeight:isMobile?"100dvh":"100vh", minWidth:0,
+          scrollbarWidth:"thin", scrollbarColor:`${T.scrollThumb} transparent` }}>
+          <div style={{ padding:contentPad, width:"100%", boxSizing:"border-box" }}>
+          <div style={{ maxWidth:1280, margin:"0 auto", width:"100%" }}>
+
+          {/* Mobile top bar */}
+          {isMobile && (
+            <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", marginBottom:20, paddingBottom:14, borderBottom:`1px solid ${T.border}` }}>
+              <div style={{ fontSize:20, fontWeight:800, fontFamily:"'Syne',sans-serif", letterSpacing:"-0.02em" }}>
+                <span style={{ color:"#C17F3A" }}>Quant</span>
+                <span style={{ color:T.text }}>OS</span>
+                <span style={{ fontSize:9, color:T.textMuted, marginLeft:7, fontFamily:"'JetBrains Mono',monospace", verticalAlign:"middle" }}>{APP_VERSION}</span>
+              </div>
+              <div style={{ fontSize:11, color:T.textSub, fontFamily:"'JetBrains Mono',monospace", letterSpacing:"0.06em" }}>
+                {NAV_ITEMS.find(n=>n.id===active)?.label || ""}
+              </div>
+            </div>
+          )}
+
+          {renderModule()}
+          </div>{/* /max-width wrapper */}
+          </div>{/* /padding wrapper */}
+        </div>
+
+        {/* Mobile bottom glass tab bar — horizontally scrollable */}
+        {isMobile && (
+          <div style={{
+            position:"fixed", bottom:0, left:0, right:0,
+            background: "rgba(14,5,2,0.90)",
+            backdropFilter:"blur(28px) saturate(160%)", WebkitBackdropFilter:"blur(28px) saturate(160%)",
+            zIndex:50,
+            boxShadow: "0 -8px 32px rgba(0,0,0,0.50), 0 -1px 0 rgba(180,90,40,0.12)",
+            paddingBottom:"env(safe-area-inset-bottom, 0px)",
+          }}>
+            {/* Scroll hint fade — right edge */}
+            <div style={{
+              position:"absolute", right:0, top:0, bottom:0, width:32, zIndex:1, pointerEvents:"none",
+              background: "linear-gradient(to right, transparent, rgba(14,5,2,0.92))",
+            }}/>
+            <div style={{
+              display:"flex", alignItems:"stretch",
+              overflowX:"auto", overflowY:"hidden",
+              scrollSnapType:"x mandatory",
+              WebkitOverflowScrolling:"touch",
+              scrollbarWidth:"none",
+              msOverflowStyle:"none",
+              height:54,
+              padding:"0 4px",
+            }}>
+              {/* Hide scrollbar for webkit */}
+              <style>{`.qos-nav-scroll::-webkit-scrollbar{display:none}`}</style>
+              {NAV_ITEMS.filter(item => !item.desktopOnly).map(item => {
+                const isActive = active === item.id
+                const badge = NAV_BADGES[item.id]
+                return (
+                  <button key={item.id} onClick={() => navigate(item.id)}
+                    style={{
+                      flexShrink: 0,
+                      width: 56,
+                      display:"flex", alignItems:"center", justifyContent:"center",
+                      border:"none", cursor:"pointer",
+                      background:"transparent",
+                      scrollSnapAlign:"center",
+                      position:"relative",
+                      transition:"all 0.18s",
+                      padding:0,
+                      height:"100%",
+                    }}>
+                    {/* Active pill */}
+                    {isActive && (
+                      <div style={{
+                        position:"absolute", top:"50%", left:"50%",
+                        transform:"translate(-50%,-50%)",
+                        width:44, height:40, borderRadius:12,
+                        background: "rgba(193,127,58,0.15)",
+                        backdropFilter:"blur(8px)", WebkitBackdropFilter:"blur(8px)",
+                        border: "1px solid rgba(193,127,58,0.28)",
+                        boxShadow: "none",
+                      }}/>
+                    )}
+                    {/* Badge dot */}
+                    {badge > 0 && (
+                      <div style={{
+                        position:"absolute", top:"14%", right:"16%",
+                        width:7, height:7, borderRadius:"50%",
+                        background:"#ef4444",
+                        boxShadow:"none",
+                        border:`1px solid rgba(14,5,2,0.9)`,
+                        zIndex:2,
+                      }}/>
+                    )}
+                    <NavIcon id={item.id} size={isActive ? 21 : 19} color={isActive ? "#C17F3A" : T.textSub} />
+                  </button>
+                )
+              })}
+              {/* AI Settings */}
+              <button onClick={() => setShowAISettings(true)}
+                style={{
+                  flexShrink:0, width:46, position:"relative",
+                  display:"flex", alignItems:"center", justifyContent:"center",
+                  border:"none", background:"transparent", cursor:"pointer",
+                  height:"100%", padding:0,
+                }}>
+                <span style={{ fontSize:17, color: aiSettings.key ? T.textSub : "#C17F3A" }}>⚙</span>
+                {!aiSettings.key && (
+                  <div style={{ position:"absolute", top:"18%", right:"18%", width:6, height:6, borderRadius:"50%",
+                    background:"#C17F3A", boxShadow:"none" }}/>
+                )}
+              </button>
+            </div>
+          </div>
+        )}
+      </div>
+
+      {/* ── AI Settings Modal ── */}
+      {showAISettings && (
+        <AISettingsModal
+          onClose={() => setShowAISettings(false)}
+          aiSettings={aiSettings}
+          setAiSettings={setAiSettings}
+          T={T} isDark={isDark}
+        />
+      )}
+
+      {/* ── Onboarding overlay ── */}
+      {showOnboarding && (
+        <Onboarding isDark={isDark} onDone={()=>{ setShowOnboarding(false); setOnboardingDone(true) }}/>
+      )}
+
+      {/* ── Keyboard shortcuts modal ── */}
+      {showShortcuts && (
+        <div onClick={()=>setShowShortcuts(false)} style={{
+          position:"fixed",inset:0,zIndex:9990,
+          background:"rgba(4,4,12,0.70)",
+          backdropFilter:"blur(12px)",WebkitBackdropFilter:"blur(12px)",
+          display:"flex",alignItems:"center",justifyContent:"center",
+          animation:"qos-fade 0.18s ease",
+        }}>
+          <div onClick={e=>e.stopPropagation()} style={{
+            width:380,borderRadius:20,
+            background:"rgba(26,11,5,0.98)",
+            border:"1px solid rgba(193,127,58,0.20)",
+            boxShadow:"0 32px 80px rgba(0,0,0,0.5)",
+            padding:"28px 32px",
+          }}>
+            <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:20}}>
+              <div style={{fontSize:15,fontWeight:700,color:"#e8c9a0",fontFamily:"'Syne',sans-serif"}}>
+                Keyboard Shortcuts
+              </div>
+              <button onClick={()=>setShowShortcuts(false)}
+                style={{background:"none",border:"none",color:"#5a3828",cursor:"pointer",fontSize:18}}>✕</button>
+            </div>
+            {[
+              ["g then d","Dashboard"],
+              ["g then l","Learning Path"],
+              ["g then c","Competitions"],
+              ["g then i / f","Practice (Interview + Flashcards)"],
+              ["g then f","Flashcards"],
+              ["g then n","Networking"],
+              ["g then m","Career Roadmap"],
+              ["g then r","Resources"],
+              ["?","Toggle this panel"],
+              ["Esc","Close overlay"],
+            ].map(([key,label])=>(
+              <div key={key} style={{display:"flex",justifyContent:"space-between",alignItems:"center",
+                padding:"8px 0",borderBottom:`1px solid rgba(180,90,40,0.12)`}}>
+                <span style={{fontSize:13,color:"#9a7055"}}>{label}</span>
+                <span style={{fontSize:11,color:"#C17F3A",fontFamily:"'JetBrains Mono',monospace",
+                  background:"rgba(193,127,58,0.10)",border:"1px solid rgba(193,127,58,0.25)",
+                  padding:"3px 10px",borderRadius:6}}>
+                  {key}
+                </span>
+              </div>
+            ))}
+            <div style={{marginTop:16,fontSize:11,color:"#5a3828",textAlign:"center"}}>
+              Press anywhere outside or Esc to close
+            </div>
+          </div>
+        </div>
+      )}
+    </>
+  )
+}
