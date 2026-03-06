@@ -1,0 +1,140 @@
+{
+  "c2": {
+    "playlistUrl": "https://www.youtube.com/playlist?list=PLUl4u3cNGP619EG1wp0kT-7rDE_Az5TNd",
+    "notesPage": "https://ocw.mit.edu/courses/6-0002-introduction-to-computational-thinking-and-data-science-fall-2016/pages/lecture-slides-and-files/",
+    "psets": [
+       {"id": "ps1",
+      "title": "Problem Set 1",
+      "afterLecture": 3,
+      "covers": "Space Cows Transportation",
+      "link": "https://ocw.mit.edu/courses/6-0002-introduction-to-computational-thinking-and-data-science-fall-2016/resources/ps1/"
+    },
+    
+    {
+    "id": "ps2",
+    "title":"Problem Set 2",
+    "afterLecture": "6",
+    "covers":"Fastest way to get around MIT",
+    "link":"https://ocw.mit.edu/courses/6-0002-introduction-to-computational-thinking-and-data-science-fall-2016/resources/ps2/"
+    },
+    
+    {"id": "ps3",
+    "title":"Problem Set 3",
+    "afterLecture":"9",
+    "covers":"Robot Simulation",
+    "link":"https://ocw.mit.edu/courses/6-0002-introduction-to-computational-thinking-and-data-science-fall-2016/resources/ps3/"
+    },
+
+    {
+    "id": "ps4",
+    "title":"Problem Set 4",
+    "afterLecture":"12",
+    "covers":"Simulating the spread of Disease and Bacteria",
+    "link":"https://ocw.mit.edu/courses/6-0002-introduction-to-computational-thinking-and-data-science-fall-2016/resources/ps4/"
+    },
+
+    {
+    "id": "ps5",
+    "title":"Problem Set 5",
+    "afterLecture":"15",
+    "covers":"Modeling Global Warming",
+    "link":"https://ocw.mit.edu/courses/6-0002-introduction-to-computational-thinking-and-data-science-fall-2016/resources/ps5/"
+    }
+
+    ],
+
+
+    "lectures": [
+      {
+        "n": 1,
+        "title": "1. Introduction, Optimization Problems (MIT 6.0002 Intro to Computational Thinking and Data Science)",
+        "videoId": "C1lhuz6pZC0",
+        "ps": false
+      },
+      {
+        "n": 2,
+        "title": "2. Optimization Problems",
+        "videoId": "uK5yvoXnkSk",
+        "ps": false
+      },
+      {
+        "n": 3,
+        "title": "3. Graph-theoretic Models",
+        "videoId": "V_TulH374hw",
+        "ps": true
+      },
+      {
+        "n": 4,
+        "title": "4. Stochastic Thinking",
+        "videoId": "-1BnXEwHUok",
+        "ps": false
+      },
+      {
+        "n": 5,
+        "title": "5. Random Walks",
+        "videoId": "6wUD_gp5WeE",
+        "ps": false
+      },
+      {
+        "n": 6,
+        "title": "6. Monte Carlo Simulation",
+        "videoId": "OgO1gpXSUzU",
+        "ps": true
+      },
+      {
+        "n": 7,
+        "title": "7. Confidence Intervals",
+        "videoId": "rUxP7TM8-wo",
+        "ps": false
+      },
+      {
+        "n": 8,
+        "title": "8. Sampling and Standard Error",
+        "videoId": "soZv_KKax3E",
+        "ps": false
+      },
+      {
+        "n": 9,
+        "title": "9. Understanding Experimental Data",
+        "videoId": "vIFKGFl1Cn8",
+        "ps": true
+      },
+      {
+        "n": 10,
+        "title": "10. Understanding Experimental Data (cont.)",
+        "videoId": "fQvg-hh9dUw",
+        "ps": false
+      },
+      {
+        "n": 11,
+        "title": "11. Introduction to Machine Learning",
+        "videoId": "h0e2HAPTGF4",
+        "ps": false
+      },
+      {
+        "n": 12,
+        "title": "12. Clustering",
+        "videoId": "esmzYhuFnds",
+        "ps": true
+      },
+      {
+        "n": 13,
+        "title": "13. Classification",
+        "videoId": "eg8DJYwdMyg",
+        "ps": false
+      },
+      {
+        "n": 14,
+        "title": "14. Classification and Statistical Sins",
+        "videoId": "K2SC-WPdT6k",
+        "ps": false
+      },
+      {
+        "n": 15,
+        "title": "15. Statistical Sins and Wrap Up",
+        "videoId": "iOZVbILaIZc",
+        "ps": true
+      }
+    ]
+  }
+}
