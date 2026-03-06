@@ -2565,13 +2565,15 @@ const sched = (raw ? {
   const [reviewing, setReviewing] = useState(null)      // ps.id being reviewed
 
   // Open lecture in a new tab at the correct playlist position
-  const openVideo = (n) => {
-    const m = sched?.playlistUrl?.match(/[?&]list=([^&]+)/)
-    const pid = m ? m[1] : null
-    const url = pid
-      ? `https://www.youtube.com/watch?list=${pid}&index=${n-1}`
-      : sched.playlistUrl
-    window.open(url, "_blank", "noopener,noreferrer")
+   const openVideo = (n) => {
+    const lecture = sched.lectures.find(l => l.n === n)
+    const pid = playlistId
+    const url = lecture?.videoId
+      ? `https://www.youtube.com/watch?v=${lecture.videoId}&list=${pid}`
+      : pid
+        ? `https://www.youtube.com/watch?list=${pid}&index=${n - 1}`
+        : sched.playlistUrl
+    if (url) window.open(url, "_blank", "noopener,noreferrer")
   }
 
   // ── AI Review via Anthropic API ──
@@ -2583,7 +2585,7 @@ const sched = (raw ? {
       const prompt = `You are a rigorous quantitative finance professor grading a student's problem set submission.
 
 COURSE: ${sched?.fullName} (${sched?.code})
-PROBLEM SET: ${ps.title}
+PROBLEM SET: ${ps.title} 
 TOPICS COVERED: ${ps.covers}
 
 STUDENT'S SUBMISSION:
@@ -2670,7 +2672,8 @@ Grade this submission strictly and fairly. Return ONLY a JSON object (no markdow
   const pct = Math.round(doneCount / sched.lectures.length * 100)
 
   // ── YouTube player ────────────────────────────────────────────────────────
-  const [showPlayer, setShowPlayer] = useState(false)
+  const hasVideoIds = sched?.lectures?.some(l => l.videoId)
+  const [showPlayer, setShowPlayer] = useState(!!hasVideoIds)
   const playlistId = sched.playlistUrl?.match(/[?&]list=([^&]+)/)?.[1] || null
   // Start at first unwatched lecture (0-based index for YT API)
   const startIndex = Math.max(0, sched.lectures.findIndex(l => !isDone(l.n)))
@@ -2875,7 +2878,12 @@ Grade this submission strictly and fairly. Return ONLY a JSON object (no markdow
                   <div style={{ padding:"16px 20px", display:"flex", justifyContent:"space-between", alignItems:"flex-start", gap:12 }}>
                     <div style={{ flex:1 }}>
                       <div style={{ display:"flex", alignItems:"center", gap:10, marginBottom:6, flexWrap:"wrap" }}>
-                        <span style={{ fontSize:15, fontWeight:700, color:txt }}>{ps.title}</span>
+                        <span style={{ fontSize:15, fontWeight:700, color:txt }}>{ps.title}{ps.link && (
+  <a href={ps.link} target="_blank" rel="noreferrer"
+    style={{ fontSize:11, color:"#C17F3A", textDecoration:"none", marginLeft:10 }}>
+    Open PS →
+  </a>
+)}</span>
                         <span style={{ fontSize:10, color:"#C17F3A", background:"rgba(193,127,58,0.1)", padding:"2px 8px", borderRadius:4, fontFamily:"'JetBrains Mono',monospace" }}>After L{ps.assignedAfter}</span>
                         {review?.submittedAt && (
                           <span style={{ fontSize:10, color:muted, fontFamily:"'JetBrains Mono',monospace" }}>Submitted {review.submittedAt}</span>
