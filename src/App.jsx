@@ -2793,7 +2793,7 @@ Grade this submission strictly and fairly. Return ONLY a JSON object (no markdow
                     <div style={{ padding:"10px 8px", fontSize:12, color:muted, fontFamily:"'JetBrains Mono',monospace" }}>{l.n}</div>
                     {/* Title cell — truncated so all rows stay the same height */}
                     <div style={{ padding:"10px 8px 10px 0", minWidth:0, display:"flex", alignItems:"center", gap:6, overflow:"hidden" }}>
-                      <button onClick={() => !isExam && openVideo(l.n)}
+                      <button onClick={() => !isExam && watchLecture(l, sched.lectures.indexOf(l))}
                         style={{ fontSize:13, color:done?"#10b981":isExam?"#C17F3A":txt,
                           textDecoration:done?"line-through":"none", lineHeight:1,
                           background:"none", border:"none", padding:0,
