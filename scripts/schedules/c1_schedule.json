@@ -1,0 +1,465 @@
+{
+  "c1": {
+    "playlistUrl": "https://youtube.com/playlist?list=PLUl4u3cNGP60A3XMwZ5sep719_nh95qOe&si=d-c5CL0Zlmcd81GL",
+    "notesPage": "",
+    "psets": [],
+    "lectures": [
+      {
+        "n": 1,
+        "title": "1. Probability Models and Axioms",
+        "videoId": "j9WZyLZCBzs",
+        "ps": false
+      },
+      {
+        "n": 2,
+        "title": "The Probability of the Difference of Two Events",
+        "videoId": "o4Ccc1qJyAo",
+        "ps": false
+      },
+      {
+        "n": 3,
+        "title": "Geniuses and Chocolates",
+        "videoId": "y7lV5jwK27E",
+        "ps": false
+      },
+      {
+        "n": 4,
+        "title": "Uniform Probabilities on a Square",
+        "videoId": "jxxrwZtpHH0",
+        "ps": false
+      },
+      {
+        "n": 5,
+        "title": "2. Conditioning and Bayes' Rule",
+        "videoId": "TluTv5V0RmE",
+        "ps": false
+      },
+      {
+        "n": 6,
+        "title": "A Coin Tossing Puzzle",
+        "videoId": "S_Egep9GOpQ",
+        "ps": false
+      },
+      {
+        "n": 7,
+        "title": "Conditional Probability Example",
+        "videoId": "6MffbP5O2v0",
+        "ps": false
+      },
+      {
+        "n": 8,
+        "title": "The Monty Hall Problem",
+        "videoId": "UgKrQ2ywVfs",
+        "ps": false
+      },
+      {
+        "n": 9,
+        "title": "3. Independence",
+        "videoId": "19Ql_Q3l0GA",
+        "ps": false
+      },
+      {
+        "n": 10,
+        "title": "A Random Walker",
+        "videoId": "ya1braz5n88",
+        "ps": false
+      },
+      {
+        "n": 11,
+        "title": "Communication over a Noisy Channel",
+        "videoId": "rzg_CavQI_M",
+        "ps": false
+      },
+      {
+        "n": 12,
+        "title": "Network Reliability",
+        "videoId": "PqZj8pySQiU",
+        "ps": false
+      },
+      {
+        "n": 13,
+        "title": "A Chess Tournament Problem",
+        "videoId": "eilGapl5cz8",
+        "ps": false
+      },
+      {
+        "n": 14,
+        "title": "4. Counting",
+        "videoId": "6oV3pKLgW2I",
+        "ps": false
+      },
+      {
+        "n": 15,
+        "title": "Rooks on a Chessboard",
+        "videoId": "Na4R11fWVJg",
+        "ps": false
+      },
+      {
+        "n": 16,
+        "title": "Hypergeometric Probabilities",
+        "videoId": "3gCQ6-yitFc",
+        "ps": false
+      },
+      {
+        "n": 17,
+        "title": "5. Discrete Random Variables I",
+        "videoId": "3MOahpLxj6A",
+        "ps": false
+      },
+      {
+        "n": 18,
+        "title": "Sampling People on Buses",
+        "videoId": "0MrkYxOg_Vo",
+        "ps": false
+      },
+      {
+        "n": 19,
+        "title": "PMF of a Function of a Random Variable",
+        "videoId": "Qx2NKaUCUw0",
+        "ps": false
+      },
+      {
+        "n": 20,
+        "title": "6. Discrete Random Variables II",
+        "videoId": "-qCEoqpwjf4",
+        "ps": false
+      },
+      {
+        "n": 21,
+        "title": "Flipping a Coin a Random Number of Times",
+        "videoId": "7zjuscCceR8",
+        "ps": false
+      },
+      {
+        "n": 22,
+        "title": "Joint Probability Mass Function (PMF) Drill 1",
+        "videoId": "81ZWzdj-I9w",
+        "ps": false
+      },
+      {
+        "n": 23,
+        "title": "The Coupon Collector Problem",
+        "videoId": "3mu47FWEuqA",
+        "ps": false
+      },
+      {
+        "n": 24,
+        "title": "7. Discrete Random Variables III",
+        "videoId": "EObHWIEKGjA",
+        "ps": false
+      },
+      {
+        "n": 25,
+        "title": "Joint Probability Mass Function (PMF) Drill 2",
+        "videoId": "JIOJRuzwJQw",
+        "ps": false
+      },
+      {
+        "n": 26,
+        "title": "8. Continuous Random Variables",
+        "videoId": "mHfn_7ym6to",
+        "ps": false
+      },
+      {
+        "n": 27,
+        "title": "Calculating a Cumulative Distribution Function (CDF)",
+        "videoId": "wQ6Q9W3Y1ZE",
+        "ps": false
+      },
+      {
+        "n": 28,
+        "title": "A Mixed Distribution Example",
+        "videoId": "6UdLp2gpmcE",
+        "ps": false
+      },
+      {
+        "n": 29,
+        "title": "Mean & Variance of the Exponential",
+        "videoId": "GJ2klfD0Q3g",
+        "ps": false
+      },
+      {
+        "n": 30,
+        "title": "Normal Probability Calculation",
+        "videoId": "62KrMWdX-RU",
+        "ps": false
+      },
+      {
+        "n": 31,
+        "title": "9. Multiple Continuous Random Variables",
+        "videoId": "CadZXGNauY0",
+        "ps": false
+      },
+      {
+        "n": 32,
+        "title": "Uniform Probabilities on a Triangle",
+        "videoId": "v8N6l9RXbOM",
+        "ps": false
+      },
+      {
+        "n": 33,
+        "title": "Probability that Three Pieces Form a Triangle",
+        "videoId": "xFS4xpYQ82w",
+        "ps": false
+      },
+      {
+        "n": 34,
+        "title": "The Absent Minded Professor",
+        "videoId": "X5ch4xZf3LE",
+        "ps": false
+      },
+      {
+        "n": 35,
+        "title": "10. Continuous Bayes' Rule; Derived Distributions",
+        "videoId": "H_k1w3cfny8",
+        "ps": false
+      },
+      {
+        "n": 36,
+        "title": "Inferring a Discrete Random Variable from a Continuous Measurement",
+        "videoId": "96UEwIcSTG0",
+        "ps": false
+      },
+      {
+        "n": 37,
+        "title": "Inferring a Continuous Random Variable from a Discrete Measurement",
+        "videoId": "TbC-kPbRt3c",
+        "ps": false
+      },
+      {
+        "n": 38,
+        "title": "A Derived Distribution Example",
+        "videoId": "HwkKtHLCmzo",
+        "ps": false
+      },
+      {
+        "n": 39,
+        "title": "The Probability Distribution Function (PDF) of [X]",
+        "videoId": "euqZK85cQwo",
+        "ps": false
+      },
+      {
+        "n": 40,
+        "title": "Ambulance Travel Time",
+        "videoId": "gpMLYEMIw24",
+        "ps": false
+      },
+      {
+        "n": 41,
+        "title": "11. Derived Distributions (ctd.); Covariance",
+        "videoId": "l4NoMKEHQwM",
+        "ps": false
+      },
+      {
+        "n": 42,
+        "title": "The Difference of Two Independent Exponential Random Variables",
+        "videoId": "f8Nli1AfygM",
+        "ps": false
+      },
+      {
+        "n": 43,
+        "title": "The Sum of Discrete and Continuous Random Variables",
+        "videoId": "8ueUXUTRlSQ",
+        "ps": false
+      },
+      {
+        "n": 44,
+        "title": "12. Iterated Expectations",
+        "videoId": "P7a4bjE6Crk",
+        "ps": false
+      },
+      {
+        "n": 45,
+        "title": "The Variance in the Stick Breaking Problem",
+        "videoId": "NlRgBtSLViI",
+        "ps": false
+      },
+      {
+        "n": 46,
+        "title": "Widgets and Crates",
+        "videoId": "Y8zx1tWEbeI",
+        "ps": false
+      },
+      {
+        "n": 47,
+        "title": "Using the Conditional Expectation and Variance",
+        "videoId": "CSkcBXUIJh4",
+        "ps": false
+      },
+      {
+        "n": 48,
+        "title": "A Random Number of Coin Flips",
+        "videoId": "NYOcZx6Kxsw",
+        "ps": false
+      },
+      {
+        "n": 49,
+        "title": "A Coin with Random Bias",
+        "videoId": "aGyJO6G3mxQ",
+        "ps": false
+      },
+      {
+        "n": 50,
+        "title": "13. Bernoulli Process",
+        "videoId": "gMTiAeE0NCw",
+        "ps": false
+      },
+      {
+        "n": 51,
+        "title": "Bernoulli Process Practice",
+        "videoId": "i0Jom_gR0t4",
+        "ps": false
+      },
+      {
+        "n": 52,
+        "title": "14. Poisson Process I",
+        "videoId": "jsqSScywvMc",
+        "ps": false
+      },
+      {
+        "n": 53,
+        "title": "Competing Exponentials",
+        "videoId": "eUPpqZFSqdw",
+        "ps": false
+      },
+      {
+        "n": 54,
+        "title": "15. Poisson Process II",
+        "videoId": "XsYXACeIklU",
+        "ps": false
+      },
+      {
+        "n": 55,
+        "title": "Random Incidence Under Erlang Arrivals",
+        "videoId": "VUgN-YEklTU",
+        "ps": false
+      },
+      {
+        "n": 56,
+        "title": "16. Markov Chains I",
+        "videoId": "IkbkEtOOC1Y",
+        "ps": false
+      },
+      {
+        "n": 57,
+        "title": "Setting Up a Markov Chain",
+        "videoId": "ibFeUX5F_fw",
+        "ps": false
+      },
+      {
+        "n": 58,
+        "title": "Markov Chain Practice 1",
+        "videoId": "nxHOWeT0ID0",
+        "ps": false
+      },
+      {
+        "n": 59,
+        "title": "17. Markov Chains II",
+        "videoId": "ZulMqrvP-Pk",
+        "ps": false
+      },
+      {
+        "n": 60,
+        "title": "18. Markov Chains III",
+        "videoId": "HIMxdWDLEK8",
+        "ps": false
+      },
+      {
+        "n": 61,
+        "title": "Mean First Passage and Recurrence Times",
+        "videoId": "fa5Bdv_94ZE",
+        "ps": false
+      },
+      {
+        "n": 62,
+        "title": "19. Weak Law of Large Numbers",
+        "videoId": "3eiio3Tw7UQ",
+        "ps": false
+      },
+      {
+        "n": 63,
+        "title": "Convergence in Probability and in the Mean Part 1",
+        "videoId": "x4q6H6lxFFE",
+        "ps": false
+      },
+      {
+        "n": 64,
+        "title": "Convergence in Probability and in the Mean Part 2",
+        "videoId": "D_vUxa3tEGs",
+        "ps": false
+      },
+      {
+        "n": 65,
+        "title": "Convergence in Probability Example",
+        "videoId": "eb-eRduYwZY",
+        "ps": false
+      },
+      {
+        "n": 66,
+        "title": "20. Central Limit Theorem",
+        "videoId": "Tx7zzD4aeiA",
+        "ps": false
+      },
+      {
+        "n": 67,
+        "title": "Probabilty Bounds",
+        "videoId": "s8geHBRvSos",
+        "ps": false
+      },
+      {
+        "n": 68,
+        "title": "Using the Central Limit Theorem",
+        "videoId": "M3615Gbd6-8",
+        "ps": false
+      },
+      {
+        "n": 69,
+        "title": "21. Bayesian Statistical Inference I",
+        "videoId": "1jDBM9UM9xk",
+        "ps": false
+      },
+      {
+        "n": 70,
+        "title": "22. Bayesian Statistical Inference II",
+        "videoId": "XtNXQJkgkhI",
+        "ps": false
+      },
+      {
+        "n": 71,
+        "title": "Inferring a Parameter of Uniform Part 1",
+        "videoId": "9hzVb4hfPPo",
+        "ps": false
+      },
+      {
+        "n": 72,
+        "title": "Inferring a Parameter of Uniform Part 2",
+        "videoId": "DwBK4duYhTU",
+        "ps": false
+      },
+      {
+        "n": 73,
+        "title": "An Inference Example",
+        "videoId": "1s2H3QssiMw",
+        "ps": false
+      },
+      {
+        "n": 74,
+        "title": "23. Classical Statistical Inference I",
+        "videoId": "4UJc0S8APm4",
+        "ps": false
+      },
+      {
+        "n": 75,
+        "title": "24. Classical Inference II",
+        "videoId": "tBUHRpFZy0s",
+        "ps": false
+      },
+      {
+        "n": 76,
+        "title": "25. Classical Inference III",
+        "videoId": "rYefUsYuEp0",
+        "ps": false
+      }
+    ]
+  }
+}

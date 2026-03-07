@@ -1,0 +1,153 @@
+{
+  "f2": {
+    "playlistUrl": "https://youtube.com/playlist?list=PL6EF60E1027E1A10B&si=kjSQThE2TvkmzFid",
+    "notesPage": "",
+    "psets": [],
+    "lectures": [
+      {
+        "n": 1,
+        "title": "1. Introduction: five first lessons",
+        "videoId": "nM3rTU927io",
+        "ps": false
+      },
+      {
+        "n": 2,
+        "title": "2. Putting yourselves into other people's shoes",
+        "videoId": "qQ3kFydI_xQ",
+        "ps": false
+      },
+      {
+        "n": 3,
+        "title": "3. Iterative deletion and the median-voter theorem",
+        "videoId": "kqDu0RVWTYw",
+        "ps": false
+      },
+      {
+        "n": 4,
+        "title": "4. Best responses in soccer and business partnerships",
+        "videoId": "YYUPc-cfPyc",
+        "ps": false
+      },
+      {
+        "n": 5,
+        "title": "5. Nash equilibrium: bad fashion and bank runs",
+        "videoId": "Ac2vCCuf8-s",
+        "ps": false
+      },
+      {
+        "n": 6,
+        "title": "6. Nash equilibrium: dating and Cournot",
+        "videoId": "7oASpaBdDMs",
+        "ps": false
+      },
+      {
+        "n": 7,
+        "title": "7. Nash equilibrium: shopping, standing and voting on a line",
+        "videoId": "pMRMYi1SoQs",
+        "ps": false
+      },
+      {
+        "n": 8,
+        "title": "8. Nash equilibrium: location, segregation and randomization",
+        "videoId": "pglQ_E0g8PY",
+        "ps": false
+      },
+      {
+        "n": 9,
+        "title": "9. Mixed strategies in theory and tennis",
+        "videoId": "unvJofv0wl8",
+        "ps": false
+      },
+      {
+        "n": 10,
+        "title": "10. Mixed strategies in baseball, dating and paying your taxes",
+        "videoId": "9b2AMWwMToc",
+        "ps": false
+      },
+      {
+        "n": 11,
+        "title": "11. Evolutionary stability: cooperation, mutation, and equilibrium",
+        "videoId": "er9KvYn4ldk",
+        "ps": false
+      },
+      {
+        "n": 12,
+        "title": "12.  Evolutionary stability: social convention, aggression, and cycles",
+        "videoId": "5sK9W0viyu0",
+        "ps": false
+      },
+      {
+        "n": 13,
+        "title": "13. Sequential games: moral hazard, incentives, and hungry lions",
+        "videoId": "5tGh7wd2zOU",
+        "ps": false
+      },
+      {
+        "n": 14,
+        "title": "14. Backward induction: commitment, spies, and first-mover advantages",
+        "videoId": "aIq0E3OmNz4",
+        "ps": false
+      },
+      {
+        "n": 15,
+        "title": "15. Backward induction: chess, strategies, and credible threats",
+        "videoId": "Bm8lM73lTmk",
+        "ps": false
+      },
+      {
+        "n": 16,
+        "title": "16. Backward induction: reputation and duels",
+        "videoId": "SE7kP7XZuV4",
+        "ps": false
+      },
+      {
+        "n": 17,
+        "title": "17. Backward induction: ultimatums and bargaining",
+        "videoId": "XpEmuxE4qWk",
+        "ps": false
+      },
+      {
+        "n": 18,
+        "title": "18. Imperfect information: information sets and sub-game perfection",
+        "videoId": "D7aDIZ-KPEU",
+        "ps": false
+      },
+      {
+        "n": 19,
+        "title": "19. Subgame perfect equilibrium: matchmaking and strategic investments",
+        "videoId": "hw014me49ks",
+        "ps": false
+      },
+      {
+        "n": 20,
+        "title": "20. Subgame perfect equilibrium: wars of attrition",
+        "videoId": "wR8dqbc6mlQ",
+        "ps": false
+      },
+      {
+        "n": 21,
+        "title": "21. Repeated games: cooperation vs. the end game",
+        "videoId": "zNxVVVk5It0",
+        "ps": false
+      },
+      {
+        "n": 22,
+        "title": "22. Repeated games: cheating, punishment, and outsourcing",
+        "videoId": "NBKr-wK-TEQ",
+        "ps": false
+      },
+      {
+        "n": 23,
+        "title": "23.  Asymmetric information: silence, signaling and suffering education",
+        "videoId": "RWxTJsTbK2w",
+        "ps": false
+      },
+      {
+        "n": 24,
+        "title": "24. Asymmetric information: auctions and the winner's curse",
+        "videoId": "pJAhnc8VuDo",
+        "ps": false
+      }
+    ]
+  }
+}

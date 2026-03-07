@@ -1,0 +1,741 @@
+{
+  "m0": {
+    "playlistUrl": "https://youtube.com/playlist?list=PLm0X8hqw4lIp2qV8KkMgdK4Jr3P04wANy&si=juRaRgKi9l11rAX8",
+    "notesPage": "",
+    "psets": [],
+    "lectures": [
+      {
+        "n": 1,
+        "title": "Recitation Introduction for MIT 18.01SC, 18.02SC",
+        "videoId": "2y4tCiWbVRI",
+        "ps": false
+      },
+      {
+        "n": 2,
+        "title": "Lec 1 | MIT 18.01 Single Variable Calculus, Fall 2007",
+        "videoId": "7K1sB05pE0A",
+        "ps": false
+      },
+      {
+        "n": 3,
+        "title": "Definition of the Derivative | MIT 18.01SC Single Variable Calculus, Fall 2010",
+        "videoId": "_nbtaQtX6JA",
+        "ps": false
+      },
+      {
+        "n": 4,
+        "title": "Graphing a Derivative Function | MIT 18.01SC Single Variable Calculus, Fall 2010",
+        "videoId": "Gbtma_UQpro",
+        "ps": false
+      },
+      {
+        "n": 5,
+        "title": "Lec 2 | MIT 18.01 Single Variable Calculus, Fall 2007",
+        "videoId": "ryLdyDrBfvI",
+        "ps": false
+      },
+      {
+        "n": 6,
+        "title": "Smoothing a Piece-wise Function | MIT 18.01SC Single Variable Calculus, Fall 2010",
+        "videoId": "Fj7pbLwbSmU",
+        "ps": false
+      },
+      {
+        "n": 7,
+        "title": "Lec 3 | MIT 18.01 Single Variable Calculus, Fall 2007",
+        "videoId": "kCPVBl953eY",
+        "ps": false
+      },
+      {
+        "n": 8,
+        "title": "Constant Multiple Rule | MIT 18.01SC Single Variable Calculus, Fall 2010",
+        "videoId": "Eaei-Y5AO_E",
+        "ps": false
+      },
+      {
+        "n": 9,
+        "title": "Tangent Line to a Polynomial | MIT 18.01SC Single Variable Calculus, Fall 2010",
+        "videoId": "rfx1x-2dwSI",
+        "ps": false
+      },
+      {
+        "n": 10,
+        "title": "Derivatives of Sine and Cosine | MIT 18.01SC Single Variable Calculus, Fall 2010",
+        "videoId": "Bb-bgJdOqig",
+        "ps": false
+      },
+      {
+        "n": 11,
+        "title": "Lec 4 | MIT 18.01 Single Variable Calculus, Fall 2007",
+        "videoId": "4sTKcvYMNxk",
+        "ps": false
+      },
+      {
+        "n": 12,
+        "title": "Product Rule | MIT 18.01SC Single Variable Calculus, Fall 2010",
+        "videoId": "55ncRlBZstA",
+        "ps": false
+      },
+      {
+        "n": 13,
+        "title": "Quotient Rule | MIT 18.01SC Single Variable Calculus, Fall 2010",
+        "videoId": "D7nf7pKddwM",
+        "ps": false
+      },
+      {
+        "n": 14,
+        "title": "Chain Rule | MIT 18.01SC Single Variable Calculus, Fall 2010",
+        "videoId": "aeQA5d3gZTI",
+        "ps": false
+      },
+      {
+        "n": 15,
+        "title": "Lec 5 | MIT 18.01 Single Variable Calculus, Fall 2007",
+        "videoId": "5q_3FDOkVRQ",
+        "ps": false
+      },
+      {
+        "n": 16,
+        "title": "Implicit Differentiation | MIT 18.01SC Single Variable Calculus, Fall 2010",
+        "videoId": "fK6cu99OSEU",
+        "ps": false
+      },
+      {
+        "n": 17,
+        "title": "Graphing the Arctan Function | MIT 18.01SC Single Variable Calculus, Fall 2010",
+        "videoId": "aYMt2ZVGd7g",
+        "ps": false
+      },
+      {
+        "n": 18,
+        "title": "Arccos | MIT 18.01SC Single Variable Calculus, Fall 2010",
+        "videoId": "cdRMY39EYbs",
+        "ps": false
+      },
+      {
+        "n": 19,
+        "title": "Lec 6 | MIT 18.01 Single Variable Calculus, Fall 2007",
+        "videoId": "9v25gg2qJYE",
+        "ps": false
+      },
+      {
+        "n": 20,
+        "title": "Log and Exponent Derivatives | MIT 18.01SC Single Variable Calculus, Fall 2010",
+        "videoId": "wezQdmwolMU",
+        "ps": false
+      },
+      {
+        "n": 21,
+        "title": "Rules of Logs | MIT 18.01SC Single Variable Calculus, Fall 2010",
+        "videoId": "9YgOmJdom6o",
+        "ps": false
+      },
+      {
+        "n": 22,
+        "title": "Lec 7: Exam 1 review | MIT 18.01 Single Variable Calculus, Fall 2007",
+        "videoId": "eHJuAByQf5A",
+        "ps": false
+      },
+      {
+        "n": 23,
+        "title": "Hyperbolic trig functions | MIT 18.01SC Single Variable Calculus, Fall 2010",
+        "videoId": "er_tQOBgo-I",
+        "ps": false
+      },
+      {
+        "n": 24,
+        "title": "Lec 9 | MIT 18.01 Single Variable Calculus, Fall 2007",
+        "videoId": "BSAA0akmPEU",
+        "ps": false
+      },
+      {
+        "n": 25,
+        "title": "Implicit Differentiation and Linear Approximation | MIT 18.01SC Single Variable Calculus, Fall 2010",
+        "videoId": "8gGbViZjoRw",
+        "ps": false
+      },
+      {
+        "n": 26,
+        "title": "Quadratic Approximation | MIT 18.01SC Single Variable Calculus, Fall 2010",
+        "videoId": "aar099Xh5W4",
+        "ps": false
+      },
+      {
+        "n": 27,
+        "title": "Lec 10 | MIT 18.01 Single Variable Calculus, Fall 2007",
+        "videoId": "eRCN3daFCmU",
+        "ps": false
+      },
+      {
+        "n": 28,
+        "title": "Quadratic Approximation of a Product | MIT 18.01SC Single Variable Calculus, Fall 2010",
+        "videoId": "0YGiDaUOse4",
+        "ps": false
+      },
+      {
+        "n": 29,
+        "title": "Lec 11 | MIT 18.01 Single Variable Calculus, Fall 2007",
+        "videoId": "twzGBqPeW0M",
+        "ps": false
+      },
+      {
+        "n": 30,
+        "title": "Lec 12 | MIT 18.01 Single Variable Calculus, Fall 2007",
+        "videoId": "YN7k_bXXggY",
+        "ps": false
+      },
+      {
+        "n": 31,
+        "title": "Lec 13 | MIT 18.01 Single Variable Calculus, Fall 2007",
+        "videoId": "sRIDVAcoG5A",
+        "ps": false
+      },
+      {
+        "n": 32,
+        "title": "Lec 14 | MIT 18.01 Single Variable Calculus, Fall 2007",
+        "videoId": "4Q37iOyBq44",
+        "ps": false
+      },
+      {
+        "n": 33,
+        "title": "Lec 15 | MIT 18.01 Single Variable Calculus, Fall 2007",
+        "videoId": "-MI0b4h3rS0",
+        "ps": false
+      },
+      {
+        "n": 34,
+        "title": "Lec 16 | MIT 18.01 Single Variable Calculus, Fall 2007",
+        "videoId": "60VGKnYBpbg",
+        "ps": false
+      },
+      {
+        "n": 35,
+        "title": "Lec 18 | MIT 18.01 Single Variable Calculus, Fall 2007",
+        "videoId": "hjZhPczMkL4",
+        "ps": false
+      },
+      {
+        "n": 36,
+        "title": "Lec 19 | MIT 18.01 Single Variable Calculus, Fall 2007",
+        "videoId": "1RLctDS2hUQ",
+        "ps": false
+      },
+      {
+        "n": 37,
+        "title": "Lec 20 | MIT 18.01 Single Variable Calculus, Fall 2007",
+        "videoId": "Pd2xP5zDsRw",
+        "ps": false
+      },
+      {
+        "n": 38,
+        "title": "Lec 21 | MIT 18.01 Single Variable Calculus, Fall 2007",
+        "videoId": "_JXPe2J069c",
+        "ps": false
+      },
+      {
+        "n": 39,
+        "title": "Lec 22 | MIT 18.01 Single Variable Calculus, Fall 2007",
+        "videoId": "ShGBRUx2ub8",
+        "ps": false
+      },
+      {
+        "n": 40,
+        "title": "Lec 23 | MIT 18.01 Single Variable Calculus, Fall 2007",
+        "videoId": "R9a_NHXrBcg",
+        "ps": false
+      },
+      {
+        "n": 41,
+        "title": "Lec 24 | MIT 18.01 Single Variable Calculus, Fall 2007",
+        "videoId": "jBkXbAgMj6s",
+        "ps": false
+      },
+      {
+        "n": 42,
+        "title": "Lec 25 | MIT 18.01 Single Variable Calculus, Fall 2007",
+        "videoId": "zUEuKrxgHws",
+        "ps": false
+      },
+      {
+        "n": 43,
+        "title": "Lec 27 | MIT 18.01 Single Variable Calculus, Fall 2007",
+        "videoId": "Bv9kVDcj7yo",
+        "ps": false
+      },
+      {
+        "n": 44,
+        "title": "Lec 28 | MIT 18.01 Single Variable Calculus, Fall 2007",
+        "videoId": "CXKoCMVqM9s",
+        "ps": false
+      },
+      {
+        "n": 45,
+        "title": "Lec 29 | MIT 18.01 Single Variable Calculus, Fall 2007",
+        "videoId": "HgEqXhsIq_g",
+        "ps": false
+      },
+      {
+        "n": 46,
+        "title": "Lec 30 | MIT 18.01 Single Variable Calculus, Fall 2007",
+        "videoId": "aeXp1zC6Hls",
+        "ps": false
+      },
+      {
+        "n": 47,
+        "title": "Lec 31 | MIT 18.01 Single Variable Calculus, Fall 2007",
+        "videoId": "TpWQlKHPyJ4",
+        "ps": false
+      },
+      {
+        "n": 48,
+        "title": "Lec 32 | MIT 18.01 Single Variable Calculus, Fall 2007",
+        "videoId": "XRkgBWbWvg4",
+        "ps": false
+      },
+      {
+        "n": 49,
+        "title": "Lec 33 | MIT 18.01 Single Variable Calculus, Fall 2007",
+        "videoId": "BGE3wb7H2PA",
+        "ps": false
+      },
+      {
+        "n": 50,
+        "title": "Lec 35 | MIT 18.01 Single Variable Calculus, Fall 2007",
+        "videoId": "PNTnmH6jsRI",
+        "ps": false
+      },
+      {
+        "n": 51,
+        "title": "Lec 36 | MIT 18.01 Single Variable Calculus, Fall 2007",
+        "videoId": "KhwQKE_tld0",
+        "ps": false
+      },
+      {
+        "n": 52,
+        "title": "Lec 37 | MIT 18.01 Single Variable Calculus, Fall 2007",
+        "videoId": "MK_0QHbUnIA",
+        "ps": false
+      },
+      {
+        "n": 53,
+        "title": "Lec 38 | MIT 18.01 Single Variable Calculus, Fall 2007",
+        "videoId": "wOHrNt9ScYs",
+        "ps": false
+      },
+      {
+        "n": 54,
+        "title": "Lec 39 | MIT 18.01 Single Variable Calculus, Fall 2007",
+        "videoId": "--lPz7VFnKI",
+        "ps": false
+      },
+      {
+        "n": 55,
+        "title": "Sketching a curve | MIT 18.01SC Single Variable Calculus, Fall 2010",
+        "videoId": "aWV4khIBvCM",
+        "ps": false
+      },
+      {
+        "n": 56,
+        "title": "Closest Point to the Origin | MIT 18.01SC Single Variable Calculus, Fall 2010",
+        "videoId": "-CsEPYeSBsg",
+        "ps": false
+      },
+      {
+        "n": 57,
+        "title": "Minimum Triangle Area | MIT 18.01SC Single Variable Calculus, Fall 2010",
+        "videoId": "2keGgDBJKGU",
+        "ps": false
+      },
+      {
+        "n": 58,
+        "title": "Maximum Surface Area | MIT 18.01SC Single Variable Calculus, Fall 2010",
+        "videoId": "Q9iJWDFUspU",
+        "ps": false
+      },
+      {
+        "n": 59,
+        "title": "Related rates 1 | MIT 18.01SC Single Variable Calculus, Fall 2010",
+        "videoId": "RiRQDZjYkzo",
+        "ps": false
+      },
+      {
+        "n": 60,
+        "title": "Related rates 2 | MIT 18.01SC Single Variable Calculus, Fall 2010",
+        "videoId": "d484GRz9zjY",
+        "ps": false
+      },
+      {
+        "n": 61,
+        "title": "Using Newton's Method | MIT 18.01SC Single Variable Calculus, Fall 2010",
+        "videoId": "ER5B_YBFMJo",
+        "ps": false
+      },
+      {
+        "n": 62,
+        "title": "Mean Value Theorem | MIT 18.01SC Single Variable Calculus, Fall 2010",
+        "videoId": "G_HS1Dan_x4",
+        "ps": false
+      },
+      {
+        "n": 63,
+        "title": "Mean value theorem | MIT 18.01SC Single Variable Calculus, Fall 2010",
+        "videoId": "z1FRDkxlmg8",
+        "ps": false
+      },
+      {
+        "n": 64,
+        "title": "Antidiff. With Discontinuity | MIT 18.01SC Single Variable Calculus, Fall 2010",
+        "videoId": "7EKztFcTiUU",
+        "ps": false
+      },
+      {
+        "n": 65,
+        "title": "Computing Differentials | MIT 18.01SC Single Variable Calculus, Fall 2010",
+        "videoId": "aefQ2FYugAY",
+        "ps": false
+      },
+      {
+        "n": 66,
+        "title": "Linear approx. with differentials | MIT 18.01SC Single Variable Calculus, Fall 2010",
+        "videoId": "ed-rB3k_56U",
+        "ps": false
+      },
+      {
+        "n": 67,
+        "title": "Computing Antiderivatives | MIT 18.01SC Single Variable Calculus, Fall 2010",
+        "videoId": "v90JNWCTupk",
+        "ps": false
+      },
+      {
+        "n": 68,
+        "title": "Antidifferentiation by substitution | MIT 18.01SC Single Variable Calculus, Fall 2010",
+        "videoId": "W7sNkRpcydk",
+        "ps": false
+      },
+      {
+        "n": 69,
+        "title": "Differential Equation | MIT 18.01SC Single Variable Calculus, Fall 2010",
+        "videoId": "HaOHUfymsuk",
+        "ps": false
+      },
+      {
+        "n": 70,
+        "title": "Differential Equation With Graph | MIT 18.01SC Single Variable Calculus, Fall 2010",
+        "videoId": "WHWyW5DIVSU",
+        "ps": false
+      },
+      {
+        "n": 71,
+        "title": "Summation Notation Practice | MIT 18.01SC Single Variable Calculus, Fall 2010",
+        "videoId": "iHErQuZ8M-I",
+        "ps": false
+      },
+      {
+        "n": 72,
+        "title": "Riemann sum | MIT 18.01SC Single Variable Calculus, Fall 2010",
+        "videoId": "ELWqePHYjCk",
+        "ps": false
+      },
+      {
+        "n": 73,
+        "title": "Computing the Volume of a Paraboloid | MIT 18.01SC Single Variable Calculus, Fall 2010",
+        "videoId": "QLo5dRFEyl8",
+        "ps": false
+      },
+      {
+        "n": 74,
+        "title": "4J3, Diffusion of a Chemical | MIT 18.01SC Single Variable Calculus, Fall 2010",
+        "videoId": "rqkvDrYmKcc",
+        "ps": false
+      },
+      {
+        "n": 75,
+        "title": "Definite Integrals of tan(x) | MIT 18.01SC Single Variable Calculus, Fall 2010",
+        "videoId": "G5BP8mTzkyk",
+        "ps": false
+      },
+      {
+        "n": 76,
+        "title": "Definite Integral by Substitution | MIT 18.01SC Single Variable Calculus, Fall 2010",
+        "videoId": "C9luv3o6emw",
+        "ps": false
+      },
+      {
+        "n": 77,
+        "title": "Applying the Second Fundamental Theorem | MIT 18.01SC Single Variable Calculus, Fall 2010",
+        "videoId": "TQTDkpZP02A",
+        "ps": false
+      },
+      {
+        "n": 78,
+        "title": "Second fundamental theorem and chain rule | MIT 18.01SC Single Variable Calculus, Fall 2010",
+        "videoId": "lEOjMAmkI-U",
+        "ps": false
+      },
+      {
+        "n": 79,
+        "title": "Second fundamental theorem and quadratic approximation | MIT 18.01SC Single Variable Calculus",
+        "videoId": "_7vVBtiVXIw",
+        "ps": false
+      },
+      {
+        "n": 80,
+        "title": "Area Between the Graphs of Sine and Cosine | MIT 18.01SC Single Variable Calculus, Fall 2010",
+        "videoId": "9J_VCHpvMbY",
+        "ps": false
+      },
+      {
+        "n": 81,
+        "title": "Area Between y=x^3 and y=3x-2 | MIT 18.01SC Single Variable Calculus, Fall 2010",
+        "videoId": "U3ebQ5Z4Jt8",
+        "ps": false
+      },
+      {
+        "n": 82,
+        "title": "Volume of a Paraboloid via Disks | MIT 18.01SC Single Variable Calculus, Fall 2010",
+        "videoId": "ksAdC6Z99dE",
+        "ps": false
+      },
+      {
+        "n": 83,
+        "title": "Volume of Revolution via Shells | MIT 18.01SC Single Variable Calculus, Fall 2010",
+        "videoId": "MYXMC7koJyY",
+        "ps": false
+      },
+      {
+        "n": 84,
+        "title": "Average Velocity | MIT 18.01SC Single Variable Calculus, Fall 2010",
+        "videoId": "Psks_KK0YZ8",
+        "ps": false
+      },
+      {
+        "n": 85,
+        "title": "Average x-Coordinate in a Region | MIT 18.01SC Single Variable Calculus, Fall 2010",
+        "videoId": "_UBh66KVAJI",
+        "ps": false
+      },
+      {
+        "n": 86,
+        "title": "Explanation of Simpson's rule | MIT 18.01SC Single Variable Calculus, Fall 2010",
+        "videoId": "uc4xJsi99bk",
+        "ps": false
+      },
+      {
+        "n": 87,
+        "title": "Using the Trapezoid and Simpson's rules | MIT 18.01SC Single Variable Calculus, Fall 2010",
+        "videoId": "l2SjUREZk0c",
+        "ps": false
+      },
+      {
+        "n": 88,
+        "title": "Trig Integral Practice | MIT 18.01SC Single Variable Calculus, Fall 2010",
+        "videoId": "y_CA5btuoQk",
+        "ps": false
+      },
+      {
+        "n": 89,
+        "title": "Trig Integrals and a Volume of Revolution | MIT 18.01SC Single Variable Calculus, Fall 2010",
+        "videoId": "Wj0oH3ehk18",
+        "ps": false
+      },
+      {
+        "n": 90,
+        "title": "Integral of tan^4 (theta) | MIT 18.01SC Single Variable Calculus, Fall 2010",
+        "videoId": "98X2TyxXQdU",
+        "ps": false
+      },
+      {
+        "n": 91,
+        "title": "Hyperbolic Trig Sub | MIT 18.01SC Single Variable Calculus, Fall 2010",
+        "videoId": "Nv3C7q88MqA",
+        "ps": false
+      },
+      {
+        "n": 92,
+        "title": "Integration by completing the square | MIT 18.01SC Single Variable Calculus, Fall 2010",
+        "videoId": "CMbvq16z0gA",
+        "ps": false
+      },
+      {
+        "n": 93,
+        "title": "Partial Fractions Decomposition | MIT 18.01SC Single Variable Calculus, Fall 2010",
+        "videoId": "UsGBIfjUK7U",
+        "ps": false
+      },
+      {
+        "n": 94,
+        "title": "Finding u and v' When Integrating by Parts | MIT 18.01SC Single Variable Calculus, Fall 2010",
+        "videoId": "pWXh5t-37Qg",
+        "ps": false
+      },
+      {
+        "n": 95,
+        "title": "Integrating sin^n(x) Using Reduction | MIT 18.01SC Single Variable Calculus, Fall 2010",
+        "videoId": "hV5af_07ToE",
+        "ps": false
+      },
+      {
+        "n": 96,
+        "title": "Arc Length of y=x^(3/2) | MIT 18.01SC Single Variable Calculus, Fall 2010",
+        "videoId": "VOlbVNxyNfM",
+        "ps": false
+      },
+      {
+        "n": 97,
+        "title": "Surface Area of a Torus | MIT 18.01SC Single Variable Calculus, Fall 2010",
+        "videoId": "tMVwXglUp60",
+        "ps": false
+      },
+      {
+        "n": 98,
+        "title": "Parametric Arclength | MIT 18.01SC Single Variable Calculus, Fall 2010",
+        "videoId": "v1AQ8Yi3yB8",
+        "ps": false
+      },
+      {
+        "n": 99,
+        "title": "Polar to Cartesian | MIT 18.01SC Single Variable Calculus, Fall 2010",
+        "videoId": "Bk5y6Elcy_Q",
+        "ps": false
+      },
+      {
+        "n": 100,
+        "title": "Graph of r = 1 + cos(theta/2) | MIT 18.01SC Single Variable Calculus, Fall 2010",
+        "videoId": "E7oR_JBgUzA",
+        "ps": false
+      },
+      {
+        "n": 101,
+        "title": "Integration Practice I | MIT 18.01SC Single Variable Calculus, Fall 2010",
+        "videoId": "13UPhn32Mjs",
+        "ps": false
+      },
+      {
+        "n": 102,
+        "title": "Integration Practice II | MIT 18.01SC Single Variable Calculus, Fall 2010",
+        "videoId": "1cejTnuMo1Y",
+        "ps": false
+      },
+      {
+        "n": 103,
+        "title": "Integration Practice III | MIT 18.01SC Single Variable Calculus, Fall 2010",
+        "videoId": "LUdI4-YCIh8",
+        "ps": false
+      },
+      {
+        "n": 104,
+        "title": "Integration Practice IV | MIT 18.01SC Single Variable Calculus, Fall 2010",
+        "videoId": "zsKdRjP91Fs",
+        "ps": false
+      },
+      {
+        "n": 105,
+        "title": "l'Hospital Practice | MIT 18.01SC Single Variable Calculus, Fall 2010",
+        "videoId": "ycO0Vn_w9Q0",
+        "ps": false
+      },
+      {
+        "n": 106,
+        "title": "Failure of L'Hospital's Rule | MIT 18.01SC Single Variable Calculus, Fall 2010",
+        "videoId": "QKXAd2PhZGY",
+        "ps": false
+      },
+      {
+        "n": 107,
+        "title": "Indeterminate forms | MIT 18.01SC Single Variable Calculus, Fall 2010",
+        "videoId": "bnhIRhnBa1A",
+        "ps": false
+      },
+      {
+        "n": 108,
+        "title": "A Solid With Finite Volume and Infinite Cross Section | MIT 18.01SC Single Variable Calculus",
+        "videoId": "bo8SFHppXZk",
+        "ps": false
+      },
+      {
+        "n": 109,
+        "title": "Improper Integrals | MIT 18.01SC Single Variable Calculus, Fall 2010",
+        "videoId": "owkMzpN8WDc",
+        "ps": false
+      },
+      {
+        "n": 110,
+        "title": "Integral of x^n e^(-x) | MIT 18.01SC Single Variable Calculus, Fall 2010",
+        "videoId": "apzEJCsycVM",
+        "ps": false
+      },
+      {
+        "n": 111,
+        "title": "Limit of a Series | MIT 18.01SC Single Variable Calculus, Fall 2010",
+        "videoId": "LpW6zanbSf8",
+        "ps": false
+      },
+      {
+        "n": 112,
+        "title": "Comparison Tests | MIT 18.01SC Single Variable Calculus, Fall 2010",
+        "videoId": "dGKvUUmMGoU",
+        "ps": false
+      },
+      {
+        "n": 113,
+        "title": "Ratio Test for Convergence | MIT 18.01SC Single Variable Calculus, Fall 2010",
+        "videoId": "rUis1mSzwyA",
+        "ps": false
+      },
+      {
+        "n": 114,
+        "title": "Integral Test | MIT 18.01SC Single Variable Calculus, Fall 2010",
+        "videoId": "e4cURLXGjrM",
+        "ps": false
+      },
+      {
+        "n": 115,
+        "title": "Integral Test as Estimation | MIT 18.01SC Single Variable Calculus, Fall 2010",
+        "videoId": "QEBkT-Pgqos",
+        "ps": false
+      },
+      {
+        "n": 116,
+        "title": "Ratio Test -- Radius of Convergence | MIT 18.01SC Single Variable Calculus, Fall 2010",
+        "videoId": "oTTo3qP0Z-I",
+        "ps": false
+      },
+      {
+        "n": 117,
+        "title": "Power Series Practice | MIT 18.01SC Single Variable Calculus, Fall 2010",
+        "videoId": "al2lzKq4o5E",
+        "ps": false
+      },
+      {
+        "n": 118,
+        "title": "Finding Taylor's Series | MIT 18.01SC Single Variable Calculus, Fall 2010",
+        "videoId": "BSqNgPkeWIM",
+        "ps": false
+      },
+      {
+        "n": 119,
+        "title": "Taylor's Series of a Polynomial | MIT 18.01SC Single Variable Calculus, Fall 2010",
+        "videoId": "19x213y_uk4",
+        "ps": false
+      },
+      {
+        "n": 120,
+        "title": "Taylor's Series for sec(x) | MIT 18.01SC Single Variable Calculus, Fall 2010",
+        "videoId": "FK1n3TVQIhc",
+        "ps": false
+      },
+      {
+        "n": 121,
+        "title": "Integration of Taylor's Series | MIT 18.01SC Single Variable Calculus, Fall 2010",
+        "videoId": "2_7htv5eviM",
+        "ps": false
+      },
+      {
+        "n": 122,
+        "title": "Series Calculation Using a Riemann Sum | MIT 18.01SC Single Variable Calculus, Fall 2010",
+        "videoId": "zcuYFf5R0NU",
+        "ps": false
+      }
+    ]
+  }
+}

@@ -1,0 +1,1239 @@
+{
+  "p13": {
+    "playlistUrl": "https://youtube.com/playlist?list=PLDkrNO-iQ9O4cLL0_jIIOwsXsQqfUXyQy&si=V0jIRtzktY40WT08",
+    "notesPage": "",
+    "psets": [],
+    "lectures": [
+      {
+        "n": 1,
+        "title": "Advanced C++ in Quant Finance by Nick Webber - Introduction",
+        "videoId": "CU8xxGpbryY",
+        "ps": false
+      },
+      {
+        "n": 2,
+        "title": "which programming language for quant finance c++ r matlab python dotnet",
+        "videoId": "TMEjKP7KLfQ",
+        "ps": false
+      },
+      {
+        "n": 3,
+        "title": "Learn Finance C++, Lesson 1, Hello World",
+        "videoId": "IlPnRvDioGQ",
+        "ps": false
+      },
+      {
+        "n": 4,
+        "title": "Learn Finance C++, Lesson 2, Financial number variables and constants",
+        "videoId": "Z3C4dtyBi-4",
+        "ps": false
+      },
+      {
+        "n": 5,
+        "title": "Learn Finance C++, Lesson 3, Inputting variables into the program for flexibility",
+        "videoId": "ZIWzuZcpIRU",
+        "ps": false
+      },
+      {
+        "n": 6,
+        "title": "Learn Finance C++, Lesson 4, Functions and comments",
+        "videoId": "HxJt3yJjmV4",
+        "ps": false
+      },
+      {
+        "n": 7,
+        "title": "Learn Finance C++, Lesson 5, Prototypes, Header files, and Multiple C++ files",
+        "videoId": "-WMzgg4myg4",
+        "ps": false
+      },
+      {
+        "n": 8,
+        "title": "Learn Finance C++, Lesson 6, operators, cmath library pow function, and iomanip number formatting",
+        "videoId": "t_tCAHShz8c",
+        "ps": false
+      },
+      {
+        "n": 9,
+        "title": "Learn Finance C++, Lesson 7, Amortizing Engine, Part I, Introducing while loops",
+        "videoId": "hRWzTDzrmqQ",
+        "ps": false
+      },
+      {
+        "n": 10,
+        "title": "Learn Finance C++, Lesson 8, Amortizing Engine, Part II, Finished rough cut, Command line execution",
+        "videoId": "vJciJX6Q2II",
+        "ps": false
+      },
+      {
+        "n": 11,
+        "title": "Learn Finance C++, Lesson 9, globals.h file and introduction to structs",
+        "videoId": "Yukl8V5UORM",
+        "ps": false
+      },
+      {
+        "n": 12,
+        "title": "Learn Finance C++, Lesson 10, Introducing ARGC and ARGV and command line entry",
+        "videoId": "jZiIc2bRqjs",
+        "ps": false
+      },
+      {
+        "n": 13,
+        "title": "Learn Finance C++, Lesson 11, Switching between manual and automatic execution",
+        "videoId": "6yKdRnJJvnw",
+        "ps": false
+      },
+      {
+        "n": 14,
+        "title": "Learn Finance C++, Lesson 12, Enum and self-commenting code",
+        "videoId": "rz3Hbz-tz44",
+        "ps": false
+      },
+      {
+        "n": 15,
+        "title": "Learn Finance C++, Lesson 12A, setw() and column report formatting",
+        "videoId": "E00riagHt9g",
+        "ps": false
+      },
+      {
+        "n": 16,
+        "title": "Learn Finance C++, Lesson 14, abs() for absolute values, introduction to string arrays",
+        "videoId": "xgntDymhfOg",
+        "ps": false
+      },
+      {
+        "n": 17,
+        "title": "Learn Finance C++, Lesson 15, Integer array",
+        "videoId": "_9me6oSIqFw",
+        "ps": false
+      },
+      {
+        "n": 18,
+        "title": "Learn Finance C++, Lesson 16, Multi-dimensional arrays",
+        "videoId": "29TxJ2VbOH0",
+        "ps": false
+      },
+      {
+        "n": 19,
+        "title": "Learn Finance C++, Lesson 17, chars, character arrays, strings, and function overloading",
+        "videoId": "xJaKZjq6Wd4",
+        "ps": false
+      },
+      {
+        "n": 20,
+        "title": "Learn Finance C++, Lesson 18, strlen, sprintf, comma-adding algorithm, string manipulation",
+        "videoId": "Q0L40d8l-J8",
+        "ps": false
+      },
+      {
+        "n": 21,
+        "title": "Learn Finance C++, Lesson 19, Intro to pointers, sizeof and memory addresses",
+        "videoId": "jN_LU_9lN4E",
+        "ps": false
+      },
+      {
+        "n": 22,
+        "title": "Learn Finance C++, Lesson 20, Pointers appear, how they work in memory",
+        "videoId": "M8DiEJWRbhQ",
+        "ps": false
+      },
+      {
+        "n": 23,
+        "title": "Learn Finance C++, Lesson 21, References, aliases to variables, and references with functions",
+        "videoId": "ibyKRfAM1Fo",
+        "ps": false
+      },
+      {
+        "n": 24,
+        "title": "Learn Finance C++, Lesson 22, Pass by Value, References, Pointers, and Indirect Pointers",
+        "videoId": "lwlcxbx2eOs",
+        "ps": false
+      },
+      {
+        "n": 25,
+        "title": "Learn Finance C++, Lesson 23, Pointers to arrays, passing arrays to functions",
+        "videoId": "JrAm9HBUkqw",
+        "ps": false
+      },
+      {
+        "n": 26,
+        "title": "Learn Finance C++, Lesson 24, Bubble sort of struct using pointers",
+        "videoId": "-KKxV3OVWKU",
+        "ps": false
+      },
+      {
+        "n": 27,
+        "title": "Learn Finance C++, Lesson 25, C-string arrays, and C++ string arrays",
+        "videoId": "0SZYtHIle-4",
+        "ps": false
+      },
+      {
+        "n": 28,
+        "title": "Learn Finance C++, Lesson 26, Dynamic Memory Allocation, pointers, new(), delete()",
+        "videoId": "_XHg6zKbm40",
+        "ps": false
+      },
+      {
+        "n": 29,
+        "title": "Learn Finance C++, Lesson 27, Bond Class Part I",
+        "videoId": "LKVbfPdZ5kQ",
+        "ps": false
+      },
+      {
+        "n": 30,
+        "title": "Learn Finance C++, Lesson 28, Bond Class Part II",
+        "videoId": "wLYWMwsQgcY",
+        "ps": false
+      },
+      {
+        "n": 31,
+        "title": "Learn Finance C++, Lesson 29, Bond Class Part III",
+        "videoId": "LX7tH1olyLo",
+        "ps": false
+      },
+      {
+        "n": 32,
+        "title": "Learn Finance C++, Lesson 30, Bond Class Part IV, else-if structure",
+        "videoId": "jFuAVBP-99I",
+        "ps": false
+      },
+      {
+        "n": 33,
+        "title": "Learn Finance C++, Lesson 31, Interlude for Exceptions, throw, try, and catch",
+        "videoId": "jDv21brY_b8",
+        "ps": false
+      },
+      {
+        "n": 34,
+        "title": "Learn Finance C++, Lesson 32,  Interlude for Deconstructor",
+        "videoId": "2F1EjnihgCM",
+        "ps": false
+      },
+      {
+        "n": 35,
+        "title": "Learn Finance C++, Lesson 33, Inheritance, Part I",
+        "videoId": "cBuKg3EDfVw",
+        "ps": false
+      },
+      {
+        "n": 36,
+        "title": "Learn Finance C++, Lesson 34, Inheritance, Part II",
+        "videoId": "NduKDXRlZSw",
+        "ps": false
+      },
+      {
+        "n": 37,
+        "title": "Learn Finance C++, Lesson 35, Black Scholes Monte Carlo Engine, Part I",
+        "videoId": "RSbQU1qh7rU",
+        "ps": false
+      },
+      {
+        "n": 38,
+        "title": "Learn Finance C++, Lesson 36, Black Scholes Monte Carlo Engine, Part II",
+        "videoId": "NBrsb4ugxEY",
+        "ps": false
+      },
+      {
+        "n": 39,
+        "title": "Learn Finance C++, Lesson 37, Black Scholes Monte Carlo Engine, Part III",
+        "videoId": "xoDXPwqEUws",
+        "ps": false
+      },
+      {
+        "n": 40,
+        "title": "Learn Finance C++, Lesson 38, Black Scholes Monte Carlo Engine, Part IV",
+        "videoId": "cFhjm6rcNXE",
+        "ps": false
+      },
+      {
+        "n": 41,
+        "title": "Learn Finance C++, Lesson 39, Black Scholes Monte Carlo Engine, Part V",
+        "videoId": "DuYtwhj7QXw",
+        "ps": false
+      },
+      {
+        "n": 42,
+        "title": "Learn Finance C++, Lesson 40, Passing objects by value, reference, and pointer",
+        "videoId": "OJGmCmVK08A",
+        "ps": false
+      },
+      {
+        "n": 43,
+        "title": "Learn Finance C++, Lesson 41, this, static class variables and class methods",
+        "videoId": "NTsAwMzlKn8",
+        "ps": false
+      },
+      {
+        "n": 44,
+        "title": "Learn Finance C++, Lesson 42, Function templates explained",
+        "videoId": "kt7vBYk9DRQ",
+        "ps": false
+      },
+      {
+        "n": 45,
+        "title": "Learn Finance C++, Lesson 43, Function template example, Bubble sort, swap()",
+        "videoId": "mkFj8o_OcUI",
+        "ps": false
+      },
+      {
+        "n": 46,
+        "title": "Learn Finance C++, Lesson 44, Class Template, simple comparison of swap spreads",
+        "videoId": "7Q8rY8374kc",
+        "ps": false
+      },
+      {
+        "n": 47,
+        "title": "Learn Finance C++, Lesson 45, Comma-separated numbers revisited with Template Classes",
+        "videoId": "9SubQGhfgJQ",
+        "ps": false
+      },
+      {
+        "n": 48,
+        "title": "Learn Finance C++, Lesson 46, Standard Template Library, STL, Intro to Vectors",
+        "videoId": "-A0PMx4-eYw",
+        "ps": false
+      },
+      {
+        "n": 49,
+        "title": "[손석희 마지막] 100분토론 보다 더 볼만한 대기실 기싸움",
+        "videoId": "qs8boqHQ4RE",
+        "ps": false
+      },
+      {
+        "n": 50,
+        "title": "Learn STL: Introduction of Templates",
+        "videoId": "Vc1RyqWFbiA",
+        "ps": false
+      },
+      {
+        "n": 51,
+        "title": "Introduction of STL #1: Overview",
+        "videoId": "ltBdTiRgSaw",
+        "ps": false
+      },
+      {
+        "n": 52,
+        "title": "Introduction of STL #2:  Sequence Containers",
+        "videoId": "gxZJ5JNuWMY",
+        "ps": false
+      },
+      {
+        "n": 53,
+        "title": "Introduction of STL #3: Associative Containers",
+        "videoId": "6iyzPed7FrM",
+        "ps": false
+      },
+      {
+        "n": 54,
+        "title": "Introduction of STL #4:  Unordered Containers",
+        "videoId": "NNLvY9O7ufU",
+        "ps": false
+      },
+      {
+        "n": 55,
+        "title": "Introduction of STL #5: Iterators and Algorithms",
+        "videoId": "vO2AlrBf5rQ",
+        "ps": false
+      },
+      {
+        "n": 56,
+        "title": "Introduction of STL #6: Functors",
+        "videoId": "shqvSkk8r0M",
+        "ps": false
+      },
+      {
+        "n": 57,
+        "title": "STL Algorithms #1: Non-modifying Algorithms",
+        "videoId": "eV7tVdNIw9o",
+        "ps": false
+      },
+      {
+        "n": 58,
+        "title": "STL Algorithm #2: Modifying Algorithms",
+        "videoId": "kYYm-Quj97o",
+        "ps": false
+      },
+      {
+        "n": 59,
+        "title": "STL Algorithms #3: Sorting",
+        "videoId": "TZv5qHU2AMQ",
+        "ps": false
+      },
+      {
+        "n": 60,
+        "title": "STL Algorithms #4: Sorted Data Algorithms and Numeric Algorithms",
+        "videoId": "s6_meQVkwgc",
+        "ps": false
+      },
+      {
+        "n": 61,
+        "title": "C++ String #1:  Constructor and Size",
+        "videoId": "JqXAcD1UfXM",
+        "ps": false
+      },
+      {
+        "n": 62,
+        "title": "C++ String #2: Accessing String Characters",
+        "videoId": "6OCaJbL-kMQ",
+        "ps": false
+      },
+      {
+        "n": 63,
+        "title": "C++ String #3: Member Function Algorithms",
+        "videoId": "avZfl3VoKw0",
+        "ps": false
+      },
+      {
+        "n": 64,
+        "title": "C++ String #4:  Non-member Functions",
+        "videoId": "8lMAMQZRwQM",
+        "ps": false
+      },
+      {
+        "n": 65,
+        "title": "C++ String #5:  String and Algorithms",
+        "videoId": "Z4HOLxIkpj0",
+        "ps": false
+      },
+      {
+        "n": 66,
+        "title": "C++ Stream #1:  Introductory",
+        "videoId": "hk5NYscSPHI",
+        "ps": false
+      },
+      {
+        "n": 67,
+        "title": "C++ Stream #2: File Stream and Error Handling",
+        "videoId": "bzlDPBKn2Fs",
+        "ps": false
+      },
+      {
+        "n": 68,
+        "title": "C++ Stream #3: Formatted and Unformatted IO",
+        "videoId": "CdZxKlC7Y-E",
+        "ps": false
+      },
+      {
+        "n": 69,
+        "title": "C++ Stream #4:  Manipulators",
+        "videoId": "yMseUJm1604",
+        "ps": false
+      },
+      {
+        "n": 70,
+        "title": "C++ Stream #5: Stream Buffer",
+        "videoId": "HwtFcT-ueu8",
+        "ps": false
+      },
+      {
+        "n": 71,
+        "title": "C++ Stream #6:  String Stream",
+        "videoId": "VzM1GWUl8eI",
+        "ps": false
+      },
+      {
+        "n": 72,
+        "title": "C++ Stream #7: Enable Streaming for Your Own Class",
+        "videoId": "MefRKIml_1w",
+        "ps": false
+      },
+      {
+        "n": 73,
+        "title": "Boost Library #1:  Lexical Cast",
+        "videoId": "r-ziiln0Hj8",
+        "ps": false
+      },
+      {
+        "n": 74,
+        "title": "Boost Library #2:  Variant",
+        "videoId": "AWOJyKIN4AU",
+        "ps": false
+      },
+      {
+        "n": 75,
+        "title": "Boost Library #3: Any",
+        "videoId": "kOTwFwIYp9E",
+        "ps": false
+      },
+      {
+        "n": 76,
+        "title": "Boost Library #4:  Optional",
+        "videoId": "SSmWAK6CFf0",
+        "ps": false
+      },
+      {
+        "n": 77,
+        "title": "The Legend of Zelda: Majora's Mask - Episode 29",
+        "videoId": "2Aao_HdGElE",
+        "ps": false
+      },
+      {
+        "n": 78,
+        "title": "BTD5M - Random Mission 70 - ZOMG",
+        "videoId": "aFPUTHYS5LY",
+        "ps": false
+      },
+      {
+        "n": 79,
+        "title": "Programming Interview: Shared Pointers (Smart Pointers) C++",
+        "videoId": "etGi6eH3nAg",
+        "ps": false
+      },
+      {
+        "n": 80,
+        "title": "C++ Threads Using Boost in 5 Minutes",
+        "videoId": "AsXkXPI4yXE",
+        "ps": false
+      },
+      {
+        "n": 81,
+        "title": "How to Install, Build and Use the Boost C++ libraries in eclipse IDE on ubuntu",
+        "videoId": "z2o8wqhVh_M",
+        "ps": false
+      },
+      {
+        "n": 82,
+        "title": "Introduction To Smart Pointers [C++/Boost]",
+        "videoId": "Jc9n9BcYSj4",
+        "ps": false
+      },
+      {
+        "n": 83,
+        "title": "Building Boost C++ Libraries with mingw32 on Windows",
+        "videoId": "qDVRrSzsqco",
+        "ps": false
+      },
+      {
+        "n": 84,
+        "title": "Compiling and configuring Boost C++ libraries for Visual Studio 2010",
+        "videoId": "5AmwIwedTCM",
+        "ps": false
+      },
+      {
+        "n": 85,
+        "title": "Integrating Python and C++ with Boost Python part 1 | SciPy 2014 | Austin Bingham",
+        "videoId": "GE8EsGUsC2w",
+        "ps": false
+      },
+      {
+        "n": 86,
+        "title": "Code::Blocks - Linking to Boost C++ Libraries on Windows",
+        "videoId": "49d0Abl2t0E",
+        "ps": false
+      },
+      {
+        "n": 87,
+        "title": "CppCon 2014: Robert Ramey \"How you can make a Boost C++ Library\"",
+        "videoId": "ACeNgqBKL7E",
+        "ps": false
+      },
+      {
+        "n": 88,
+        "title": "Integrating Python and C++ with Boost Python part 2 | SciPy 2014 | Austin Bingham",
+        "videoId": "WLKuHbkh6jU",
+        "ps": false
+      },
+      {
+        "n": 89,
+        "title": "How to Install Boost C++ libraries in Ubuntu and use them in Eclipse CDT",
+        "videoId": "gN8zrnWxFeI",
+        "ps": false
+      },
+      {
+        "n": 90,
+        "title": "4. C++. Boost",
+        "videoId": "Hcl5uREsMbA",
+        "ps": false
+      },
+      {
+        "n": 91,
+        "title": "Handling files in C++ - using boost::filesystem",
+        "videoId": "4SjKcdZwLAM",
+        "ps": false
+      },
+      {
+        "n": 92,
+        "title": "Lee Cantey - Using the C++ Standard and Boost Libraries",
+        "videoId": "zxzyntAwtgc",
+        "ps": false
+      },
+      {
+        "n": 93,
+        "title": "Game The Catcher for Rehabilitation Robotic - Version 0.6.4",
+        "videoId": "v3O1ArH4Als",
+        "ps": false
+      },
+      {
+        "n": 94,
+        "title": "Cross-Compiling to C++ with Boost Spirit",
+        "videoId": "w0D4DZDScNY",
+        "ps": false
+      },
+      {
+        "n": 95,
+        "title": "Michael König - Embedding Python: Charming the Snake with C++",
+        "videoId": "ffdsIcD2Yps",
+        "ps": false
+      },
+      {
+        "n": 96,
+        "title": "Integrating Python and C++ with Boost Python part 4 | SciPy 2014 | Austin Bingham",
+        "videoId": "GgtlExpPM1c",
+        "ps": false
+      },
+      {
+        "n": 97,
+        "title": "[C++ von { bis }] 107 - Texte parsen mit Spirit (1)",
+        "videoId": "fn2H9boOsFY",
+        "ps": false
+      },
+      {
+        "n": 98,
+        "title": "Integrating Python and C++ with Boost Python part 3 | SciPy 2014 | Austin Bingham",
+        "videoId": "kR5tREIotlI",
+        "ps": false
+      },
+      {
+        "n": 99,
+        "title": "Bojan Nikolic: Fast numerical computation in C++: Expression Templates",
+        "videoId": "DpxNge0Zhi4",
+        "ps": false
+      },
+      {
+        "n": 100,
+        "title": "Tuples as Map Keys [C++/Boost]",
+        "videoId": "9-rliekgoAk",
+        "ps": false
+      },
+      {
+        "n": 101,
+        "title": "STL Concepts and Ranges",
+        "videoId": "8yV2ONeWXyI",
+        "ps": false
+      },
+      {
+        "n": 102,
+        "title": "[C++ von { bis }] 108 - Texte parsen mit Spirit (2)",
+        "videoId": "0LPLGyVH-V8",
+        "ps": false
+      },
+      {
+        "n": 103,
+        "title": "Game The Catcher for Rehabilitation Robotic - Version 0.6.3",
+        "videoId": "4p6UGzkJXig",
+        "ps": false
+      },
+      {
+        "n": 104,
+        "title": "Karsten Ahnert, Mario Mulansky: odeint -- Solving ordinary differential equations in C++",
+        "videoId": "jv2oDfT-jds",
+        "ps": false
+      },
+      {
+        "n": 105,
+        "title": "Building factories in C++ with boost::factory",
+        "videoId": "m5snRgBLC0U",
+        "ps": false
+      },
+      {
+        "n": 106,
+        "title": "Marshall Clow: Generic Programming in C++: A Real-World Example",
+        "videoId": "SWGMq0_X32Q",
+        "ps": false
+      },
+      {
+        "n": 107,
+        "title": "Messaging and signaling in C++",
+        "videoId": "mZzsG1V7DWI",
+        "ps": false
+      },
+      {
+        "n": 108,
+        "title": "Setup and Install Boost (C++) Library for Ubuntu 14.04",
+        "videoId": "8e3EfAtE0sw",
+        "ps": false
+      },
+      {
+        "n": 109,
+        "title": "Le migliori librerie-framework per C++ ITA  boost - 2: finalmente la build",
+        "videoId": "Yrb9Wc7Q4xs",
+        "ps": false
+      },
+      {
+        "n": 110,
+        "title": "Boris Schäling - Network programming with boost::asio - Meeting C++ 2012",
+        "videoId": "Fotwf6qVXcI",
+        "ps": false
+      },
+      {
+        "n": 111,
+        "title": "Performance evaluation of trading strategies: a C++ - Boost - XLW - Excel VBA project, Part 1 of 3",
+        "videoId": "KiMqA2j4tYQ",
+        "ps": false
+      },
+      {
+        "n": 112,
+        "title": "Le migliori librerie-framework per C++ ITA.  Iniziamo con Boost: intro e preparativi alla build",
+        "videoId": "0M14nAb3nzk",
+        "ps": false
+      },
+      {
+        "n": 113,
+        "title": "Swan Voxel Engine - C++ / OpenGL / PolyVox / Boost",
+        "videoId": "kkf_vdHNUVk",
+        "ps": false
+      },
+      {
+        "n": 114,
+        "title": "Boris Schäling - Asynchronous I/O with boost::asio - Meeting C++ 2012",
+        "videoId": "yN7IKvBGoHs",
+        "ps": false
+      },
+      {
+        "n": 115,
+        "title": "Le migliori librerie/framework per C++ ITA  boost - 5: boost::random, distribuzioni uniformi",
+        "videoId": "aqyZMiT-hWc",
+        "ps": false
+      },
+      {
+        "n": 116,
+        "title": "Dean Michael Berris: Techniques in Flexible Header-Only C++ Network Library Implementations",
+        "videoId": "jSNcGeMObb4",
+        "ps": false
+      },
+      {
+        "n": 117,
+        "title": "Intro to C++ Boost Accumulator for financial time series and analysis like a moving average.mp4",
+        "videoId": "dAkc9CpQuPI",
+        "ps": false
+      },
+      {
+        "n": 118,
+        "title": "Create an environment to build the C++ Boost libraries set in Widows for VS2013",
+        "videoId": "n2l845gH4xc",
+        "ps": false
+      },
+      {
+        "n": 119,
+        "title": "Le migliori librerie-framework per C++ ITA  boost - 3: frena!",
+        "videoId": "QOoG-7aVZjE",
+        "ps": false
+      },
+      {
+        "n": 120,
+        "title": "boost installation c++ Programming",
+        "videoId": "-9fHSc3rIQI",
+        "ps": false
+      },
+      {
+        "n": 121,
+        "title": "Animated Version History of Boost C++ Framework (Jul 2000 - Dec 2014)",
+        "videoId": "v1IIXnXBehM",
+        "ps": false
+      },
+      {
+        "n": 122,
+        "title": "Le migliori librerie/framework per C++ ITA  boost - 4: boost::random, introduzione con cenni teorici",
+        "videoId": "zkCUKPGnKWA",
+        "ps": false
+      },
+      {
+        "n": 123,
+        "title": "Boost Unit Test Part 1",
+        "videoId": "JLTPCjRzetc",
+        "ps": false
+      },
+      {
+        "n": 124,
+        "title": "Boris Schaeling: Boost.Process: Process management in C++",
+        "videoId": "U8cJcBYatSA",
+        "ps": false
+      },
+      {
+        "n": 125,
+        "title": "Performance evaluation of trading strategies: a C++ - Boost - XLW - Excel VBA project, Part 2 of 3",
+        "videoId": "1FlL6hgq1Bo",
+        "ps": false
+      },
+      {
+        "n": 126,
+        "title": "Le migliori librerie/framework per C++ ITA  boost - 6: boost::random, dadi truccati",
+        "videoId": "x0h0Astx4Y0",
+        "ps": false
+      },
+      {
+        "n": 127,
+        "title": "Performance evaluation of trading strategies: a C++ - Boost - XLW - Excel VBA project, Part 3 of 3",
+        "videoId": "tYMT5JXv-i0",
+        "ps": false
+      },
+      {
+        "n": 128,
+        "title": "Boost.勉強会 #15 札幌：@hotwatermorning \"C++ Windows GUI ライブラリ「balor」の紹介\"",
+        "videoId": "XAFnnzqHvPs",
+        "ps": false
+      },
+      {
+        "n": 129,
+        "title": "How You Can Make a Boost C++ Library 2015",
+        "videoId": "c-eDVKXkWqw",
+        "ps": false
+      },
+      {
+        "n": 130,
+        "title": "Joel Falcou: Getting Jiggy with Proto — Hands-on Tutorial on C++ EDSL Design",
+        "videoId": "A3YCrqYPN4M",
+        "ps": false
+      },
+      {
+        "n": 131,
+        "title": "CppCon 2014: Bryce Adelstein-Lelbach \"Boost.Asio and Boost.Serialization, Part I\"",
+        "videoId": "8M2X7mGVdqU",
+        "ps": false
+      },
+      {
+        "n": 132,
+        "title": "6. C++. Boost multithreading",
+        "videoId": "Jgk8AgNVgFc",
+        "ps": false
+      },
+      {
+        "n": 133,
+        "title": "Zoltan Porkolab, Abel Sinkovics: Metaparse -- Compile-time parsing with template metaprogramming",
+        "videoId": "v3XoWi0XbZk",
+        "ps": false
+      },
+      {
+        "n": 134,
+        "title": "Using Spirit V2: Qi and Karma (Michael Caisse) [Boostcon]",
+        "videoId": "9iU9_45DoFc",
+        "ps": false
+      },
+      {
+        "n": 135,
+        "title": "Power Tools. Boost your output by building your toolbox! : C++ #221",
+        "videoId": "tJxxdoKFtU8",
+        "ps": false
+      },
+      {
+        "n": 136,
+        "title": "Threads are an illusion - asynchronous programming with boost::asio - Chris Kohlhoff",
+        "videoId": "wxXIbaJBZlE",
+        "ps": false
+      },
+      {
+        "n": 137,
+        "title": "TCP/IP via BOOST.ASIO apresentado por Rodrigo Strauss",
+        "videoId": "mOOlh_3VB4c",
+        "ps": false
+      },
+      {
+        "n": 138,
+        "title": "Boost.Geometry, Introduction And Examples",
+        "videoId": "mFXD8xSXzxI",
+        "ps": false
+      },
+      {
+        "n": 139,
+        "title": "How to Install Boost Libraries on Xcode for Mac",
+        "videoId": "G3MbSpLWAbk",
+        "ps": false
+      },
+      {
+        "n": 140,
+        "title": "Boost date time library Part 2",
+        "videoId": "wH2Fd_cchsM",
+        "ps": false
+      },
+      {
+        "n": 141,
+        "title": "How to quickly install Boost, QT into Visual Studio 2012 and 2010 for C++ development",
+        "videoId": "nxQzXQlhJ2E",
+        "ps": false
+      },
+      {
+        "n": 142,
+        "title": "Design Journeys with Skoot, a Peer Oriented Generic Networking Library - Cliff Green [ BoostCon ]",
+        "videoId": "TgDLivtlMMc",
+        "ps": false
+      },
+      {
+        "n": 143,
+        "title": "CppCon 2014: Louis Dionne \"Metaprogramming with Boost.Hana: Unifying Boost.Fusion and Boost.MPL\"",
+        "videoId": "L2SktfaJPuU",
+        "ps": false
+      },
+      {
+        "n": 144,
+        "title": "Boost serialization vs Google protocol buffer (GPB)",
+        "videoId": "L7YXWHGuoYY",
+        "ps": false
+      },
+      {
+        "n": 145,
+        "title": "Boost Dependency Analyzer",
+        "videoId": "4yZG8gbw0sQ",
+        "ps": false
+      },
+      {
+        "n": 146,
+        "title": "Eric Niebler @ NWCPP:  Text Processing with Boost",
+        "videoId": "6eVtvQ3IEfc",
+        "ps": false
+      },
+      {
+        "n": 147,
+        "title": "CppCon 2014: Bryce Adelstein-Lelbach \"Boost.Asio and Boost.Serialization, Part II\"",
+        "videoId": "ibi8QY2FoYk",
+        "ps": false
+      },
+      {
+        "n": 148,
+        "title": "Lelbach & Habraken: Boost.Asio and Boost.Serialization: Design Patterns for Object Transmission",
+        "videoId": "8XHxGWacbdM",
+        "ps": false
+      },
+      {
+        "n": 149,
+        "title": "Nodes - phase 2 (Boost Graph Library)",
+        "videoId": "pzosL44rDRk",
+        "ps": false
+      },
+      {
+        "n": 150,
+        "title": "CppCon 2014: Thomas Rodgers \"Implementing Wire Protocols with Boost Fusion\"",
+        "videoId": "wbZdZKpUVeg",
+        "ps": false
+      },
+      {
+        "n": 151,
+        "title": "Boost.勉強会 #15 札幌 LT：H.Hiro（@h_hiro_） \"8年間の研究生活でC++書いてて大変だったことベスト3\"",
+        "videoId": "OqMXp-l91iY",
+        "ps": false
+      },
+      {
+        "n": 152,
+        "title": "Joel de Guzman, Hartmut Kaiser: A Framework for RAD Spirit",
+        "videoId": "aca4JTcDG2E",
+        "ps": false
+      },
+      {
+        "n": 153,
+        "title": "Michael Caisse: Lambda Functions",
+        "videoId": "tLp6ZBHwvj4",
+        "ps": false
+      },
+      {
+        "n": 154,
+        "title": "CppCon 2015: Robert Ramey “Boost Units Library for Correct Code\"",
+        "videoId": "qphj8ZuZlPA",
+        "ps": false
+      },
+      {
+        "n": 155,
+        "title": "Object-relational mapping with ODB and Boost - Boris Kolpackov [ Boostcon 2011 ]",
+        "videoId": "jp_G9rWNl70",
+        "ps": false
+      },
+      {
+        "n": 156,
+        "title": "Boris Schaeling: A Complete Overview on Boost.Jam and Boost.Build",
+        "videoId": "OgYwvzUUupM",
+        "ps": false
+      },
+      {
+        "n": 157,
+        "title": "How I learnt to stop worrying and love Boost.Python",
+        "videoId": "2urUj9NRqFc",
+        "ps": false
+      },
+      {
+        "n": 158,
+        "title": "Rebuilding Boost Date-Time for C++11 - Jeff Garland [ CppCon 2014 ]",
+        "videoId": "VBHXmqB4i_s",
+        "ps": false
+      },
+      {
+        "n": 159,
+        "title": "Ábel Sinkovics: Boosting MPL with Haskell elements",
+        "videoId": "aIj034VCUD8",
+        "ps": false
+      },
+      {
+        "n": 160,
+        "title": "January 21, 2013 - Using the Boost C++11 Algorithms Library with the C++Builder 64-bit compiler",
+        "videoId": "czY_MErmA8U",
+        "ps": false
+      },
+      {
+        "n": 161,
+        "title": "Compile-time 'reparsing' - Gordon Woodhull - [ C++Now 2012 ]",
+        "videoId": "59sSMTgFQRc",
+        "ps": false
+      },
+      {
+        "n": 162,
+        "title": "Boris Schaling: Boost.Graph for Beginners",
+        "videoId": "uYvBH7TZlFk",
+        "ps": false
+      },
+      {
+        "n": 163,
+        "title": "Karsten Ahnert & Peter Gottschling - boost::odeint & MTL4",
+        "videoId": "K3KpSFMw0Oo",
+        "ps": false
+      },
+      {
+        "n": 164,
+        "title": "How to set up Boost in Visual Studio 2012 on Windows 8",
+        "videoId": "6trC5zVXzG0",
+        "ps": false
+      },
+      {
+        "n": 165,
+        "title": "Setting up Eclipse CDT with boost and g++ of cygwin",
+        "videoId": "_7fWpSlKqtA",
+        "ps": false
+      },
+      {
+        "n": 166,
+        "title": "Boris Schäling: Containers in Boost",
+        "videoId": "FM-fUjhoCp0",
+        "ps": false
+      },
+      {
+        "n": 167,
+        "title": "Evaluating boost message queue for performance",
+        "videoId": "1nCEFTJX_gI",
+        "ps": false
+      },
+      {
+        "n": 168,
+        "title": "Falcou and Gaunard: Boost.Dispatch -- Generalized Tag Dispatching Infrastructure Library",
+        "videoId": "cuDMN_fcLHg",
+        "ps": false
+      },
+      {
+        "n": 169,
+        "title": "Eric Niebler: A First Look at Proto-0x",
+        "videoId": "JF6YM0XzHnE",
+        "ps": false
+      },
+      {
+        "n": 170,
+        "title": "Boris Schaeling: Creating Boost.Asio extensions",
+        "videoId": "Nkyg11XoAxE",
+        "ps": false
+      },
+      {
+        "n": 171,
+        "title": "Minicar Madness - Indie game project.",
+        "videoId": "EBrldbPH7so",
+        "ps": false
+      },
+      {
+        "n": 172,
+        "title": "A third way to use boost::serialization",
+        "videoId": "AtxbAWa-ytM",
+        "ps": false
+      },
+      {
+        "n": 173,
+        "title": "Boost libraries for MS VC++",
+        "videoId": "DaJ5pr8lREY",
+        "ps": false
+      },
+      {
+        "n": 174,
+        "title": "Game The Catcher for Rehabilitation Robotic - Version 0.6.10",
+        "videoId": "uCEQqodUVV4",
+        "ps": false
+      },
+      {
+        "n": 175,
+        "title": "Building an Application with Qt and boost",
+        "videoId": "_eY1NHOi7zE",
+        "ps": false
+      },
+      {
+        "n": 176,
+        "title": "Beman Dawes: Boosting Libraries for TR2",
+        "videoId": "GsVWIaux8bE",
+        "ps": false
+      },
+      {
+        "n": 177,
+        "title": "Scott Meyers @ NWCPP:  Red Code/Green Code - Generalizing Const",
+        "videoId": "Jfu9Kc1D-gQ",
+        "ps": false
+      },
+      {
+        "n": 178,
+        "title": "Trees, tree models and treeviews in Qt",
+        "videoId": "f5JdJfQtTnc",
+        "ps": false
+      },
+      {
+        "n": 179,
+        "title": "StickConstraints.avi",
+        "videoId": "PxlrKyAMwrk",
+        "ps": false
+      },
+      {
+        "n": 180,
+        "title": "ParticleSim",
+        "videoId": "ZxSStkgcByw",
+        "ps": false
+      },
+      {
+        "n": 181,
+        "title": "Joel Falcou - Designing Architecture aware Libraries with boost proto",
+        "videoId": "rBQlOEWM1aE",
+        "ps": false
+      },
+      {
+        "n": 182,
+        "title": "Антон Полухин, Boost и C++11 Новости с фронта, или обо всём понемногу",
+        "videoId": "bkNC8JA35ks",
+        "ps": false
+      },
+      {
+        "n": 183,
+        "title": "Matt Calabrese: Boost.Generic: Concepts without Concepts",
+        "videoId": "gcsOsV5XSjk",
+        "ps": false
+      },
+      {
+        "n": 184,
+        "title": "Joel de Guzman: Inside Spirit X3: Redesigning Boost.Spirit for C++11",
+        "videoId": "XZKZZy_v7hE",
+        "ps": false
+      },
+      {
+        "n": 185,
+        "title": "Nat Goodspeed: Using Boost.Coroutine to untangle a state machine",
+        "videoId": "JDcip-SRgVE",
+        "ps": false
+      },
+      {
+        "n": 186,
+        "title": "Joel Falcou, Mathias Gaunard: Practical SIMD acceleration with Boost.SIMD",
+        "videoId": "nxsBPjDTpZc",
+        "ps": false
+      },
+      {
+        "n": 187,
+        "title": "Spirit: History and Evolution - Joel de Guzman & Hartmut Kaiser [ BoostCon 2010 ]",
+        "videoId": "be87GqijD30",
+        "ps": false
+      },
+      {
+        "n": 188,
+        "title": "Boost date_time library Part 1.mp4",
+        "videoId": "fxhOdIAKYhc",
+        "ps": false
+      },
+      {
+        "n": 189,
+        "title": "The Optimization of a Boost.Asio-based Networking Server",
+        "videoId": "LDic0FbIXeg",
+        "ps": false
+      },
+      {
+        "n": 190,
+        "title": "С++. Введение в Boost",
+        "videoId": "T6WxF5ANyIM",
+        "ps": false
+      },
+      {
+        "n": 191,
+        "title": "XLW: Using uBLAS Vector for MyArray",
+        "videoId": "UH32vCFwZlc",
+        "ps": false
+      },
+      {
+        "n": 192,
+        "title": "001. Магия метапрограммирования на примере Boost.Geometry - Алексей Чернигин",
+        "videoId": "WKmlZ-VLmQU",
+        "ps": false
+      },
+      {
+        "n": 193,
+        "title": "Boost.勉強会 #15 札幌：高橋晶（@cpp_akira） \"マルチパラダイムデザイン - 再利用性の高いアプリケーションの設計\"",
+        "videoId": "iNa9L8a3LAE",
+        "ps": false
+      },
+      {
+        "n": 194,
+        "title": "[SDC 2rd] Boost 라이브러리와 C++11",
+        "videoId": "mwDDUuoOgQI",
+        "ps": false
+      },
+      {
+        "n": 195,
+        "title": "Rob Stewart: Survey of Multi-Threaded Programming Support in C++11 and Boost",
+        "videoId": "y3qHfOdJNEY",
+        "ps": false
+      },
+      {
+        "n": 196,
+        "title": "[SDC 3rd] Boost.multi_index",
+        "videoId": "EAXTtMvgs-Y",
+        "ps": false
+      },
+      {
+        "n": 197,
+        "title": "Rob Stewart:Multi-Threading With C++11 and Boost",
+        "videoId": "53_kveAvcKM",
+        "ps": false
+      },
+      {
+        "n": 198,
+        "title": "Boost Unit test Part 2",
+        "videoId": "015rZ0rNa1M",
+        "ps": false
+      },
+      {
+        "n": 199,
+        "title": "Old MacDonald had a Farm | Learning about The Farm | Full Episode | Baby Einstein | Toddler Show",
+        "videoId": "xbMF6zBzaKI",
+        "ps": false
+      },
+      {
+        "n": 200,
+        "title": "Freeway - Y'all Get Out (Nas & Jadakiss diss)",
+        "videoId": "0GG6GkEb4SU",
+        "ps": false
+      },
+      {
+        "n": 201,
+        "title": "Will & Jada’s Open Relationship & SlDECHlCK REVEALED, Gabrielle Union FEUD & More. #unwined",
+        "videoId": "U5tdKpa2B60",
+        "ps": false
+      },
+      {
+        "n": 202,
+        "title": "Whole Body Move",
+        "videoId": "FN59R5zgDHY",
+        "ps": false
+      },
+      {
+        "n": 203,
+        "title": "Drake - Duppy Freestyle (INSTRUMENTAL) [ReProd. by HAZI HAKANI]",
+        "videoId": "APCAGJzq-qs",
+        "ps": false
+      },
+      {
+        "n": 204,
+        "title": "Surface - Shower Me With Your Love (Official Video)",
+        "videoId": "h5Ua835sudU",
+        "ps": false
+      },
+      {
+        "n": 205,
+        "title": "Godfrey on Feeling Bad After Pleasuring Himself, Dirty Sock Stuck to His Chest (Part 1)",
+        "videoId": "4lr9RL2yI40",
+        "ps": false
+      }
+    ]
+  }
+}

@@ -2450,20 +2450,25 @@ const SCHEDULES = {
 //  COMPONENT: COURSE DETAIL
 // ─────────────────────────────────────────────
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 // YOUTUBE IFRAME PLAYER — free forever, no API key, no quota
-// Uses YouTube IFrame Player API (just a JS library, not the Data API)
+// Uses YouTube IFrame Player API with individual videoId mode.
+// Playlist-level embedding is blocked by most channel owners — videoId is
+// the only reliable approach. Each lecture's videoId comes from schedules.json.
 // Docs: https://developers.google.com/youtube/iframe_api_reference
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-const YouTubePlayer = ({ playlistId, startIndex, onLectureDone, T }) => {
+const YouTubePlayer = ({ videoId, onVideoEnd, T }) => {
   const playerRef = useRef(null)
-  const divId     = useRef(`yt-${playlistId}-${Date.now()}`)
-  const bdr = T?.cardBorder || "rgba(255,255,255,0.08)"
+  const divId     = useRef(`yt-${Date.now()}`)
+  const bdr       = T?.cardBorder || "rgba(255,255,255,0.08)"
 
   useEffect(() => {
+    if (!videoId) return
+
     const loadAPI = (cb) => {
       if (window.YT && window.YT.Player) { cb(); return }
-      const existing = document.getElementById("yt-iframe-api")
-      if (!existing) {
+      if (!document.getElementById("yt-iframe-api")) {
         const s = document.createElement("script")
         s.id  = "yt-iframe-api"
         s.src = "https://www.youtube.com/iframe_api"
@@ -2474,35 +2479,27 @@ const YouTubePlayer = ({ playlistId, startIndex, onLectureDone, T }) => {
     }
 
     const createPlayer = () => {
-      if (playerRef.current) { playerRef.current.destroy(); playerRef.current = null }
+      if (playerRef.current) { try { playerRef.current.destroy() } catch {} playerRef.current = null }
       playerRef.current = new window.YT.Player(divId.current, {
         width: "100%", height: "100%",
-        playerVars: { listType:"playlist", list:playlistId, index:startIndex, autoplay:0, rel:0, modestbranding:1 },
+        videoId,
+        playerVars: { autoplay: 1, rel: 0, modestbranding: 1 },
         events: {
           onStateChange: (e) => {
-            if (e.data === 0) {
-              const idx = playerRef.current.getPlaylistIndex()
-              onLectureDone(idx + 1)
-            }
+            if (e.data === 0) onVideoEnd?.()  // YT.PlayerState.ENDED = 0
           }
         }
       })
     }
 
-    loadAPI(createPlayer)
-
+    // setTimeout(0) defers one tick so React has committed the div to the DOM
+    const t = setTimeout(() => loadAPI(createPlayer), 0)
     return () => {
-      try { playerRef.current?.destroy() } catch(err) {}
+      clearTimeout(t)
+      try { playerRef.current?.destroy() } catch {}
       playerRef.current = null
     }
-  }, [playlistId])
-
-  useEffect(() => {
-    if (startIndex == null) return
-    if (playerRef.current && playerRef.current.playVideoAt) {
-      playerRef.current.playVideoAt(startIndex)
-    }
-  }, [startIndex])
+  }, [videoId])
 
   return (
     <div style={{ width:"100%", aspectRatio:"16/9", borderRadius:12, overflow:"hidden",
@@ -2511,6 +2508,8 @@ const YouTubePlayer = ({ playlistId, startIndex, onLectureDone, T }) => {
     </div>
   )
 }
+
+
 
 const CourseDetail = ({ course, onBack, lectureProgress, setLectureProgress, setCourseProgress = ()=>{}, T, user, markStudyToday = ()=>{}, githubData = {} }) => {
 const LIVE_SCHEDULES = githubData.schedules || SCHEDULES
@@ -2555,22 +2554,6 @@ const sched = (raw ? {
   const [drafts, setDrafts] = useState({})              // { psId: textValue }
   const [reviewing, setReviewing] = useState(null)      // ps.id being reviewed
 
-  // Open lecture in a new tab at the correct playlist position
-  const [manualIndex, setManualIndex] = useState(null)
-
-const openVideo = (n) => {
-  if (!playlistId) {
-    // No playlist — fall back to external link only if no embed possible
-    window.open(sched.playlistUrl, "_blank", "noopener,noreferrer")
-    return
-  }
-  setManualIndex(n - 1)   // YouTube IFrame API is 0-based
-  setShowPlayer(true)
-  // Scroll player into view
-  setTimeout(() => {
-    document.getElementById("yt-player-anchor")?.scrollIntoView({ behavior:"smooth", block:"start" })
-  }, 100)
-}
 
   // ── AI Review via Anthropic API ──
   const submitForReview = async (ps) => {
@@ -2669,14 +2652,53 @@ Grade this submission strictly and fairly. Return ONLY a JSON object (no markdow
 
   // ── YouTube player ────────────────────────────────────────────────────────
   const hasVideoIds = sched?.lectures?.some(l => l.videoId)
-  const [showPlayer, setShowPlayer] = useState(!!hasVideoIds)
-  const playlistId = sched.playlistUrl?.match(/[?&]list=([^&]+)/)?.[1] || null
-  // Start at first unwatched lecture (0-based index for YT API)
-  const startIndex = Math.max(0, sched.lectures.findIndex(l => !isDone(l.n)))
-  // Auto-mark lecture done when video ends — called by YouTubePlayer
-  const onLectureDone = (lectureNumber) => {
-    markStudyToday(); setLectureProgress(prev => ({ ...prev, [`${course.id}_l${lectureNumber}`]: 1 }))
+  const [showPlayer, setShowPlayer]     = useState(false)
+  const [activeVideoId, setActiveVideoId] = useState(null)
+  const [manualIndex, setManualIndex]   = useState(null)  // 0-based index of playing lecture
+
+  // Called by YouTubePlayer when the current video ends — mark done and advance
+  const onVideoEnd = () => {
+    const curIdx  = manualIndex ?? Math.max(0, sched.lectures.findIndex(l => !isDone(l.n)))
+    const lecture = sched.lectures[curIdx]
+    if (lecture) {
+      markStudyToday()
+      setLectureProgress(prev => ({ ...prev, [`${course.id}_l${lecture.n}`]: 1 }))
+    }
+    const nextIdx = curIdx + 1
+    if (nextIdx < sched.lectures.length) {
+      const next = sched.lectures[nextIdx]
+      if (next?.videoId) { setManualIndex(nextIdx); setActiveVideoId(next.videoId) }
+    }
   }
+
+  // Top-level ▶ Watch Here button — start at first unwatched lecture
+  const togglePlayer = () => {
+    if (showPlayer) { setShowPlayer(false); return }
+    const idx = Math.max(0, sched.lectures.findIndex(l => !isDone(l.n)))
+    const lec = sched.lectures[idx]
+    if (lec?.videoId) {
+      setManualIndex(idx)
+      setActiveVideoId(lec.videoId)
+      setShowPlayer(true)
+    }
+  }
+
+  // Click ▶ on a lecture row — open inline player at that specific video
+  const watchLecture = (lec, idx) => {
+    if (!lec.videoId) {
+      // No videoId — fall back to opening playlist externally
+      const pid = sched.playlistUrl?.match(/[?&]list=([^&]+)/)?.[1]
+      window.open(pid
+        ? `https://www.youtube.com/watch?list=${pid}&index=${lec.n}`
+        : sched.playlistUrl, "_blank", "noopener,noreferrer")
+      return
+    }
+    setManualIndex(idx)
+    setActiveVideoId(lec.videoId)
+    setShowPlayer(true)
+    setTimeout(() => document.getElementById("yt-player-anchor")?.scrollIntoView({ behavior:"smooth" }), 50)
+  }
+
   return (
     <div style={{ paddingBottom:60 }}>
       <button onClick={onBack} style={{ background:"none", border:"none", color:"#C17F3A", cursor:"pointer", fontSize:13, marginBottom:20, padding:0 }}>← Back to Courses</button>
@@ -2692,15 +2714,16 @@ Grade this submission strictly and fairly. Return ONLY a JSON object (no markdow
           <p style={{ color:muted, fontSize:12, margin:"4px 0 0" }}>📖 {sched.textbook}</p>
         </div>
         <div style={{ display:"flex", gap:8, flexWrap:"wrap" }}>
-          {playlistId && (
-            <button onClick={() => setShowPlayer(s => !s)}
+         {hasVideoIds && (
+            <button onClick={togglePlayer}
               style={{ background: showPlayer ? "rgba(239,68,68,0.25)" : "rgba(239,68,68,0.15)",
                 border:"1px solid rgba(239,68,68,0.3)", borderRadius:8, padding:"8px 14px",
                 color:"#f87171", fontSize:12, cursor:"pointer", fontWeight:600 }}>
               {showPlayer ? "⏹ Close Player" : "▶ Watch Here"}
             </button>
           )}
-          <a href={sched.playlistUrl} target="_blank" rel="noreferrer"
+       
+       <a href={sched.playlistUrl} target="_blank" rel="noreferrer"
             style={{ background:"rgba(239,68,68,0.08)", border:"1px solid rgba(239,68,68,0.2)",
               borderRadius:8, padding:"8px 14px", color:"#f87171", fontSize:12, textDecoration:"none" }}>
             ↗ YouTube
@@ -2724,20 +2747,15 @@ Grade this submission strictly and fairly. Return ONLY a JSON object (no markdow
         </div>
       </div>
 
-     {/* Embedded YouTube player — auto-marks lectures done on video end */}
-<div id="yt-player-anchor" />
-{showPlayer && playlistId && (
-  <YouTubePlayer
-    playlistId={playlistId}
-    startIndex={manualIndex ?? startIndex}
-    onLectureDone={onLectureDone}
-    T={T}
-  />
-)}
-      {showPlayer && !playlistId && (
+     {/* Embedded YouTube player — loads individual videos by videoId */}
+      <div id="yt-player-anchor" />
+      {showPlayer && activeVideoId && (
+        <YouTubePlayer videoId={activeVideoId} onVideoEnd={onVideoEnd} T={T} />
+      )}
+      {showPlayer && !activeVideoId && (
         <div style={{ background:"rgba(193,127,58,0.06)", border:"1px solid rgba(193,127,58,0.2)",
           borderRadius:10, padding:"14px 18px", marginBottom:20, fontSize:12, color:"#C17F3A" }}>
-          No playlist ID found for this course. Use ↗ YouTube to watch externally.
+          No video ID for this lecture. Use ↗ YouTube to watch externally.
         </div>
       )}
 
@@ -2790,7 +2808,7 @@ Grade this submission strictly and fairly. Return ONLY a JSON object (no markdow
                     </div>
                     <div style={{ padding:"10px 8px", display:"flex", alignItems:"center" }}>
                       {!isExam && (
-                        <button onClick={() => openVideo(l.n)}
+                        <button onClick={() => !isExam && watchLecture(l, sched.lectures.indexOf(l))}
                           style={{ fontSize:11, background:"rgba(239,68,68,0.1)", border:"1px solid rgba(239,68,68,0.3)", borderRadius:4, padding:"3px 9px", color:"#ef4444", cursor:"pointer", whiteSpace:"nowrap" }}>
                           ▶ Watch
                         </button>
