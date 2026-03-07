@@ -2450,61 +2450,29 @@ const SCHEDULES = {
 //  COMPONENT: COURSE DETAIL
 // ─────────────────────────────────────────────
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-// YOUTUBE IFRAME PLAYER — free forever, no API key, no quota
-// Uses YouTube IFrame Player API with individual videoId mode.
-// Playlist-level embedding is blocked by most channel owners — videoId is
-// the only reliable approach. Each lecture's videoId comes from schedules.json.
-// Docs: https://developers.google.com/youtube/iframe_api_reference
+// YOUTUBE PLAYER — plain iframe embed, no JavaScript API
+// Using youtube.com/embed/{videoId} directly is the most reliable approach.
+// The IFrame Player API (JS wrapper) was abandoned due to DOM race conditions
+// and playlist-level embedding blocks on most channels.
+// Trade-off: cannot auto-detect video end, so user clicks "Done watching" to
+// mark the lecture complete and close the player.
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-const YouTubePlayer = ({ videoId, onVideoEnd, T }) => {
-  const playerRef = useRef(null)
-  const divId     = useRef(`yt-${Date.now()}`)
-  const bdr       = T?.cardBorder || "rgba(255,255,255,0.08)"
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-  useEffect(() => {
-    if (!videoId) return
-
-    const loadAPI = (cb) => {
-      if (window.YT && window.YT.Player) { cb(); return }
-      if (!document.getElementById("yt-iframe-api")) {
-        const s = document.createElement("script")
-        s.id  = "yt-iframe-api"
-        s.src = "https://www.youtube.com/iframe_api"
-        document.body.appendChild(s)
-      }
-      const prev = window.onYouTubeIframeAPIReady
-      window.onYouTubeIframeAPIReady = () => { if (prev) prev(); cb() }
-    }
-
-    const createPlayer = () => {
-      if (playerRef.current) { try { playerRef.current.destroy() } catch {} playerRef.current = null }
-      playerRef.current = new window.YT.Player(divId.current, {
-        width: "100%", height: "100%",
-        videoId,
-        playerVars: { autoplay: 1, rel: 0, modestbranding: 1 },
-        events: {
-          onStateChange: (e) => {
-            if (e.data === 0) onVideoEnd?.()  // YT.PlayerState.ENDED = 0
-          }
-        }
-      })
-    }
-
-    // setTimeout(0) defers one tick so React has committed the div to the DOM
-    const t = setTimeout(() => loadAPI(createPlayer), 0)
-    return () => {
-      clearTimeout(t)
-      try { playerRef.current?.destroy() } catch {}
-      playerRef.current = null
-    }
-  }, [videoId])
-
+const YouTubePlayer = ({ videoId, onClose, T }) => {
+  const bdr = T?.cardBorder || "rgba(255,255,255,0.08)"
+  if (!videoId) return null
   return (
-    <div style={{ width:"100%", aspectRatio:"16/9", borderRadius:12, overflow:"hidden",
-      border:`1px solid ${bdr}`, background:"#000", marginBottom:20 }}>
-      <div id={divId.current} style={{ width:"100%", height:"100%" }} />
+    <div style={{ position:"relative", width:"100%", aspectRatio:"16/9", borderRadius:12,
+      overflow:"hidden", border:`1px solid ${bdr}`, background:"#000", marginBottom:20 }}>
+      <iframe
+        key={videoId}
+        src={`https://www.youtube.com/embed/${videoId}?autoplay=1&rel=0&modestbranding=1`}
+        style={{ width:"100%", height:"100%", border:"none" }}
+        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+        allowFullScreen
+      />
     </div>
   )
 }
@@ -2656,19 +2624,15 @@ Grade this submission strictly and fairly. Return ONLY a JSON object (no markdow
   const [activeVideoId, setActiveVideoId] = useState(null)
   const [manualIndex, setManualIndex]   = useState(null)  // 0-based index of playing lecture
 
-  // Called by YouTubePlayer when the current video ends — mark done and advance
-  const onVideoEnd = () => {
+  // Mark current lecture done when player is closed
+  const onClosePlayer = () => {
     const curIdx  = manualIndex ?? Math.max(0, sched.lectures.findIndex(l => !isDone(l.n)))
     const lecture = sched.lectures[curIdx]
     if (lecture) {
       markStudyToday()
       setLectureProgress(prev => ({ ...prev, [`${course.id}_l${lecture.n}`]: 1 }))
     }
-    const nextIdx = curIdx + 1
-    if (nextIdx < sched.lectures.length) {
-      const next = sched.lectures[nextIdx]
-      if (next?.videoId) { setManualIndex(nextIdx); setActiveVideoId(next.videoId) }
-    }
+    setShowPlayer(false)
   }
 
   // Top-level ▶ Watch Here button — start at first unwatched lecture
@@ -2750,7 +2714,14 @@ Grade this submission strictly and fairly. Return ONLY a JSON object (no markdow
      {/* Embedded YouTube player — loads individual videos by videoId */}
       <div id="yt-player-anchor" />
       {showPlayer && activeVideoId && (
-        <YouTubePlayer videoId={activeVideoId} onVideoEnd={onVideoEnd} T={T} />
+        <div>
+          <YouTubePlayer videoId={activeVideoId} T={T} />
+          <button onClick={onClosePlayer}
+            style={{ marginBottom:16, background:"rgba(16,185,129,0.1)", border:"1px solid rgba(16,185,129,0.3)",
+              borderRadius:8, padding:"8px 18px", color:"#10b981", fontSize:12, cursor:"pointer", fontWeight:600 }}>
+            ✓ Done watching — mark & close
+          </button>
+        </div>
       )}
       {showPlayer && !activeVideoId && (
         <div style={{ background:"rgba(193,127,58,0.06)", border:"1px solid rgba(193,127,58,0.2)",
