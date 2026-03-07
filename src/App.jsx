@@ -2460,7 +2460,7 @@ const SCHEDULES = {
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-const YouTubePlayer = ({ videoId, onClose, T }) => {
+const YouTubePlayer = ({ videoId, T }) => {
   const bdr = T?.cardBorder || "rgba(255,255,255,0.08)"
   if (!videoId) return null
   return (
