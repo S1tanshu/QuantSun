@@ -4834,6 +4834,7 @@ const ResourceHub = ({ T }) => {
       const searchQ = q.includes("cat:") || q.includes("+OR+") ? q : `cat:${q}`
       // ✅ fixed
     const ARXIV_URL = `https://arxiv.org/api/query?search_query=${searchQ}&sortBy=submittedDate&sortOrder=descending&max_results=12`
+    console.log("ARXIV_URL:", ARXIV_URL) //for log
     const res = await fetch(`https://arxiv-proxy.quantos.workers.dev/?url=${encodeURIComponent(ARXIV_URL)}`)
       const text = await res.text()
       const parser = new DOMParser()
@@ -4865,6 +4866,7 @@ const ResourceHub = ({ T }) => {
   const handleAiSearch = async () => {
     if (!aiQuery.trim()) return
     const q = `cat:q-fin+AND+${aiQuery.trim().replace(/\s+/g,"+")}`
+    console.log("search query:", q) //for log 
     setPaperQuery(q)
     await fetchPapers(q)
   }
