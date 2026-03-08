@@ -4776,7 +4776,7 @@ const ResourceHub = ({ T }) => {
   const [savedPapers, setSavedPapers] = useStorage("saved_papers_v2", [])
   const [readPapers,  setReadPapers]  = useStorage("read_papers_v1",  [])
   const [paperTab, setPaperTab] = useState("browse")   // browse | saved
-  const [paperQuery, setPaperQuery] = useState("q-fin")
+  const [paperQuery, setPaperQuery] = useState("q-fin.TR+OR+cat:q-fin.PM+OR+cat:q-fin.MF+OR+cat:q-fin.CP")
   const [aiQuery, setAiQuery] = useState("")
 
   const bg   = T?.cardBg    || "rgba(255,255,255,0.02)"
@@ -4826,12 +4826,12 @@ const ResourceHub = ({ T }) => {
   })
 
   // Auto-load latest q-fin papers when the component first mounts
-  useEffect(() => { fetchPapers("q-fin") }, [])
+  useEffect(() => { fetchPapers("q-fin.TR+OR+cat:q-fin.PM+OR+cat:q-fin.MF+OR+cat:q-fin.CP") }, [])
 
   const fetchPapers = async (q = paperQuery) => {
     setLoadingPapers(true)
     try {
-      const searchQ = q.includes("+") ? q : `cat:${q}`
+      const searchQ = q.includes("cat:") || q.includes("+OR+") ? q : `cat:${q}`
       // ✅ fixed
     const ARXIV_URL = `https://arxiv.org/api/query?search_query=${searchQ}&sortBy=submittedDate&sortOrder=descending&max_results=12`
     const res = await fetch(`https://arxiv-proxy.quantos.workers.dev/?url=${encodeURIComponent(ARXIV_URL)}`)
