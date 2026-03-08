@@ -4865,7 +4865,7 @@ const ResourceHub = ({ T }) => {
 
   const handleAiSearch = async () => {
     if (!aiQuery.trim()) return
-    const q = `cat:q-fin+AND+${aiQuery.trim().replace(/\s+/g,"+")}`
+    const q = `cat:q-fin+AND+all:${aiQuery.trim().replace(/\s+/g,"+")}`
     console.log("search query:", q) //for log 
     setPaperQuery(q)
     await fetchPapers(q)
