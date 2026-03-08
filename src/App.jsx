@@ -14,7 +14,7 @@ import { useState, useEffect, useRef, useCallback, useMemo } from "react"
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 // VERSION — bump this once per release
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-const APP_VERSION = "v1.26"
+const APP_VERSION = "v1.27"
 
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 // AI PROVIDER ADAPTER — swap provider without touching any feature code
@@ -4833,7 +4833,7 @@ const ResourceHub = ({ T }) => {
     try {
       const searchQ = q.includes("+") ? q : `cat:${q}`
       // ✅ fixed
-    const ARXIV_URL = `https://export.arxiv.org/api/query?search_query=${searchQ}&sortBy=submittedDate&sortOrder=descending&max_results=12`
+    const ARXIV_URL = `https://arxiv.org/api/query?search_query=${searchQ}&sortBy=submittedDate&sortOrder=descending&max_results=12`
     const res = await fetch(`https://arxiv-proxy.quantos.workers.dev/?url=${encodeURIComponent(ARXIV_URL)}`)
       const text = await res.text()
       const parser = new DOMParser()
