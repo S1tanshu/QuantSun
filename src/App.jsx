@@ -14,7 +14,7 @@ import { useState, useEffect, useRef, useCallback, useMemo } from "react"
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 // VERSION — bump this once per release
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-const APP_VERSION = "v1.27"
+const APP_VERSION = "v1.29"
 
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 // AI PROVIDER ADAPTER — swap provider without touching any feature code
@@ -4864,7 +4864,7 @@ const ResourceHub = ({ T }) => {
 
   const handleAiSearch = async () => {
     if (!aiQuery.trim()) return
-    const q = `cat:q-fin+AND+${encodeURIComponent(aiQuery.trim().replace(/\s+/g,"+"))}`
+    const q = `cat:q-fin+AND+${aiQuery.trim().replace(/\s+/g,"+")}`
     setPaperQuery(q)
     await fetchPapers(q)
   }
