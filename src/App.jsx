@@ -4832,7 +4832,9 @@ const ResourceHub = ({ T }) => {
     setLoadingPapers(true)
     try {
       const searchQ = q.includes("+") ? q : `cat:${q}`
-      const res = await fetch(`https://export.arxiv.org/api/query?search_query=${searchQ}&sortBy=submittedDate&sortOrder=descending&max_results=12`)
+      // ✅ fixed
+const ARXIV_URL = `https://export.arxiv.org/api/query?search_query=${searchQ}&sortBy=submittedDate&sortOrder=descending&max_results=12`
+const res = await fetch(`https://corsproxy.io/?url=${encodeURIComponent(ARXIV_URL)}`)
       const text = await res.text()
       const parser = new DOMParser()
       const xml = parser.parseFromString(text, "text/xml")
