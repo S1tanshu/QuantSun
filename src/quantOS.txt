@@ -14,7 +14,7 @@ import { useState, useEffect, useRef, useCallback, useMemo } from "react"
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 // VERSION — bump this once per release
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-const APP_VERSION = "v1.26"
+const APP_VERSION = "v1.29"
 
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 // AI PROVIDER ADAPTER — swap provider without touching any feature code
@@ -131,11 +131,13 @@ const callAI = async ({ system = "", prompt, maxTokens = 800, aiSettings = {} })
 
 // ── STEP 1: Raw GitHub URLs ───────────────────────────────────────────────────
 const GITHUB_DATA_URLS = {
-  courses:      "https://raw.githubusercontent.com/sitanshu-thakurmail/quantos-data/main/courses.json",
-  competitions: "https://raw.githubusercontent.com/sitanshu-thakurmail/quantos-data/main/competitions.json",
-  internships:  "https://raw.githubusercontent.com/sitanshu-thakurmail/quantos-data/main/internships.json",
-  jobs:         "https://raw.githubusercontent.com/sitanshu-thakurmail/quantos-data/main/jobs.json",
+  courses:      "https://raw.githubusercontent.com/S1tanshu/quantos-data/main/courses.json",
+  competitions: "https://raw.githubusercontent.com/S1tanshu/quantos-data/main/competitions.json",
+  internships:  "https://raw.githubusercontent.com/S1tanshu/quantos-data/main/internships.json",
+  jobs:         "https://raw.githubusercontent.com/S1tanshu/quantos-data/main/jobs.json",
+  schedules:    "https://raw.githubusercontent.com/S1tanshu/quantos-data/main/schedules.json",
 }
+
 
 // ── STEP 2: Hook fetches all 4 files on app load ─────────────────────────────
 const useGithubData = () => {
@@ -146,16 +148,24 @@ const useGithubData = () => {
   useEffect(() => {
     const fetchAll = async () => {
       try {
-        const bust = `?t=${Date.now()}`
-        const results = await Promise.all(
+          const bust = `?t=${Date.now()}`
+        const settled = await Promise.allSettled(
           Object.entries(GITHUB_DATA_URLS).map(async ([key, url]) => {
-            const res  = await fetch(url + bust, { cache: "no-cache" })
-            if (!res.ok) throw new Error(`Failed to fetch ${key}: ${res.status}`)
+            const res = await fetch(url + bust, { cache: "no-cache" })
+            if (!res.ok) throw new Error(`${key}: ${res.status}`)
             const data = await res.json()
             return [key, data]
           })
         )
-        setGithubData(Object.fromEntries(results))
+        const loaded = {}
+        const failed = []
+        settled.forEach((r, i) => {
+          const key = Object.keys(GITHUB_DATA_URLS)[i]
+          if (r.status === "fulfilled") loaded[key] = r.value[1]
+          else failed.push(`${key}(${r.reason?.message})`)
+        })
+        if (failed.length) console.warn("QuantOS data fetch failed:", failed.join(", "))
+        setGithubData(loaded)
       } catch (e) {
         console.warn("GitHub data fetch failed — falling back to hardcoded data.", e.message)
         setError(e.message)
@@ -166,7 +176,8 @@ const useGithubData = () => {
     fetchAll()
   }, [])
 
-  return { githubData, loading, error }
+  const loadedKeys = Object.keys(githubData)
+  return { githubData, loading, error, isLive: loadedKeys.length > 0, loadedKeys }
 }
 
 // ── STEP 3-6 now implemented below in QuantOS() shell ───────────────────────
@@ -2439,79 +2450,60 @@ const SCHEDULES = {
 //  COMPONENT: COURSE DETAIL
 // ─────────────────────────────────────────────
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-// YOUTUBE IFRAME PLAYER — free forever, no API key, no quota
-// Uses YouTube IFrame Player API (just a JS library, not the Data API)
-// Docs: https://developers.google.com/youtube/iframe_api_reference
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-const YouTubePlayer = ({ playlistId, startIndex, onLectureDone, T }) => {
-  const playerRef  = useRef(null)  // holds the YT.Player instance
-  const divId      = useRef(`yt-${playlistId}-${Date.now()}`)
+// YOUTUBE PLAYER — plain iframe embed, no JavaScript API
+// Using youtube.com/embed/{videoId} directly is the most reliable approach.
+// The IFrame Player API (JS wrapper) was abandoned due to DOM race conditions
+// and playlist-level embedding blocks on most channels.
+// Trade-off: cannot auto-detect video end, so user clicks "Done watching" to
+// mark the lecture complete and close the player.
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+const YouTubePlayer = ({ videoId, T }) => {
   const bdr = T?.cardBorder || "rgba(255,255,255,0.08)"
-
-  useEffect(() => {
-    // ── Load the IFrame API script once globally ──────────────────────────────
-    const loadAPI = (cb) => {
-      if (window.YT && window.YT.Player) { cb(); return }
-      const existing = document.getElementById("yt-iframe-api")
-      if (!existing) {
-        const s = document.createElement("script")
-        s.id  = "yt-iframe-api"
-        s.src = "https://www.youtube.com/iframe_api"
-        document.body.appendChild(s)
-      }
-      // Queue callback — YouTube calls window.onYouTubeIframeAPIReady when ready
-      const prev = window.onYouTubeIframeAPIReady
-      window.onYouTubeIframeAPIReady = () => {
-        if (prev) prev()
-        cb()
-      }
-    }
-
-    const createPlayer = () => {
-      if (playerRef.current) { playerRef.current.destroy(); playerRef.current = null }
-      playerRef.current = new window.YT.Player(divId.current, {
-        width:  "100%",
-        height: "100%",
-        playerVars: {
-          listType:       "playlist",
-          list:           playlistId,
-          index:          startIndex,   // 0-based — starts at first unwatched lecture
-          autoplay:       0,
-          rel:            0,            // no related videos from other channels
-          modestbranding: 1,
-        },
-        events: {
-          // ── Auto-mark lecture done when video ends ──────────────────────────
-          onStateChange: (e) => {
-            // YT.PlayerState.ENDED = 0
-            if (e.data === 0) {
-              const idx = playerRef.current.getPlaylistIndex() // 0-based
-              onLectureDone(idx + 1)                          // convert to 1-based lecture number
-            }
-          }
-        }
-      })
-    }
-
-    loadAPI(createPlayer)
-
-    return () => {
-      // Cleanup on unmount
-      try { playerRef.current?.destroy() } catch {}
-      playerRef.current = null
-    }
-  }, [playlistId, startIndex]) // re-create player if course changes
-
+  if (!videoId) return null
   return (
-    <div style={{ width:"100%", aspectRatio:"16/9", borderRadius:12, overflow:"hidden",
-      border:`1px solid ${bdr}`, background:"#000", marginBottom:20 }}>
-      <div id={divId.current} style={{ width:"100%", height:"100%" }} />
+    <div style={{ position:"relative", width:"100%", aspectRatio:"16/9", borderRadius:12,
+      overflow:"hidden", border:`1px solid ${bdr}`, background:"#000", marginBottom:20 }}>
+      <iframe
+        key={videoId}
+        src={`https://www.youtube.com/embed/${videoId}?autoplay=1&rel=0&modestbranding=1`}
+        style={{ width:"100%", height:"100%", border:"none" }}
+        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+        allowFullScreen
+      />
     </div>
   )
 }
 
-const CourseDetail = ({ course, onBack, lectureProgress, setLectureProgress, T, user, markStudyToday = ()=>{} }) => {
-  const sched = SCHEDULES[course.id]
+
+
+const CourseDetail = ({ course, onBack, lectureProgress, setLectureProgress, setCourseProgress = ()=>{}, T, user, markStudyToday = ()=>{}, githubData = {} }) => {
+const LIVE_SCHEDULES = githubData.schedules || SCHEDULES
+const raw = LIVE_SCHEDULES[course.id]
+const sched = (raw ? {
+  ...raw,
+  lectures:    raw.lectures    || [],
+  problemSets: raw.problemSets || raw.psets || [],
+  psets:       raw.psets       || [],
+  notesPage:   raw.notesPage   || course.link,
+  playlistUrl: raw.playlistUrl || course.playlistUrl || null,
+} : null) || (() => {
+  const total = parseInt(course.lectures?.split("/")?.[1])
+  if (!total || isNaN(total)) return null
+  return {
+    playlistUrl: course.playlistUrl || null,
+    notesPage:   course.link,
+    problemSets: [],
+    lectures: Array.from({ length: total }, (_, i) => ({
+      n:     i + 1,
+      title: `Lecture ${i + 1}`,
+      ps:    false,
+    }))
+  }
+})()
+
   const [tab, setTab] = useState("schedule")
   const subjColor = SUBJECT_COLOR_LOOKUP[course.subject] || "#64748b"
   const bg   = T?.cardBg    || "rgba(255,255,255,0.02)"
@@ -2530,15 +2522,6 @@ const CourseDetail = ({ course, onBack, lectureProgress, setLectureProgress, T, 
   const [drafts, setDrafts] = useState({})              // { psId: textValue }
   const [reviewing, setReviewing] = useState(null)      // ps.id being reviewed
 
-  // Open lecture in a new tab at the correct playlist position
-  const openVideo = (n) => {
-    const m = sched?.playlistUrl?.match(/[?&]list=([^&]+)/)
-    const pid = m ? m[1] : null
-    const url = pid
-      ? `https://www.youtube.com/watch?list=${pid}&index=${n}`
-      : sched.playlistUrl
-    window.open(url, "_blank", "noopener,noreferrer")
-  }
 
   // ── AI Review via Anthropic API ──
   const submitForReview = async (ps) => {
@@ -2549,7 +2532,7 @@ const CourseDetail = ({ course, onBack, lectureProgress, setLectureProgress, T, 
       const prompt = `You are a rigorous quantitative finance professor grading a student's problem set submission.
 
 COURSE: ${sched?.fullName} (${sched?.code})
-PROBLEM SET: ${ps.title}
+PROBLEM SET: ${ps.title} 
 TOPICS COVERED: ${ps.covers}
 
 STUDENT'S SUBMISSION:
@@ -2612,20 +2595,74 @@ Grade this submission strictly and fairly. Return ONLY a JSON object (no markdow
     </div>
   )
 
-  const toggleL = (n) => { markStudyToday(); setLectureProgress(prev => { const k=`${course.id}_l${n}`; return {...prev,[k]:prev[k]===1?0:1} }) }
+ const toggleL = (n) => {
+    markStudyToday()
+    setLectureProgress(prev => {
+      const k    = `${course.id}_l${n}`
+      const next = { ...prev, [k]: prev[k] === 1 ? 0 : 1 }
+
+      // ── Auto-sync course state based on lecture completions ──────────
+      if (sched) {
+        const total     = sched.lectures.length
+        const doneCount = sched.lectures.filter(l => next[`${course.id}_l${l.n}`] === 1).length
+        setCourseProgress(cp => ({
+          ...cp,
+          [course.id]: doneCount === 0 ? 0 : doneCount === total ? 1 : 0.5,
+        }))
+      }
+
+      return next
+    })
+  }
   const isDone = (n) => lectureProgress[`${course.id}_l${n}`] === 1
   const doneCount = sched.lectures.filter(l => isDone(l.n)).length
   const pct = Math.round(doneCount / sched.lectures.length * 100)
 
   // ── YouTube player ────────────────────────────────────────────────────────
-  const [showPlayer, setShowPlayer] = useState(false)
-  const playlistId = sched.playlistUrl?.match(/[?&]list=([^&]+)/)?.[1] || null
-  // Start at first unwatched lecture (0-based index for YT API)
-  const startIndex = Math.max(0, sched.lectures.findIndex(l => !isDone(l.n)))
-  // Auto-mark lecture done when video ends — called by YouTubePlayer
-  const onLectureDone = (lectureNumber) => {
-    markStudyToday(); setLectureProgress(prev => ({ ...prev, [`${course.id}_l${lectureNumber}`]: 1 }))
+  const hasVideoIds = sched?.lectures?.some(l => l.videoId)
+  const [showPlayer, setShowPlayer]     = useState(false)
+  const [activeVideoId, setActiveVideoId] = useState(null)
+  const [manualIndex, setManualIndex]   = useState(null)  // 0-based index of playing lecture
+
+  // Mark current lecture done when player is closed
+  const onClosePlayer = () => {
+    const curIdx  = manualIndex ?? Math.max(0, sched.lectures.findIndex(l => !isDone(l.n)))
+    const lecture = sched.lectures[curIdx]
+    if (lecture) {
+      markStudyToday()
+      setLectureProgress(prev => ({ ...prev, [`${course.id}_l${lecture.n}`]: 1 }))
+    }
+    setShowPlayer(false)
   }
+
+  // Top-level ▶ Watch Here button — start at first unwatched lecture
+  const togglePlayer = () => {
+    if (showPlayer) { setShowPlayer(false); return }
+    const idx = Math.max(0, sched.lectures.findIndex(l => !isDone(l.n)))
+    const lec = sched.lectures[idx]
+    if (lec?.videoId) {
+      setManualIndex(idx)
+      setActiveVideoId(lec.videoId)
+      setShowPlayer(true)
+    }
+  }
+
+  // Click ▶ on a lecture row — open inline player at that specific video
+  const watchLecture = (lec, idx) => {
+    if (!lec.videoId) {
+      // No videoId — fall back to opening playlist externally
+      const pid = sched.playlistUrl?.match(/[?&]list=([^&]+)/)?.[1]
+      window.open(pid
+        ? `https://www.youtube.com/watch?list=${pid}&index=${lec.n}`
+        : sched.playlistUrl, "_blank", "noopener,noreferrer")
+      return
+    }
+    setManualIndex(idx)
+    setActiveVideoId(lec.videoId)
+    setShowPlayer(true)
+    setTimeout(() => document.getElementById("yt-player-anchor")?.scrollIntoView({ behavior:"smooth" }), 50)
+  }
+
   return (
     <div style={{ paddingBottom:60 }}>
       <button onClick={onBack} style={{ background:"none", border:"none", color:"#C17F3A", cursor:"pointer", fontSize:13, marginBottom:20, padding:0 }}>← Back to Courses</button>
@@ -2641,15 +2678,16 @@ Grade this submission strictly and fairly. Return ONLY a JSON object (no markdow
           <p style={{ color:muted, fontSize:12, margin:"4px 0 0" }}>📖 {sched.textbook}</p>
         </div>
         <div style={{ display:"flex", gap:8, flexWrap:"wrap" }}>
-          {playlistId && (
-            <button onClick={() => setShowPlayer(s => !s)}
+         {hasVideoIds && (
+            <button onClick={togglePlayer}
               style={{ background: showPlayer ? "rgba(239,68,68,0.25)" : "rgba(239,68,68,0.15)",
                 border:"1px solid rgba(239,68,68,0.3)", borderRadius:8, padding:"8px 14px",
                 color:"#f87171", fontSize:12, cursor:"pointer", fontWeight:600 }}>
               {showPlayer ? "⏹ Close Player" : "▶ Watch Here"}
             </button>
           )}
-          <a href={sched.playlistUrl} target="_blank" rel="noreferrer"
+       
+       <a href={sched.playlistUrl} target="_blank" rel="noreferrer"
             style={{ background:"rgba(239,68,68,0.08)", border:"1px solid rgba(239,68,68,0.2)",
               borderRadius:8, padding:"8px 14px", color:"#f87171", fontSize:12, textDecoration:"none" }}>
             ↗ YouTube
@@ -2673,19 +2711,22 @@ Grade this submission strictly and fairly. Return ONLY a JSON object (no markdow
         </div>
       </div>
 
-      {/* Embedded YouTube player — auto-marks lectures done on video end */}
-      {showPlayer && playlistId && (
-        <YouTubePlayer
-          playlistId={playlistId}
-          startIndex={startIndex}
-          onLectureDone={onLectureDone}
-          T={T}
-        />
+     {/* Embedded YouTube player — loads individual videos by videoId */}
+      <div id="yt-player-anchor" />
+      {showPlayer && activeVideoId && (
+        <div>
+          <YouTubePlayer videoId={activeVideoId} T={T} />
+          <button onClick={onClosePlayer}
+            style={{ marginBottom:16, background:"rgba(16,185,129,0.1)", border:"1px solid rgba(16,185,129,0.3)",
+              borderRadius:8, padding:"8px 18px", color:"#10b981", fontSize:12, cursor:"pointer", fontWeight:600 }}>
+            ✓ Done watching — mark & close
+          </button>
+        </div>
       )}
-      {showPlayer && !playlistId && (
+      {showPlayer && !activeVideoId && (
         <div style={{ background:"rgba(193,127,58,0.06)", border:"1px solid rgba(193,127,58,0.2)",
           borderRadius:10, padding:"14px 18px", marginBottom:20, fontSize:12, color:"#C17F3A" }}>
-          No playlist ID found for this course. Use ↗ YouTube to watch externally.
+          No video ID for this lecture. Use ↗ YouTube to watch externally.
         </div>
       )}
 
@@ -2723,7 +2764,7 @@ Grade this submission strictly and fairly. Return ONLY a JSON object (no markdow
                     <div style={{ padding:"10px 8px", fontSize:12, color:muted, fontFamily:"'JetBrains Mono',monospace" }}>{l.n}</div>
                     {/* Title cell — truncated so all rows stay the same height */}
                     <div style={{ padding:"10px 8px 10px 0", minWidth:0, display:"flex", alignItems:"center", gap:6, overflow:"hidden" }}>
-                      <button onClick={() => !isExam && openVideo(l.n)}
+                      <button onClick={() => !isExam && watchLecture(l, sched.lectures.indexOf(l))}
                         style={{ fontSize:13, color:done?"#10b981":isExam?"#C17F3A":txt,
                           textDecoration:done?"line-through":"none", lineHeight:1,
                           background:"none", border:"none", padding:0,
@@ -2738,7 +2779,7 @@ Grade this submission strictly and fairly. Return ONLY a JSON object (no markdow
                     </div>
                     <div style={{ padding:"10px 8px", display:"flex", alignItems:"center" }}>
                       {!isExam && (
-                        <button onClick={() => openVideo(l.n)}
+                        <button onClick={() => !isExam && watchLecture(l, sched.lectures.indexOf(l))}
                           style={{ fontSize:11, background:"rgba(239,68,68,0.1)", border:"1px solid rgba(239,68,68,0.3)", borderRadius:4, padding:"3px 9px", color:"#ef4444", cursor:"pointer", whiteSpace:"nowrap" }}>
                           ▶ Watch
                         </button>
@@ -2823,7 +2864,12 @@ Grade this submission strictly and fairly. Return ONLY a JSON object (no markdow
                   <div style={{ padding:"16px 20px", display:"flex", justifyContent:"space-between", alignItems:"flex-start", gap:12 }}>
                     <div style={{ flex:1 }}>
                       <div style={{ display:"flex", alignItems:"center", gap:10, marginBottom:6, flexWrap:"wrap" }}>
-                        <span style={{ fontSize:15, fontWeight:700, color:txt }}>{ps.title}</span>
+                        <span style={{ fontSize:15, fontWeight:700, color:txt }}>{ps.title}{ps.link && (
+  <a href={ps.link} target="_blank" rel="noreferrer"
+    style={{ fontSize:11, color:"#C17F3A", textDecoration:"none", marginLeft:10 }}>
+    Open PS →
+  </a>
+)}</span>
                         <span style={{ fontSize:10, color:"#C17F3A", background:"rgba(193,127,58,0.1)", padding:"2px 8px", borderRadius:4, fontFamily:"'JetBrains Mono',monospace" }}>After L{ps.assignedAfter}</span>
                         {review?.submittedAt && (
                           <span style={{ fontSize:10, color:muted, fontFamily:"'JetBrains Mono',monospace" }}>Submitted {review.submittedAt}</span>
@@ -3693,12 +3739,15 @@ const LearningPath = ({ courseProgress, setCourseProgress, T, user, aiSettings, 
   // Drill into CourseDetail
   if (selectedCourse) return (
     <CourseDetail
-      course={selectedCourse}
+     course={selectedCourse}
       onBack={() => setSelectedCourse(null)}
       lectureProgress={lectureProgress}
       setLectureProgress={setLectureProgress}
+      setCourseProgress={setCourseProgress}
       T={T}
       user={user}
+      markStudyToday={markStudyToday}
+      githubData={githubData}
     />
   )
 
@@ -4727,7 +4776,7 @@ const ResourceHub = ({ T }) => {
   const [savedPapers, setSavedPapers] = useStorage("saved_papers_v2", [])
   const [readPapers,  setReadPapers]  = useStorage("read_papers_v1",  [])
   const [paperTab, setPaperTab] = useState("browse")   // browse | saved
-  const [paperQuery, setPaperQuery] = useState("q-fin")
+  const [paperQuery, setPaperQuery] = useState("q-fin.TR+OR+cat:q-fin.PM+OR+cat:q-fin.MF+OR+cat:q-fin.CP")
   const [aiQuery, setAiQuery] = useState("")
 
   const bg   = T?.cardBg    || "rgba(255,255,255,0.02)"
@@ -4777,13 +4826,16 @@ const ResourceHub = ({ T }) => {
   })
 
   // Auto-load latest q-fin papers when the component first mounts
-  useEffect(() => { fetchPapers("q-fin") }, [])
+  useEffect(() => { fetchPapers("q-fin.TR+OR+cat:q-fin.PM+OR+cat:q-fin.MF+OR+cat:q-fin.CP") }, [])
 
   const fetchPapers = async (q = paperQuery) => {
     setLoadingPapers(true)
     try {
-      const searchQ = q.includes("+") ? q : `cat:${q}`
-      const res = await fetch(`https://export.arxiv.org/api/query?search_query=${searchQ}&sortBy=submittedDate&sortOrder=descending&max_results=12`)
+      const searchQ = q.includes("cat:") || q.includes("+OR+") ? q : `cat:${q}`
+      // ✅ fixed
+    const ARXIV_URL = `https://arxiv.org/api/query?search_query=${searchQ}&sortBy=submittedDate&sortOrder=descending&max_results=12`
+    
+    const res = await fetch(`https://arxiv-proxy.quantos.workers.dev/?url=${encodeURIComponent(ARXIV_URL)}`)
       const text = await res.text()
       const parser = new DOMParser()
       const xml = parser.parseFromString(text, "text/xml")
@@ -4813,7 +4865,7 @@ const ResourceHub = ({ T }) => {
 
   const handleAiSearch = async () => {
     if (!aiQuery.trim()) return
-    const q = `cat:q-fin+AND+${encodeURIComponent(aiQuery.trim().replace(/\s+/g,"+"))}`
+    const q = `ti:${aiQuery.trim().replace(/\s+/g,"+")}+OR+abs:${aiQuery.trim().replace(/\s+/g,"+")}`    
     setPaperQuery(q)
     await fetchPapers(q)
   }
@@ -6438,7 +6490,7 @@ const CareerPrep = ({ T, isMobile, aiSettings, githubData = {}, markStudyToday =
 
 export default function QuantOS() {
   const [active, setActive]                     = useState("dashboard")
-  const { githubData, loading: dataLoading } = useGithubData()
+  const { githubData, loading: dataLoading, isLive, loadedKeys } = useGithubData()
   const [courseProgress, setCourseProgress]     = useStorage("course_progress_v2", {})
   const [bookmarks, setBookmarks]               = useStorage("comp_bookmarks_v2", [])
   const [user, setUser]                         = useStorage("auth_user_v2", null)
@@ -6744,6 +6796,19 @@ export default function QuantOS() {
         boxShadow: "0 2px 16px rgba(193,127,58,0.18)",
       }}>
         <span style={{ fontSize: 16, fontWeight: 800, fontFamily: "'Syne',sans-serif", color: "#C17F3A" }}>Q</span>
+      </div>
+   
+        <div
+        title={isLive ? `Live data: ${loadedKeys.join(", ")}` : "Using local fallback data"}
+        style={{
+          fontSize:9, fontFamily:"'JetBrains Mono',monospace",
+          color:      isLive ? "#10b981" : "#C17F3A",
+          background: isLive ? "rgba(16,185,129,0.12)" : "rgba(193,127,58,0.12)",
+          border:    `1px solid ${isLive ? "rgba(16,185,129,0.25)" : "rgba(193,127,58,0.25)"}`,
+          borderRadius:4, padding:"2px 5px", marginBottom:8,
+          letterSpacing:"0.04em", cursor:"default", userSelect:"none",
+        }}>
+        {isLive ? "GH ✓" : "LOCAL"}
       </div>
 
       {/* Nav */}

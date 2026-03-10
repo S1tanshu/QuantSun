@@ -1,0 +1,134 @@
+
+  "m10": {
+    "playlistUrl": "https://youtube.com/playlist?list=PLq-Gm0yRYwTipntZ17qTnGYAkyOPuhNEf&si=4kDty-C6SZotRAEz",
+    "notesPage": "",
+    "psets": [],
+    "lectures": [
+      {
+        "n": 1,
+        "title": "Nonlinear Programming - promo",
+        "videoId": "RYqBnxL8Lbg",
+        "ps": false
+      },
+      {
+        "n": 2,
+        "title": "Convex Sets and Functions",
+        "videoId": "liFWi2zR0MA",
+        "ps": false
+      },
+      {
+        "n": 3,
+        "title": "Properties of Convex Functions-I",
+        "videoId": "1_oOU25FAWQ",
+        "ps": false
+      },
+      {
+        "n": 4,
+        "title": "Properties of Convex Functions-II",
+        "videoId": "-BEaFPfXftM",
+        "ps": false
+      },
+      {
+        "n": 5,
+        "title": "Properties of Convex Functions- III",
+        "videoId": "cvgiqzUbTz8",
+        "ps": false
+      },
+      {
+        "n": 6,
+        "title": "Convex Programming Problems",
+        "videoId": "BX5a4UgLOA4",
+        "ps": false
+      },
+      {
+        "n": 7,
+        "title": "KKT optimality conditions",
+        "videoId": "UD0ac9pKopk",
+        "ps": false
+      },
+      {
+        "n": 8,
+        "title": "Quadratic Programming Problems-I",
+        "videoId": "1DMYE9sBWdw",
+        "ps": false
+      },
+      {
+        "n": 9,
+        "title": "Quadratic Programming Problems -II",
+        "videoId": "DZlbiuakHkw",
+        "ps": false
+      },
+      {
+        "n": 10,
+        "title": "Separable Programming-I",
+        "videoId": "iZJZfPVs7ns",
+        "ps": false
+      },
+      {
+        "n": 11,
+        "title": "Separable Programming-II",
+        "videoId": "3-U7dpv1T_k",
+        "ps": false
+      },
+      {
+        "n": 12,
+        "title": "Geometric Programming-I",
+        "videoId": "0W3RgiIq3dk",
+        "ps": false
+      },
+      {
+        "n": 13,
+        "title": "Geometric Programming-II",
+        "videoId": "GHNBVw6Dgv0",
+        "ps": false
+      },
+      {
+        "n": 14,
+        "title": "Geometric Programming-III",
+        "videoId": "RmhkCq5zp9o",
+        "ps": false
+      },
+      {
+        "n": 15,
+        "title": "Dynamic Programming-I",
+        "videoId": "PY9ZpZ2D3o0",
+        "ps": false
+      },
+      {
+        "n": 16,
+        "title": "Dynamic Programming-II",
+        "videoId": "s7RGemqa7KM",
+        "ps": false
+      },
+      {
+        "n": 17,
+        "title": "Dynamic Programming-III",
+        "videoId": "qa9fnsdY0A8",
+        "ps": false
+      },
+      {
+        "n": 18,
+        "title": "Dynamic Programming-IV",
+        "videoId": "A4DBIIl0X5M",
+        "ps": false
+      },
+      {
+        "n": 19,
+        "title": "Search Techniques-I",
+        "videoId": "iVM0r-v89-Y",
+        "ps": false
+      },
+      {
+        "n": 20,
+        "title": "Search Techniques-II",
+        "videoId": "PdJGUD2kQSs",
+        "ps": false
+      },
+      {
+        "n": 21,
+        "title": "Search Techniques-III",
+        "videoId": "OK6w2K1MJpM",
+        "ps": false
+      }
+    ]
+  },

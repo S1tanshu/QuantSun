@@ -14,7 +14,31 @@ import { useState, useEffect, useRef, useCallback, useMemo } from "react"
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 // VERSION — bump this once per release
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-const APP_VERSION = "v1.29"
+const APP_VERSION = "v1.30"
+
+// ─────────────────────────────────────────────
+//  QUANTSUN LOGO — rising sun SVG
+//  Usage: <QuantSunLogo size={28} />
+// ─────────────────────────────────────────────
+const QuantSunLogo = ({ size = 28 }) => (
+  <svg width={size} height={size} viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
+    {/* Rays */}
+    <line x1="20" y1="6" x2="20" y2="2"  stroke="#C17F3A" strokeWidth="2.2" strokeLinecap="round"/>
+    <line x1="30" y1="10" x2="33" y2="7"  stroke="#C17F3A" strokeWidth="2.2" strokeLinecap="round"/>
+    <line x1="34" y1="22" x2="38" y2="22" stroke="#C17F3A" strokeWidth="2.2" strokeLinecap="round"/>
+    <line x1="10" y1="10" x2="7"  y2="7"  stroke="#C17F3A" strokeWidth="2.2" strokeLinecap="round"/>
+    <line x1="6"  y1="22" x2="2"  y2="22" stroke="#C17F3A" strokeWidth="2.2" strokeLinecap="round"/>
+    <line x1="27" y1="33" x2="30" y2="36" stroke="#C17F3A" strokeWidth="2.2" strokeLinecap="round" opacity="0.4"/>
+    <line x1="13" y1="33" x2="10" y2="36" stroke="#C17F3A" strokeWidth="2.2" strokeLinecap="round" opacity="0.4"/>
+    {/* Horizon */}
+    <line x1="4" y1="30" x2="36" y2="30" stroke="#C17F3A" strokeWidth="1.5" strokeLinecap="round" opacity="0.5"/>
+    {/* Sun body — semicircle rising above horizon */}
+    <path d="M 8 30 A 12 12 0 0 1 32 30" fill="#C17F3A"/>
+    {/* Inner bright core */}
+    <path d="M 12 30 A 8 8 0 0 1 28 30" fill="#F0A84A" opacity="0.55"/>
+  </svg>
+)
+
 
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 // AI PROVIDER ADAPTER — swap provider without touching any feature code
@@ -115,7 +139,7 @@ const callAI = async ({ system = "", prompt, maxTokens = 800, aiSettings = {} })
 // GITHUB DATA LOADER
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 // HOW TO USE WHEN DEPLOYING:
-//   1. Create a public GitHub repo (e.g. "quantos-data")
+//   1. Create a public GitHub repo (e.g. "QuantSun-data")
 //   2. Add JSON files: courses.json, competitions.json, internships.json, jobs.json
 //   3. Each file is just the array exported as JSON — same fields as hardcoded data below
 //   4. Paste the raw GitHub URL for each file in the GITHUB_DATA_URLS object below
@@ -124,18 +148,18 @@ const callAI = async ({ system = "", prompt, maxTokens = 800, aiSettings = {} })
 //   6. Once confirmed working, delete the hardcoded arrays to keep the file clean
 //
 // RAW URL FORMAT:
-//   https://raw.githubusercontent.com/YOUR_USERNAME/quantos-data/main/courses.json
+//   https://raw.githubusercontent.com/YOUR_USERNAME/QuantSun-data/main/courses.json
 //
 // NOTE: The repo must be PUBLIC. No API key needed. GitHub CDN is free & fast.
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
 // ── STEP 1: Raw GitHub URLs ───────────────────────────────────────────────────
 const GITHUB_DATA_URLS = {
-  courses:      "https://raw.githubusercontent.com/S1tanshu/quantos-data/main/courses.json",
-  competitions: "https://raw.githubusercontent.com/S1tanshu/quantos-data/main/competitions.json",
-  internships:  "https://raw.githubusercontent.com/S1tanshu/quantos-data/main/internships.json",
-  jobs:         "https://raw.githubusercontent.com/S1tanshu/quantos-data/main/jobs.json",
-  schedules:    "https://raw.githubusercontent.com/S1tanshu/quantos-data/main/schedules.json",
+  courses:      "https://raw.githubusercontent.com/S1tanshu/QuantSun-data/main/courses.json",
+  competitions: "https://raw.githubusercontent.com/S1tanshu/QuantSun-data/main/competitions.json",
+  internships:  "https://raw.githubusercontent.com/S1tanshu/QuantSun-data/main/internships.json",
+  jobs:         "https://raw.githubusercontent.com/S1tanshu/QuantSun-data/main/jobs.json",
+  schedules:    "https://raw.githubusercontent.com/S1tanshu/QuantSun-data/main/schedules.json",
 }
 
 
@@ -164,7 +188,7 @@ const useGithubData = () => {
           if (r.status === "fulfilled") loaded[key] = r.value[1]
           else failed.push(`${key}(${r.reason?.message})`)
         })
-        if (failed.length) console.warn("QuantOS data fetch failed:", failed.join(", "))
+        if (failed.length) console.warn("QuantSun data fetch failed:", failed.join(", "))
         setGithubData(loaded)
       } catch (e) {
         console.warn("GitHub data fetch failed — falling back to hardcoded data.", e.message)
@@ -180,7 +204,7 @@ const useGithubData = () => {
   return { githubData, loading, error, isLive: loadedKeys.length > 0, loadedKeys }
 }
 
-// ── STEP 3-6 now implemented below in QuantOS() shell ───────────────────────
+// ── STEP 3-6 now implemented below in QuantSun() shell ───────────────────────
 
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 // HARDCODED DATA (delete these arrays once GitHub fetch is working)
@@ -1142,8 +1166,8 @@ const useStorage = (key, fallback) => {
 const TOUR_STEPS = [
   {
     icon:"🎯",
-    title:"Welcome to QuantOS",
-    body:"Your all-in-one quant career operating system. Track 118 courses, competitions, interview prep, research papers and networking — all in one place.",
+    title:"Welcome to QUANT SUN",
+    body:"Your all-in-one quant career platform. Track 118 courses, competitions, interview prep, research papers and networking — all in one place.",
     cta:"Let's go →",
   },
   {
@@ -1183,7 +1207,7 @@ const Onboarding = ({ onDone, isDark }) => {
       background:"rgba(4,4,12,0.88)",
       backdropFilter:"blur(18px)", WebkitBackdropFilter:"blur(18px)",
       display:"flex", alignItems:"center", justifyContent:"center",
-      animation:"qos-fade 0.25s ease",
+      animation:"qsun-fade 0.25s ease",
     }}>
       <div style={{
         width:440, borderRadius:24,
@@ -1191,7 +1215,7 @@ const Onboarding = ({ onDone, isDark }) => {
         border:"1px solid rgba(193,127,58,0.22)",
         boxShadow:"0 40px 120px rgba(0,0,0,0.6), 0 0 0 1px rgba(255,255,255,0.04) inset",
         overflow:"hidden",
-        animation:"qos-fade 0.2s ease",
+        animation:"qsun-fade 0.2s ease",
       }}>
         {/* Progress bar */}
         <div style={{height:3, background:"rgba(255,255,255,0.06)"}}>
@@ -1534,7 +1558,7 @@ const Dashboard = ({ courseProgress, bookmarks, T, onStartTour, navigate, isMobi
           borderRadius:14, padding:"24px", textAlign:"center" }}>
           <div style={{ fontSize:36, marginBottom:12 }}>⬡</div>
           <div style={{ fontSize:18, fontWeight:800, color:T.textHeading,
-            fontFamily:"'Syne',sans-serif", marginBottom:8 }}>Welcome to QuantOS</div>
+            fontFamily:"'Syne',sans-serif", marginBottom:8 }}>Welcome to Quant Sun</div>
           <div style={{ fontSize:13, color:T.textSub, lineHeight:1.7, marginBottom:18, maxWidth:380, margin:"0 auto 18px" }}>
             You haven't started any courses yet. Head to Learning Path to pick your first one — 18.01 Calculus is the recommended starting point for most quant tracks.
           </div>
@@ -3496,7 +3520,7 @@ const SkillTreeView = ({ courseProgress, onCourseClick, setCourseProgress, T, is
             boxShadow:isDark?"-12px 0 40px rgba(0,0,0,0.4)":"-12px 0 40px rgba(0,0,0,0.08)",
             display:"flex",flexDirection:"column",
             overflowY:"auto",
-            animation:"qos-fade 0.18s ease",
+            animation:"qsun-fade 0.18s ease",
           }}>
             {/* Header */}
             <div style={{padding:"20px 20px 16px",borderBottom:"none",
@@ -3918,7 +3942,7 @@ const CompetitionTracker = ({ bookmarks, setBookmarks, T, aiSettings, githubData
       const d = new Date(str); if (isNaN(d)) return null
       return d.toISOString().replace(/-|:|\.\d{3}/g,"").slice(0,15)+"Z"
     }
-    const lines = ["BEGIN:VCALENDAR","VERSION:2.0","PRODID:-//QuantOS//Competitions//EN","CALSCALE:GREGORIAN"]
+    const lines = ["BEGIN:VCALENDAR","VERSION:2.0","PRODID:-//QuantSun//Competitions//EN","CALSCALE:GREGORIAN"]
     LIVE_COMPS.filter(c=>c.status!=="closed").forEach(c=>{
       const dt = toICSDate(c.deadline); if(!dt) return
       lines.push("BEGIN:VEVENT",
@@ -3927,13 +3951,13 @@ const CompetitionTracker = ({ bookmarks, setBookmarks, T, aiSettings, githubData
         `DESCRIPTION:${c.desc?.replace(/\n/g,"\\n")||""} | ${c.link||""}`,
         `URL:${c.link||""}`,
         `LOCATION:${c.location||""}`,
-        `UID:quantos-${c.id}@competitions`,
+        `UID:QuantSun-${c.id}@competitions`,
         "END:VEVENT")
     })
     lines.push("END:VCALENDAR")
     const blob = new Blob([lines.join("\r\n")],{type:"text/calendar"})
     const a = document.createElement("a"); a.href=URL.createObjectURL(blob)
-    a.download="QuantOS_Competitions_2026.ics"; a.click(); URL.revokeObjectURL(a.href)
+    a.download="QuantSun_Competitions_2026.ics"; a.click(); URL.revokeObjectURL(a.href)
   }
 
   const toggleBookmark = (id) => {
@@ -4835,7 +4859,7 @@ const ResourceHub = ({ T }) => {
       // ✅ fixed
     const ARXIV_URL = `https://arxiv.org/api/query?search_query=${searchQ}&sortBy=submittedDate&sortOrder=descending&max_results=12`
     
-    const res = await fetch(`https://arxiv-proxy.quantos.workers.dev/?url=${encodeURIComponent(ARXIV_URL)}`)
+    const res = await fetch(`https://arxiv-proxy.QuantSun.workers.dev/?url=${encodeURIComponent(ARXIV_URL)}`)
       const text = await res.text()
       const parser = new DOMParser()
       const xml = parser.parseFromString(text, "text/xml")
@@ -6174,10 +6198,10 @@ const WelcomeScreen = ({ onLogin, isDark }) => {
         {/* Logo — wordmark only */}
         <div style={{ marginBottom: step === 0 ? 40 : 24 }}>
           <div style={{ fontSize:42, fontWeight:800, fontFamily:"'Syne',sans-serif", letterSpacing:"-0.03em", lineHeight:1 }}>
-            <span style={{ color:"#C17F3A" }}>Quant</span><span style={{ color:text }}>OS</span>
+            <span style={{ color:"#C17F3A" }}>QUANT</span><span style={{ color:text }}>SUN</span>
           </div>
           <div style={{ fontSize:10, color:sub, fontFamily:"'JetBrains Mono',monospace", letterSpacing:"0.14em", marginTop:6 }}>
-            CAREER OPERATING SYSTEM · {APP_VERSION}
+            QUANT CAREER PLATFORM · {APP_VERSION}
           </div>
         </div>
 
@@ -6275,7 +6299,7 @@ const WelcomeScreen = ({ onLogin, isDark }) => {
                 style={{ width:"100%", padding:"12px", borderRadius:12, border:"none",
                   background:"#C17F3A", color:"#000", fontSize:14, fontWeight:700,
                   cursor:"pointer", fontFamily:"'Syne',sans-serif" }}>
-                Enter QuantOS →
+                Enter QUANTSUN →
               </button>
 
               <button onClick={() => setStep(0)}
@@ -6488,7 +6512,7 @@ const CareerPrep = ({ T, isMobile, aiSettings, githubData = {}, markStudyToday =
   )
 }
 
-export default function QuantOS() {
+export default function QuantSun() {
   const [active, setActive]                     = useState("dashboard")
   const { githubData, loading: dataLoading, isLive, loadedKeys } = useGithubData()
   const [courseProgress, setCourseProgress]     = useStorage("course_progress_v2", {})
@@ -6607,13 +6631,13 @@ export default function QuantOS() {
     <div style={{ minHeight:"100vh", display:"flex", flexDirection:"column", alignItems:"center", justifyContent:"center",
       background:"#110703", fontFamily:"'JetBrains Mono',monospace", gap:16 }}>
       <div style={{ fontSize:28, fontWeight:800, fontFamily:"'Syne',sans-serif" }}>
-        <span style={{ color:"#C17F3A" }}>Quant</span><span style={{ color:"#E8D5C0" }}>OS</span>
+        <span style={{ color:"#C17F3A" }}>Quant</span><span style={{ color:"#E8D5C0" }}>SUN</span>
       </div>
       <div style={{ fontSize:12, color:"#9A7A62", letterSpacing:"0.1em" }}>LOADING DATA...</div>
       <div style={{ width:120, height:2, background:"rgba(193,127,58,0.15)", borderRadius:99, overflow:"hidden" }}>
-        <div style={{ height:"100%", background:"#C17F3A", borderRadius:99, animation:"qos-load 1.2s ease-in-out infinite" }}/>
+        <div style={{ height:"100%", background:"#C17F3A", borderRadius:99, animation:"qsun-load 1.2s ease-in-out infinite" }}/>
       </div>
-      <style>{`@keyframes qos-load { 0%{width:0%} 50%{width:100%} 100%{width:0%;margin-left:100%} }`}</style>
+      <style>{`@keyframes qsun-load { 0%{width:0%} 50%{width:100%} 100%{width:0%;margin-left:100%} }`}</style>
     </div>
   )
 
@@ -6795,7 +6819,7 @@ export default function QuantOS() {
         display: "flex", alignItems: "center", justifyContent: "center",
         boxShadow: "0 2px 16px rgba(193,127,58,0.18)",
       }}>
-        <span style={{ fontSize: 16, fontWeight: 800, fontFamily: "'Syne',sans-serif", color: "#C17F3A" }}>Q</span>
+        <QuantSunLogo size={22} />
       </div>
    
         <div
@@ -6817,7 +6841,7 @@ export default function QuantOS() {
           const isActive = active === item.id
           return (
             <button key={item.id} onClick={() => navigate(item.id)}
-              data-tip={item.label} className="qos-tip"
+              data-tip={item.label} className="qsun-tip"
               style={{
                 width: "100%", height: 44,
                 display: "flex", alignItems: "center", justifyContent: "center",
@@ -6863,7 +6887,7 @@ export default function QuantOS() {
       {/* Footer */}
       <div style={{ display:"flex", flexDirection:"column", alignItems:"center", gap:8, padding:"12px 8px 0", borderTop:`1px solid ${T.border}`, width:"100%" }}>
         <button onClick={() => setShowShortcuts(s=>!s)}
-          data-tip="Keyboard shortcuts (?)" className="qos-tip"
+          data-tip="Keyboard shortcuts (?)" className="qsun-tip"
           style={{
             width:"100%", height:32, borderRadius:8,
             border:`1px solid ${showShortcuts?"rgba(193,127,58,0.35)":T.border}`,
@@ -6874,7 +6898,7 @@ export default function QuantOS() {
           }}>?</button>
         {/* AI Settings button — glows if no key set */}
         <button onClick={() => setShowAISettings(true)}
-          data-tip="AI Settings" className="qos-tip"
+          data-tip="AI Settings" className="qsun-tip"
           style={{
             width:"100%", height:32, borderRadius:8, position:"relative",
             border:`1px solid ${aiSettings.key ? T.border : "rgba(193,127,58,0.4)"}`,
@@ -6891,12 +6915,12 @@ export default function QuantOS() {
         </button>
         {user.picture
           ? <img src={user.picture} onClick={() => setUser(null)}
-              data-tip="Sign out" className="qos-tip"
+              data-tip="Sign out" className="qsun-tip"
               style={{ width:32, height:32, borderRadius:"50%", cursor:"pointer",
                 border:`2px solid ${isDark ? "rgba(255,255,255,0.10)" : "rgba(255,255,255,0.85)"}`,
                 boxShadow:"0 2px 8px rgba(0,0,0,0.12)", objectFit:"cover" }} />
           : <div onClick={() => setUser(null)}
-              data-tip={`${user.name||"Guest"} · Sign out`} className="qos-tip"
+              data-tip={`${user.name||"Guest"} · Sign out`} className="qsun-tip"
               style={{
                 width:32, height:32, borderRadius:"50%", cursor:"pointer",
                 background: isDark ? "rgba(193,127,58,0.18)" : "rgba(255,255,255,0.75)",
@@ -6932,7 +6956,7 @@ export default function QuantOS() {
            Modules set background: T.cardBg inline. We add backdrop-filter + the
            inner top-edge highlight via a global rule so every card glows correctly
            without touching any module code.                                       */
-        .qos-root * {
+        .qsun-root * {
           /* pass-through — no global override needed; blur handled per-element */
         }
         /* Glass card surfaces */
@@ -6941,8 +6965,8 @@ export default function QuantOS() {
         [style*="rgba(255,255,255,0.055)"] { backdrop-filter:blur(10px); -webkit-backdrop-filter:blur(10px); }
 
         /* ── CSS tooltip (icon rail) ── */
-        .qos-tip { position: relative; }
-        .qos-tip::after {
+        .qsun-tip { position: relative; }
+        .qsun-tip::after {
           content: attr(data-tip);
           position: absolute; left: calc(100% + 14px); top: 50%;
           transform: translateY(-50%) scale(0.94);
@@ -6957,7 +6981,7 @@ export default function QuantOS() {
           box-shadow: 0 4px 20px rgba(0,0,0,0.12);
           z-index: 999;
         }
-        .qos-tip:hover::after { opacity: 1; transform: translateY(-50%) scale(1); }
+        .qsun-tip:hover::after { opacity: 1; transform: translateY(-50%) scale(1); }
 
 
         /* ── Glass shadow system ────────────────────────────────────────────────────
@@ -6978,7 +7002,7 @@ export default function QuantOS() {
             4px 0 32px rgba(0,0,0,0.25) !important;
         }
         /* Orange accent hover glow on interactive tiles */
-        .qos-tile-hover:hover {
+        .qsun-tile-hover:hover {
           box-shadow:
             0 0 0 1px rgba(193,127,58,0.22),
             0 8px 32px rgba(193,127,58,0.08),
@@ -6986,10 +7010,10 @@ export default function QuantOS() {
           transform: translateY(-1px);
           transition: all 0.2s ease;
         }
-        @keyframes qos-fade { from{opacity:0;transform:translateY(8px)} to{opacity:1;transform:translateY(0)} }
+        @keyframes qsun-fade { from{opacity:0;transform:translateY(8px)} to{opacity:1;transform:translateY(0)} }
       `}</style>
 
-      <div className="qos-root" style={{
+      <div className="qsun-root" style={{
         display:"flex", minHeight:"100vh",
         background: T.bg,
         fontFamily:"'Inter',system-ui,sans-serif", color:T.text,
@@ -7050,7 +7074,7 @@ export default function QuantOS() {
               padding:"0 4px",
             }}>
               {/* Hide scrollbar for webkit */}
-              <style>{`.qos-nav-scroll::-webkit-scrollbar{display:none}`}</style>
+              <style>{`.qsun-nav-scroll::-webkit-scrollbar{display:none}`}</style>
               {NAV_ITEMS.filter(item => !item.desktopOnly).map(item => {
                 const isActive = active === item.id
                 const badge = NAV_BADGES[item.id]
@@ -7136,7 +7160,7 @@ export default function QuantOS() {
           background:"rgba(4,4,12,0.70)",
           backdropFilter:"blur(12px)",WebkitBackdropFilter:"blur(12px)",
           display:"flex",alignItems:"center",justifyContent:"center",
-          animation:"qos-fade 0.18s ease",
+          animation:"qsun-fade 0.18s ease",
         }}>
           <div onClick={e=>e.stopPropagation()} style={{
             width:380,borderRadius:20,

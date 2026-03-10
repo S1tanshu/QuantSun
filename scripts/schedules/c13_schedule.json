@@ -1,0 +1,129 @@
+{
+  "c13": {
+    "playlistUrl": "https://youtube.com/playlist?list=PLEGCF-WLh2RJBqmxvZ0_ie-mleCFhi2N4&si=lHS0IFiEFRLFxhR0",
+    "notesPage": "",
+    "psets": [],
+    "lectures": [
+      {
+        "n": 1,
+        "title": "Algorithmic Game Theory (Lecture 1: Introduction and Examples)",
+        "videoId": "TM_QFmQU_VA",
+        "ps": false
+      },
+      {
+        "n": 2,
+        "title": "Algorithmic Game Theory (Lecture 2: Mechanism Design Basics)",
+        "videoId": "z1QZqYuiGa8",
+        "ps": false
+      },
+      {
+        "n": 3,
+        "title": "Algorithmic Game Theory (Lecture 3: Myerson's Lemma)",
+        "videoId": "9qZwchMuslk",
+        "ps": false
+      },
+      {
+        "n": 4,
+        "title": "Algorithmic Game Theory (Lecture 4: Algorithmic Mechanism Design)",
+        "videoId": "BMoSLmuJsak",
+        "ps": false
+      },
+      {
+        "n": 5,
+        "title": "Algorithmic Game Theory (Lecture 5: Revenue-Maximizing Auctions)",
+        "videoId": "jQsAoMcxlIo",
+        "ps": false
+      },
+      {
+        "n": 6,
+        "title": "Algorithmic Game Theory (Lecture 6: Simple Near-Optimal Auctions)",
+        "videoId": "DkZswYeJLRE",
+        "ps": false
+      },
+      {
+        "n": 7,
+        "title": "Algorithmic Game Theory (Lecture 7: Multi-Parameter Mechanism Design and the VCG Mechanism)",
+        "videoId": "TLl3FVXPVIY",
+        "ps": false
+      },
+      {
+        "n": 8,
+        "title": "Algorithmic Game Theory (Lecture 8: Combinatorial and Wireless Spectrum Auctions)",
+        "videoId": "TttPqjl991A",
+        "ps": false
+      },
+      {
+        "n": 9,
+        "title": "Algorithmic Game Theory (Lecture 9: Beyond Quasi-Linearity)",
+        "videoId": "zV6yH3-AdEg",
+        "ps": false
+      },
+      {
+        "n": 10,
+        "title": "Algorithmic Game Theory (Lecture 10: Kidney Exchange and Stable Matching)",
+        "videoId": "NT07sILhsv4",
+        "ps": false
+      },
+      {
+        "n": 11,
+        "title": "Algorithmic Game Theory (Lecture 11: Selfish Routing and the Price of Anarchy)",
+        "videoId": "jnLEEr3pc4Y",
+        "ps": false
+      },
+      {
+        "n": 12,
+        "title": "Algorithmic Game Theory (Lecture 12: Network Over-Provisioning and Atomic Selfish Routing)",
+        "videoId": "JUc5BbotCVA",
+        "ps": false
+      },
+      {
+        "n": 13,
+        "title": "Algorithmic Game Theory (Lecture 13: Potential Games; A Hierarchy of Equilibria)",
+        "videoId": "aV16MDoRZoc",
+        "ps": false
+      },
+      {
+        "n": 14,
+        "title": "Algorithmic Game Theory (Lecture 14: Robust Price-of-Anarchy Bounds in Smooth Games)",
+        "videoId": "eYd7VxtITrE",
+        "ps": false
+      },
+      {
+        "n": 15,
+        "title": "Algorithmic Game Theory (Lecture 15: Best-Case and Strong Nash Equilibria)",
+        "videoId": "VjCKNl-GENI",
+        "ps": false
+      },
+      {
+        "n": 16,
+        "title": "Algorithmic Game Theory (Lecture 16: Best-Response Dynamics)",
+        "videoId": "QOCmIDzOcJA",
+        "ps": false
+      },
+      {
+        "n": 17,
+        "title": "Algorithmic Game Theory (Lecture 17: No-Regret Dynamics)",
+        "videoId": "ssAEgJKRe9o",
+        "ps": false
+      },
+      {
+        "n": 18,
+        "title": "Algorithmic Game Theory (Lecture 18: From External Regret to Swap Regret and the Minimax Theorem)",
+        "videoId": "XQ32p6clz9k",
+        "ps": false
+      },
+      {
+        "n": 19,
+        "title": "Algorithmic Game Theory (Lecture 19: Pure Nash Equilibria and PLS-Completeness)",
+        "videoId": "5xu8C0wj7UU",
+        "ps": false
+      },
+      {
+        "n": 20,
+        "title": "Algorithmic Game Theory (Lecture 20: Mixed Nash Equilibria and PPAD-Completeness)",
+        "videoId": "P8adJn_KQO0",
+        "ps": false
+      }
+    ]
+  }
+}

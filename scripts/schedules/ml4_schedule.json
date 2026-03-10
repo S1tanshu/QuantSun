@@ -1,0 +1,122 @@
+
+  "ml4": {
+    "playlistUrl": "https://youtube.com/playlist?list=PLoROMvodv4rO1NB9TD4iUZ3qghGEGtqNX&si=KDHVWQYqK19yF3-h",
+    "notesPage": "",
+    "psets": [],
+    "lectures": [
+      {
+        "n": 1,
+        "title": "Overview Artificial Intelligence Course | Stanford CS221: Learn AI (Autumn 2019)",
+        "videoId": "J8Eh7RqggsU",
+        "ps": false
+      },
+      {
+        "n": 2,
+        "title": "Machine Learning 1 - Linear Classifiers, SGD | Stanford CS221: AI (Autumn 2019)",
+        "videoId": "zrT2qETJilw",
+        "ps": false
+      },
+      {
+        "n": 3,
+        "title": "Machine Learning 2 - Features, Neural Networks | Stanford CS221: AI (Autumn 2019)",
+        "videoId": "BRgKyNdD9qU",
+        "ps": false
+      },
+      {
+        "n": 4,
+        "title": "Machine Learning 3 - Generalization, K-means | Stanford CS221: AI (Autumn 2019)",
+        "videoId": "O9vCb30sHBA",
+        "ps": false
+      },
+      {
+        "n": 5,
+        "title": "Search 1 - Dynamic Programming, Uniform Cost Search | Stanford CS221: AI (Autumn 2019)",
+        "videoId": "aIsgJJYrlXk",
+        "ps": false
+      },
+      {
+        "n": 6,
+        "title": "Search 2 - A* | Stanford CS221: Artificial Intelligence (Autumn 2019)",
+        "videoId": "HEs1ZCvLH2s",
+        "ps": false
+      },
+      {
+        "n": 7,
+        "title": "Markov Decision Processes 1 - Value Iteration | Stanford CS221: AI (Autumn 2019)",
+        "videoId": "9g32v7bK3Co",
+        "ps": false
+      },
+      {
+        "n": 8,
+        "title": "Markov Decision Processes 2 - Reinforcement Learning | Stanford CS221: AI (Autumn 2019)",
+        "videoId": "HpaHTfY52RQ",
+        "ps": false
+      },
+      {
+        "n": 9,
+        "title": "Game Playing 1 - Minimax, Alpha-beta Pruning | Stanford CS221: AI (Autumn 2019)",
+        "videoId": "3pU-Hrz_xy4",
+        "ps": false
+      },
+      {
+        "n": 10,
+        "title": "Game Playing 2 - TD Learning, Game Theory | Stanford CS221: Artificial Intelligence (Autumn 2019)",
+        "videoId": "WoFwXj4p4Sc",
+        "ps": false
+      },
+      {
+        "n": 11,
+        "title": "Factor Graphs 1 - Constraint Satisfaction Problems | Stanford CS221: AI (Autumn 2019)",
+        "videoId": "Yo-xat4cn8M",
+        "ps": false
+      },
+      {
+        "n": 12,
+        "title": "Factor Graphs 2 - Conditional Independence | Stanford CS221: AI (Autumn 2019)",
+        "videoId": "o0mKSvbMunA",
+        "ps": false
+      },
+      {
+        "n": 13,
+        "title": "Bayesian Networks 1 - Inference | Stanford CS221: AI (Autumn 2019)",
+        "videoId": "U23yuPEACG0",
+        "ps": false
+      },
+      {
+        "n": 14,
+        "title": "Bayesian Networks 2 - Forward-Backward | Stanford CS221: AI (Autumn 2019)",
+        "videoId": "GPoj3zfX60g",
+        "ps": false
+      },
+      {
+        "n": 15,
+        "title": "Bayesian Networks 3 - Maximum Likelihood | Stanford CS221: AI (Autumn 2019)",
+        "videoId": "Fa-rr6AXMwg",
+        "ps": false
+      },
+      {
+        "n": 16,
+        "title": "Logic 1 - Propositional Logic | Stanford CS221: AI (Autumn 2019)",
+        "videoId": "xL0kNw5TudI",
+        "ps": false
+      },
+      {
+        "n": 17,
+        "title": "Logic 2 - First-order Logic | Stanford CS221: AI (Autumn 2019)",
+        "videoId": "_Iz83hfkFds",
+        "ps": false
+      },
+      {
+        "n": 18,
+        "title": "Deep Learning | Stanford CS221: AI (Autumn 2019)",
+        "videoId": "7v933EUdxzU",
+        "ps": false
+      },
+      {
+        "n": 19,
+        "title": "Conclusion | Stanford CS221: AI (Autumn 2019)",
+        "videoId": "a0sqE7y53W8",
+        "ps": false
+      }
+    ]
+  },

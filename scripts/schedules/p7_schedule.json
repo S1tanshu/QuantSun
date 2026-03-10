@@ -1,0 +1,296 @@
+
+  "p7": {
+    "playlistUrl": "https://youtube.com/playlist?list=PL2EF13wm-hWCoj6tUBGUmrkJmH1972dBB&si=biDBJ2S_P7IDvezx",
+    "notesPage": "",
+    "psets": [],
+    "lectures": [
+      {
+        "n": 1,
+        "title": "Foundations of Assembly Programming - Binary Numbers",
+        "videoId": "yBO-EJoVDo0",
+        "ps": false
+      },
+      {
+        "n": 2,
+        "title": "Foundations of Assembly Programming - Binary Basics 2",
+        "videoId": "0x4obbzEAzM",
+        "ps": false
+      },
+      {
+        "n": 3,
+        "title": "Foundations of Assembly Programming - Hexadecimal Numbers",
+        "videoId": "sFjX1hFDVkk",
+        "ps": false
+      },
+      {
+        "n": 4,
+        "title": "Learning x86 With NASM - Basics of x86 Architecture",
+        "videoId": "UUTpCd-nPSg",
+        "ps": false
+      },
+      {
+        "n": 5,
+        "title": "Learning x86 with NASM - Processor Modes and Registers",
+        "videoId": "OetaxILNiMs",
+        "ps": false
+      },
+      {
+        "n": 6,
+        "title": "Learning x86 with NASM - Making your First Program",
+        "videoId": "IGo2ldg2Mp0",
+        "ps": false
+      },
+      {
+        "n": 7,
+        "title": "Learning x86 with NASM - Working with Data and Stack Memory",
+        "videoId": "jJh9fpTpzGY",
+        "ps": false
+      },
+      {
+        "n": 8,
+        "title": "Learning x86 with NASM - Working with Byte and Word Data",
+        "videoId": "LIM-PtQprFQ",
+        "ps": false
+      },
+      {
+        "n": 9,
+        "title": "Learning x86 with NASM - Characters, Strings and Lists",
+        "videoId": "hrrAkNeMTiY",
+        "ps": false
+      },
+      {
+        "n": 10,
+        "title": "Learning x86 with NASM - Declaring Uninitialized Data",
+        "videoId": "__C3CHBVPY0",
+        "ps": false
+      },
+      {
+        "n": 11,
+        "title": "Learning x86 with NASM - ADD, ADC, and EFLAGS",
+        "videoId": "cE2JuWzaJXo",
+        "ps": false
+      },
+      {
+        "n": 12,
+        "title": "Learning x86 with NASM - Subtraction and Sign Flags",
+        "videoId": "cA152hCfJHg",
+        "ps": false
+      },
+      {
+        "n": 13,
+        "title": "Learning x86 with NASM - Multiplying numbers with MUL and IMUL",
+        "videoId": "aSILhr9uEuo",
+        "ps": false
+      },
+      {
+        "n": 14,
+        "title": "Learning x86 with NASM - Dividing numbers with DIV and IDIV",
+        "videoId": "uBQZ348lZIQ",
+        "ps": false
+      },
+      {
+        "n": 15,
+        "title": "Learning x86 with NASM - Logical Operators",
+        "videoId": "Vw3KT7FB6Q4",
+        "ps": false
+      },
+      {
+        "n": 16,
+        "title": "Learning x86 with NASM - Shifts",
+        "videoId": "597QNlaA2ws",
+        "ps": false
+      },
+      {
+        "n": 17,
+        "title": "Learning x86 with NASM - Comparison and Jump Instructions",
+        "videoId": "U7ysSE4Ew7E",
+        "ps": false
+      },
+      {
+        "n": 18,
+        "title": "Learning x86 with NASM - Creating a Loop",
+        "videoId": "o7cxmkTbr5c",
+        "ps": false
+      },
+      {
+        "n": 19,
+        "title": "Learning x86 with NASM - Floating Point Numbers",
+        "videoId": "FAKJset0qtw",
+        "ps": false
+      },
+      {
+        "n": 20,
+        "title": "Learning x86 with NASM - Comparing Floating Point Numbers",
+        "videoId": "zbsiq1n230E",
+        "ps": false
+      },
+      {
+        "n": 21,
+        "title": "Learning x86 with NASM - Calling Standard C Functions",
+        "videoId": "oeo-hKxsAMo",
+        "ps": false
+      },
+      {
+        "n": 22,
+        "title": "Learning x86 with NASM - Calling C Functions",
+        "videoId": "jDZuTpCE8l8",
+        "ps": false
+      },
+      {
+        "n": 23,
+        "title": "Learning x86 with NASM - Basics of x86 functions/procedures",
+        "videoId": "EEEYPCxQyB4",
+        "ps": false
+      },
+      {
+        "n": 24,
+        "title": "Learning x86 with NASM - Passing Data to Functions on the Stack",
+        "videoId": "21u0Uerx0_Y",
+        "ps": false
+      },
+      {
+        "n": 25,
+        "title": "Learning x86 with NASM - Opening and Reading Files",
+        "videoId": "oRjLQ8_aPZ8",
+        "ps": false
+      },
+      {
+        "n": 26,
+        "title": "Learning x86 with NASM - Using Lseek with Files",
+        "videoId": "QC6WdiiEud0",
+        "ps": false
+      },
+      {
+        "n": 27,
+        "title": "Learning x86 with NASM - Creating and Writing Files",
+        "videoId": "k1IZ0C0JiXU",
+        "ps": false
+      },
+      {
+        "n": 28,
+        "title": "x86 Operating Systems - Building a Simple Bootloader",
+        "videoId": "7BqWNT-5hN8",
+        "ps": false
+      },
+      {
+        "n": 29,
+        "title": "x86 Operating Systems - Printing A Message in BIOS",
+        "videoId": "zT4WyIgZGow",
+        "ps": false
+      },
+      {
+        "n": 30,
+        "title": "Disk Storage Structure in 6 Minutes",
+        "videoId": "wI6MYewlZpA",
+        "ps": false
+      },
+      {
+        "n": 31,
+        "title": "x86 Operating Systems - Creating a FAT12 Disk",
+        "videoId": "zHJ2vlBnNr0",
+        "ps": false
+      },
+      {
+        "n": 32,
+        "title": "x86 Operating Systems - Reading From the Disk in BIOS",
+        "videoId": "rDgPQX4IMTo",
+        "ps": false
+      },
+      {
+        "n": 33,
+        "title": "x86 Operating Systems - Loading The Kernel File from Disk",
+        "videoId": "jRcMJ4JqgAQ",
+        "ps": false
+      },
+      {
+        "n": 34,
+        "title": "x86 Operating Systems - Implementing puts with C and x86",
+        "videoId": "11ijCDrCR7k",
+        "ps": false
+      },
+      {
+        "n": 35,
+        "title": "x86 Operating Systems - Implementing a basic printf function",
+        "videoId": "PJ34r14h8wc",
+        "ps": false
+      },
+      {
+        "n": 36,
+        "title": "x86 Operating Systems - Implementing disk resets",
+        "videoId": "RjXF9QS5jQs",
+        "ps": false
+      },
+      {
+        "n": 37,
+        "title": "x86 Operating Systems - Booting with Grub",
+        "videoId": "6zPBNEDKbpk",
+        "ps": false
+      },
+      {
+        "n": 38,
+        "title": "x86 Operating Systems - Writing to video memory",
+        "videoId": "dQqLT4qGiqI",
+        "ps": false
+      },
+      {
+        "n": 39,
+        "title": "x86 Operating Systems - Implementing a GDT",
+        "videoId": "jwulDRMQ53I",
+        "ps": false
+      },
+      {
+        "n": 40,
+        "title": "x86 Operating Systems - Debugging with GDB and QEMU",
+        "videoId": "q5vagAJ2YH8",
+        "ps": false
+      },
+      {
+        "n": 41,
+        "title": "x86 Operating Systems - Task State Segment",
+        "videoId": "UikDD0VYiME",
+        "ps": false
+      },
+      {
+        "n": 42,
+        "title": "x86 Operating Systems - Interrupts",
+        "videoId": "pfj95yQbF4M",
+        "ps": false
+      },
+      {
+        "n": 43,
+        "title": "x86 Operating Systems - Setting up a Cross Compiler",
+        "videoId": "zBorEnGhPv8",
+        "ps": false
+      },
+      {
+        "n": 44,
+        "title": "x86 Operating Systems - Adding Programmable Interrupt Timer Interrupts (PIT)",
+        "videoId": "Hd_vSC8_SKc",
+        "ps": false
+      },
+      {
+        "n": 45,
+        "title": "x86 Operating Systems - Basic PS2 Keyboard Driver",
+        "videoId": "b2_W0wIed_A",
+        "ps": false
+      },
+      {
+        "n": 46,
+        "title": "x86 Operating Systems - Retrieving memory maps from multiboot",
+        "videoId": "fiSsROFBZ6s",
+        "ps": false
+      },
+      {
+        "n": 47,
+        "title": "x86 Operating Systems - Paging and Upper Half Kernel",
+        "videoId": "pcvKrvEJRgg",
+        "ps": false
+      },
+      {
+        "n": 48,
+        "title": "x86 Operating Systems - Memory Management and Paging",
+        "videoId": "-Z48jM1m2kQ",
+        "ps": false
+      }
+    ]
+  },

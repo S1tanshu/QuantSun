@@ -1,4 +1,4 @@
-# QuantOS — Quant Career Operating System
+# Quant Sun — Quant Career platform
 
 > A free, open-source study and career platform for students pursuing quantitative finance.  
 > No accounts. No servers. No cost. Everything runs on your device.
@@ -10,9 +10,9 @@
 
 ---
 
-## What is QuantOS?
+## What is Quant Sun?
 
-QuantOS is a complete career preparation platform for students who want to break into quantitative finance — as researchers, traders, developers, or risk quants — without paying for expensive prep courses or subscriptions.
+Quant Sun is a complete career preparation platform for students who want to break into quantitative finance — as researchers, traders, developers, or risk quants — without paying for expensive prep courses or subscriptions.
 
 Built by a student, for students who can't afford the alternatives.
 
@@ -64,14 +64,14 @@ Built by a student, for students who can't afford the alternatives.
 ## Running Locally
 
 **Zero install — open in Claude.ai artifacts:**
-Drop `QuantOS_v1_20.jsx` into claude.ai → it runs instantly.
+Drop `Quant Sun_v1_20.jsx` into claude.ai → it runs instantly.
 
 **Local dev with hot-reload:**
 ```bash
-git clone https://github.com/YOUR_USERNAME/quantos
-cd quantos
+git clone https://github.com/YOUR_USERNAME/Quant Sun
+cd Quant Sun
 npm create vite@latest . -- --template react
-# Replace src/App.jsx content with QuantOS_v1_20.jsx content
+# Replace src/App.jsx content with Quant Sun_v1_20.jsx content
 npm install && npm run dev
 ```
 
@@ -85,7 +85,7 @@ AI powers interview practice, the career advisor, competition search, and networ
 **Recommended free option (Groq):**
 1. Go to [console.groq.com/keys](https://console.groq.com/keys)
 2. Create a free account → generate key
-3. In QuantOS → click ⚙ in sidebar → paste key → Save
+3. In Quant Sun → click ⚙ in sidebar → paste key → Save
 
 Free Groq tier: **14,400 requests/day** — ample for daily use.
 
@@ -105,9 +105,9 @@ Supported providers: Groq · Google Gemini · Mistral · Anthropic
 ## Repository Structure (Phase 2)
 
 ```
-quantos/                   ← Main app repo
+Quant Sun/                   ← Main app repo
 ├── src/
-│   └── App.jsx            ← QuantOS_v1_20.jsx (renamed)
+│   └── App.jsx            ← Quant Sun_v1_20.jsx (renamed)
 ├── index.html
 ├── package.json
 ├── vite.config.js
@@ -117,7 +117,7 @@ quantos/                   ← Main app repo
 ├── CONTRIBUTING.md
 └── IMPLEMENTATION_GUIDE.docx
 
-quantos-data/              ← Separate public data repo
+Quant Sun-data/              ← Separate public data repo
 ├── courses.json
 ├── competitions.json
 ├── internships.json

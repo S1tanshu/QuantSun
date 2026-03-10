@@ -1,0 +1,224 @@
+
+  "m9": {
+    "playlistUrl": "https://youtube.com/playlist?list=PLUl4u3cNGP63oMNUHXqIUcrkS2PivhN3k&si=htSGIHL_YUAD0RsH",
+    "notesPage": "",
+    "psets": [],
+    "lectures": [
+      {
+        "n": 1,
+        "title": "Course Introduction of 18.065 by Professor Strang",
+        "videoId": "Cx5Z-OslNWE",
+        "ps": false
+      },
+      {
+        "n": 2,
+        "title": "An Interview with Gilbert Strang on Teaching Matrix Methods in Data Analysis, Signal Processing,...",
+        "videoId": "t36jZG07MYc",
+        "ps": false
+      },
+      {
+        "n": 3,
+        "title": "Lecture 1: The Column Space of A Contains All Vectors Ax",
+        "videoId": "YiqIkSHSmyc",
+        "ps": false
+      },
+      {
+        "n": 4,
+        "title": "Lecture 2: Multiplying and Factoring Matrices",
+        "videoId": "or6C4yBk_SY",
+        "ps": false
+      },
+      {
+        "n": 5,
+        "title": "3. Orthonormal Columns in Q Give Q'Q = I",
+        "videoId": "Xa2jPbURTjQ",
+        "ps": false
+      },
+      {
+        "n": 6,
+        "title": "4. Eigenvalues and Eigenvectors",
+        "videoId": "k095NdrHxY4",
+        "ps": false
+      },
+      {
+        "n": 7,
+        "title": "5. Positive Definite and Semidefinite Matrices",
+        "videoId": "xsP-S7yKaRA",
+        "ps": false
+      },
+      {
+        "n": 8,
+        "title": "6. Singular Value Decomposition (SVD)",
+        "videoId": "rYz83XPxiZo",
+        "ps": false
+      },
+      {
+        "n": 9,
+        "title": "7. Eckart-Young: The Closest Rank k Matrix to A",
+        "videoId": "Y4f7K9XF04k",
+        "ps": false
+      },
+      {
+        "n": 10,
+        "title": "Lecture 8: Norms of Vectors and Matrices",
+        "videoId": "NcPUI7aPFhA",
+        "ps": false
+      },
+      {
+        "n": 11,
+        "title": "9. Four Ways to Solve Least Squares Problems",
+        "videoId": "ZUU57Q3CFOU",
+        "ps": false
+      },
+      {
+        "n": 12,
+        "title": "Lecture 10: Survey of Difficulties with Ax = b",
+        "videoId": "Z_5uLqcwDgM",
+        "ps": false
+      },
+      {
+        "n": 13,
+        "title": "Lecture 11: Minimizing ‖x‖ Subject to Ax = b",
+        "videoId": "MuEW9pG9oxE",
+        "ps": false
+      },
+      {
+        "n": 14,
+        "title": "12. Computing Eigenvalues and Singular Values",
+        "videoId": "d32WV1rKoVk",
+        "ps": false
+      },
+      {
+        "n": 15,
+        "title": "Lecture 13: Randomized Matrix Multiplication",
+        "videoId": "z0ykhV15wLw",
+        "ps": false
+      },
+      {
+        "n": 16,
+        "title": "14. Low Rank Changes in A and Its Inverse",
+        "videoId": "XhSk_Lw2X_U",
+        "ps": false
+      },
+      {
+        "n": 17,
+        "title": "15. Matrices A(t) Depending on t, Derivative = dA/dt",
+        "videoId": "z3SmljnD_nQ",
+        "ps": false
+      },
+      {
+        "n": 18,
+        "title": "16. Derivatives of Inverse and Singular Values",
+        "videoId": "AdTvkFsqcDc",
+        "ps": false
+      },
+      {
+        "n": 19,
+        "title": "Lecture 17: Rapidly Decreasing Singular Values",
+        "videoId": "9BYsNpTCZGg",
+        "ps": false
+      },
+      {
+        "n": 20,
+        "title": "Lecture 18: Counting Parameters in SVD, LU, QR, Saddle Points",
+        "videoId": "xaSL8yFgqig",
+        "ps": false
+      },
+      {
+        "n": 21,
+        "title": "19. Saddle Points Continued, Maxmin Principle",
+        "videoId": "2K7CvGnebO0",
+        "ps": false
+      },
+      {
+        "n": 22,
+        "title": "20. Definitions and Inequalities",
+        "videoId": "nrDkb2MAwSA",
+        "ps": false
+      },
+      {
+        "n": 23,
+        "title": "Lecture 21: Minimizing a Function Step by Step",
+        "videoId": "nvXRJIBOREc",
+        "ps": false
+      },
+      {
+        "n": 24,
+        "title": "22. Gradient Descent: Downhill to a Minimum",
+        "videoId": "AeRwohPuUHQ",
+        "ps": false
+      },
+      {
+        "n": 25,
+        "title": "23. Accelerating Gradient Descent (Use Momentum)",
+        "videoId": "wrEcHhoJxjM",
+        "ps": false
+      },
+      {
+        "n": 26,
+        "title": "24. Linear Programming and Two-Person Games",
+        "videoId": "feb9j65Iz4w",
+        "ps": false
+      },
+      {
+        "n": 27,
+        "title": "25. Stochastic Gradient Descent",
+        "videoId": "k3AiUhwHQ28",
+        "ps": false
+      },
+      {
+        "n": 28,
+        "title": "26. Structure of Neural Nets for Deep Learning",
+        "videoId": "sx00s7nYmRM",
+        "ps": false
+      },
+      {
+        "n": 29,
+        "title": "27. Backpropagation: Find Partial Derivatives",
+        "videoId": "lZrIPRnoGQQ",
+        "ps": false
+      },
+      {
+        "n": 30,
+        "title": "Lecture 30: Completing a Rank-One Matrix, Circulants!",
+        "videoId": "p-bXJIa7QVI",
+        "ps": false
+      },
+      {
+        "n": 31,
+        "title": "31. Eigenvectors of Circulant Matrices: Fourier Matrix",
+        "videoId": "1pFv7e9xtHo",
+        "ps": false
+      },
+      {
+        "n": 32,
+        "title": "Lecture 32: ImageNet is a Convolutional Neural Network (CNN), The Convolution Rule",
+        "videoId": "hwDRfkPSXng",
+        "ps": false
+      },
+      {
+        "n": 33,
+        "title": "33. Neural Nets and the Learning Function",
+        "videoId": "L3-WFKCW-tY",
+        "ps": false
+      },
+      {
+        "n": 34,
+        "title": "34. Distance Matrices, Procrustes Problem",
+        "videoId": "0Qws8BuK3RQ",
+        "ps": false
+      },
+      {
+        "n": 35,
+        "title": "35. Finding Clusters in Graphs",
+        "videoId": "cxTmmasBiC8",
+        "ps": false
+      },
+      {
+        "n": 36,
+        "title": "Lecture 36: Alan Edelman and Julia Language",
+        "videoId": "rZS2LGiurKY",
+        "ps": false
+      }
+    ]
+  },

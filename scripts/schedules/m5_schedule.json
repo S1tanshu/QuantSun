@@ -1,0 +1,128 @@
+
+  "m5": {
+    "playlistUrl": "https://youtube.com/playlist?list=PLUl4u3cNGP61p2fXeXjNCrfNHFwyW-bl0&si=BMiCbtkSmY-0Jsaa",
+    "notesPage": "",
+    "psets": [],
+    "lectures": [
+      {
+        "n": 1,
+        "title": "Lecture 1: Pigeonhole Principle",
+        "videoId": "Z1zgrgstVAw",
+        "ps": false
+      },
+      {
+        "n": 2,
+        "title": "Lecture 2: Independence and Conditioning",
+        "videoId": "DxpSDeG7lL4",
+        "ps": false
+      },
+      {
+        "n": 3,
+        "title": "Lecture 3: Inclusion-Exclusion",
+        "videoId": "cqPcQ3QqYnE",
+        "ps": false
+      },
+      {
+        "n": 4,
+        "title": "Lecture 4: Counting",
+        "videoId": "H-Ix7gIt9i4",
+        "ps": false
+      },
+      {
+        "n": 5,
+        "title": "Lecture 5: More Counting and Generating Functions",
+        "videoId": "HpQUVd1MGso",
+        "ps": false
+      },
+      {
+        "n": 6,
+        "title": "Lecture 6: More on Generating Functions",
+        "videoId": "XfRe9i3FR1U",
+        "ps": false
+      },
+      {
+        "n": 7,
+        "title": "Lecture 7: Generating Functions for Catalan Numbers",
+        "videoId": "JNSyyOAeMOc",
+        "ps": false
+      },
+      {
+        "n": 8,
+        "title": "Lecture 8: Tail Bounds",
+        "videoId": "HC54KcgvReg",
+        "ps": false
+      },
+      {
+        "n": 9,
+        "title": "Lecture 9: Chernoff Bounds",
+        "videoId": "FPj3OOM6DEc",
+        "ps": false
+      },
+      {
+        "n": 10,
+        "title": "Lecture 10: Modular Arithmetic",
+        "videoId": "wkmDtvO222A",
+        "ps": false
+      },
+      {
+        "n": 11,
+        "title": "Lecture 11: Basic Group Theory",
+        "videoId": "hUtdHAeyY6Y",
+        "ps": false
+      },
+      {
+        "n": 12,
+        "title": "Lecture 12: Introduction to Linear Programming",
+        "videoId": "qKNkP6IfjvY",
+        "ps": false
+      },
+      {
+        "n": 13,
+        "title": "Lecture 13: Duality in Linear Programming",
+        "videoId": "oyVZ3rao6M4",
+        "ps": false
+      },
+      {
+        "n": 14,
+        "title": "Lecture 14: Zero-Sum Games",
+        "videoId": "o6blhvYXfq4",
+        "ps": false
+      },
+      {
+        "n": 15,
+        "title": "Lecture 15: Max-Flow Min-Cut Theorem",
+        "videoId": "pX-HnYwO454",
+        "ps": false
+      },
+      {
+        "n": 16,
+        "title": "Lecture 16: Data Compression and Shannon’s Noiseless Coding Theorem",
+        "videoId": "4OpiI5NLjIE",
+        "ps": false
+      },
+      {
+        "n": 17,
+        "title": "Lecture 17: Huffman Coding",
+        "videoId": "zZN1A0Ufb8E",
+        "ps": false
+      },
+      {
+        "n": 18,
+        "title": "Lecture 18: Transmitting Information Reliably over a Noisy Channel & Shannon’s Noisy Coding Theorem",
+        "videoId": "kWsJ_JDuFaI",
+        "ps": false
+      },
+      {
+        "n": 19,
+        "title": "Lecture 19: Error-Correcting Codes—Hamming Codes",
+        "videoId": "N81pBt3KUWI",
+        "ps": false
+      },
+      {
+        "n": 20,
+        "title": "Lecture 20: Reed-Solomon Codes",
+        "videoId": "OapnQzIDBM0",
+        "ps": false
+      }
+    ]
+  },
