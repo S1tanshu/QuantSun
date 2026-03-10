@@ -2,6 +2,7 @@
 
 > A free, open-source study and career platform for students pursuing quantitative finance.  
 > No accounts. No servers. No cost. Everything runs on your device.
+> still under development, some courses may take time to connect. Your contributions in Quantos-data repository would be appreciated.
 
 ![Version](https://img.shields.io/badge/version-v1.20-C17F3A)
 ![License](https://img.shields.io/badge/license-MIT-10b981)
