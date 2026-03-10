@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef, useCallback, useMemo } from "react"
-
+ 
 // ─────────────────────────────────────────────
 //  EMBEDDED DATA  (from Excel + docx + research)
 // ─────────────────────────────────────────────
@@ -4859,7 +4859,7 @@ const ResourceHub = ({ T }) => {
       // ✅ fixed
     const ARXIV_URL = `https://arxiv.org/api/query?search_query=${searchQ}&sortBy=submittedDate&sortOrder=descending&max_results=12`
     
-    const res = await fetch(`https://arxiv-proxy.QuantSun.workers.dev/?url=${encodeURIComponent(ARXIV_URL)}`)
+    const res = await fetch(`https://arxiv-proxy.s1tanshu.workers.dev/?url=${encodeURIComponent(ARXIV_URL)}`)
       const text = await res.text()
       const parser = new DOMParser()
       const xml = parser.parseFromString(text, "text/xml")
