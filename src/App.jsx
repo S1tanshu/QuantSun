@@ -147,10 +147,6 @@ const callAI = async ({ system = "", prompt, maxTokens = 800, aiSettings = {} })
 //      loaded version: e.g. replace COURSES with (githubData.courses || COURSES)
 //   6. Once confirmed working, delete the hardcoded arrays to keep the file clean
 //
-// RAW URL FORMAT:
-//   https://raw.githubusercontent.com/YOUR_USERNAME/QuantSun-data/main/courses.json
-//
-// NOTE: The repo must be PUBLIC. No API key needed. GitHub CDN is free & fast.
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
 // ── STEP 1: Raw GitHub URLs ───────────────────────────────────────────────────
@@ -2503,7 +2499,7 @@ const YouTubePlayer = ({ videoId, T }) => {
 
 
 
-const CourseDetail = ({ course, onBack, lectureProgress, setLectureProgress, setCourseProgress = ()=>{}, T, user, markStudyToday = ()=>{}, githubData = {} }) => {
+const CourseDetail = ({ course, onBack, lectureProgress, setLectureProgress, setCourseProgress = ()=>{}, T, user, markStudyToday = ()=>{}, githubData = {}, aiSettings  }) => {
 const LIVE_SCHEDULES = githubData.schedules || SCHEDULES
 const raw = LIVE_SCHEDULES[course.id]
 const sched = (raw ? {
@@ -2620,10 +2616,23 @@ Grade this submission strictly and fairly. Return ONLY a JSON object (no markdow
   )
 
  const toggleL = (n) => {
-    markStudyToday()
-    setLectureProgress(prev => {
-      const k    = `${course.id}_l${n}`
-      const next = { ...prev, [k]: prev[k] === 1 ? 0 : 1 }
+  markStudyToday()
+  setLectureProgress(prev => {
+    const k = `${course.id}_l${n}`
+    const curr = prev[k] || 0
+    const next = curr === 0 ? 0.5 : curr === 0.5 ? 1 : 0
+    const updated = { ...prev, [k]: next }
+    if (sched) {
+      const total = sched.lectures.length
+      const doneCount = sched.lectures.filter(l => updated[`${course.id}_l${l.n}`] === 1).length
+      setCourseProgress(cp => ({
+        ...cp,
+        [course.id]: doneCount === 0 ? 0 : doneCount === total ? 1 : 0.5,
+      }))
+    }
+    return updated
+  })
+}
 
       // ── Auto-sync course state based on lecture completions ──────────
       if (sched) {
@@ -2644,6 +2653,9 @@ Grade this submission strictly and fairly. Return ONLY a JSON object (no markdow
 
   // ── YouTube player ────────────────────────────────────────────────────────
   const hasVideoIds = sched?.lectures?.some(l => l.videoId)
+  const [aiPanel, setAiPanel]           = useState(null)
+  const [aiPanelInput, setAiPanelInput] = useState("")
+  const [aiPanelLoading, setAiPanelLoading] = useState(false)
   const [showPlayer, setShowPlayer]     = useState(false)
   const [activeVideoId, setActiveVideoId] = useState(null)
   const [manualIndex, setManualIndex]   = useState(null)  // 0-based index of playing lecture
@@ -2659,6 +2671,41 @@ Grade this submission strictly and fairly. Return ONLY a JSON object (no markdow
     setShowPlayer(false)
   }
 
+//Ai chat panel
+  const openAiPanel = async (lec) => {
+  if (aiPanel?.lectureN === lec.n) { setAiPanel(null); return }
+  const context = `Course: ${course.name} (${course.institution})
+Subject: ${course.subject}
+Lecture ${lec.n}: "${lec.title}"
+Progress: Lecture ${lec.n} of ${sched.lectures.length} total.`
+  const systemMsg = `You are a helpful quant finance teaching assistant for ${course.name}. Answer concisely. Use examples where helpful.`
+  setAiPanel({ lectureN: lec.n, lectureName: lec.title, messages: [], loading: true })
+  setAiPanelLoading(true)
+  try {
+    const greeting = await callAI({ prompt: `${context}\n\nGreet the student in 1 sentence and tell them what you can help with for this lecture.`, systemPrompt: systemMsg, maxTokens: 120, aiSettings })
+    setAiPanel({ lectureN: lec.n, lectureName: lec.title, context, systemMsg, messages: [{ role:"assistant", content: greeting }] })
+  } catch(e) {
+    setAiPanel({ lectureN: lec.n, lectureName: lec.title, context, systemMsg, messages: [{ role:"assistant", content: "Ask me anything about this lecture!" }] })
+  }
+  setAiPanelLoading(false)
+}
+
+const sendAiMessage = async () => {
+  if (!aiPanelInput.trim() || !aiPanel) return
+  const userMsg = aiPanelInput.trim()
+  setAiPanelInput("")
+  const newMessages = [...aiPanel.messages, { role:"user", content: userMsg }]
+  setAiPanel(p => ({ ...p, messages: newMessages }))
+  setAiPanelLoading(true)
+  try {
+    const history = newMessages.map(m => `${m.role==="user"?"Student":"Assistant"}: ${m.content}`).join("\n")
+    const reply = await callAI({ prompt: `${aiPanel.context}\n\nConversation:\n${history}\n\nStudent: ${userMsg}`, systemPrompt: aiPanel.systemMsg, maxTokens: 400, aiSettings })
+    setAiPanel(p => ({ ...p, messages: [...p.messages, { role:"assistant", content: reply }] }))
+  } catch(e) {
+    setAiPanel(p => ({ ...p, messages: [...p.messages, { role:"assistant", content: "Couldn't reach AI. Check your API key in Settings." }] }))
+  }
+  setAiPanelLoading(false)
+}
   // Top-level ▶ Watch Here button — start at first unwatched lecture
   const togglePlayer = () => {
     if (showPlayer) { setShowPlayer(false); return }
@@ -2809,9 +2856,18 @@ Grade this submission strictly and fairly. Return ONLY a JSON object (no markdow
                         </button>
                       )}
                     </div>
-                    <div style={{ padding:"10px 8px", display:"flex", alignItems:"center" }}>
+                    <div style={{ padding:"10px 8px", display:"flex", alignItems:"center", gap:6 }}>
+                      <button onClick={() => openAiPanel(l)}
+                     title="Ask AI about this lecture"
+                     style={{ fontSize:11, width:26, height:26, borderRadius:"50%",
+                     background: aiPanel?.lectureN===l.n ? "rgba(99,102,241,0.3)" : "rgba(99,102,241,0.1)",
+                     border:`1px solid ${aiPanel?.lectureN===l.n ? "#818cf8" : "rgba(99,102,241,0.25)"}`,
+                     color:"#818cf8", cursor:"pointer",
+                     display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0 }}>
+                     ?
+                   </button>
                       <button onClick={() => toggleL(l.n)} style={{ fontSize:11, background:done?"rgba(16,185,129,0.15)":bg, border:`1px solid ${done?"rgba(16,185,129,0.3)":bdr}`, borderRadius:4, padding:"3px 8px", color:done?"#10b981":sub, cursor:"pointer", whiteSpace:"nowrap" }}>
-                        {done ? "✓ Done" : "○ Mark"}
+                        {lectureProgress[`${course.id}_l${l.n}`] === 1 ? "✓ Done" : lectureProgress[`${course.id}_l${l.n}`] === 0.5 ? "◑ Active" : "○ Start"}
                       </button>
                     </div>
                   </div>
@@ -3054,9 +3110,61 @@ Grade this submission strictly and fairly. Return ONLY a JSON object (no markdow
           </div>
         </div>
       )}
+       {aiPanel && (
+        <div style={{ position:"fixed", bottom:0, right:0,
+          width: window.innerWidth > 768 ? 360 : "100%",
+          height: window.innerWidth > 768 ? "70vh" : "50vh",
+          background:"#0f1629", border:"1px solid rgba(99,102,241,0.3)",
+          borderRadius: window.innerWidth > 768 ? "16px 0 0 16px" : "16px 16px 0 0",
+          display:"flex", flexDirection:"column", zIndex:1000,
+          boxShadow:"0 -4px 40px rgba(0,0,0,0.5)" }}>
+          <div style={{ padding:"12px 16px", borderBottom:"1px solid rgba(99,102,241,0.2)",
+            display:"flex", justifyContent:"space-between", alignItems:"center" }}>
+            <div>
+              <div style={{ fontSize:11, color:"#818cf8", fontFamily:"'JetBrains Mono',monospace" }}>✦ AI TUTOR</div>
+              <div style={{ fontSize:12, color:"#f1f5f9", fontWeight:600 }}>L{aiPanel.lectureN}: {aiPanel.lectureName}</div>
+            </div>
+            <button onClick={() => setAiPanel(null)}
+              style={{ background:"none", border:"none", color:"#64748b", cursor:"pointer", fontSize:18 }}>✕</button>
+          </div>
+          <div style={{ flex:1, overflowY:"auto", padding:"12px 16px", display:"flex", flexDirection:"column", gap:10 }}>
+            {aiPanel.messages.map((m,i) => (
+              <div key={i} style={{ alignSelf: m.role==="user" ? "flex-end" : "flex-start",
+                maxWidth:"85%",
+                background: m.role==="user" ? "rgba(99,102,241,0.2)" : "rgba(255,255,255,0.05)",
+                border:`1px solid ${m.role==="user" ? "rgba(99,102,241,0.3)" : "rgba(255,255,255,0.08)"}`,
+                borderRadius: m.role==="user" ? "12px 12px 2px 12px" : "12px 12px 12px 2px",
+                padding:"8px 12px", fontSize:12, color:"#f1f5f9", lineHeight:1.6 }}>
+                {m.content}
+              </div>
+            ))}
+            {aiPanelLoading && (
+              <div style={{ alignSelf:"flex-start", fontSize:12, color:"#818cf8", fontStyle:"italic" }}>Thinking…</div>
+            )}
+          </div>
+          <div style={{ padding:"10px 12px", borderTop:"1px solid rgba(99,102,241,0.2)", display:"flex", gap:8 }}>
+            <input value={aiPanelInput} onChange={e=>setAiPanelInput(e.target.value)}
+              onKeyDown={e=>e.key==="Enter"&&!e.shiftKey&&sendAiMessage()}
+              placeholder="Ask about this lecture…"
+              style={{ flex:1, background:"rgba(255,255,255,0.05)",
+                border:"1px solid rgba(99,102,241,0.25)",
+                borderRadius:8, padding:"8px 12px", color:"#f1f5f9",
+                fontSize:12, outline:"none", fontFamily:"inherit" }}
+            />
+            <button onClick={sendAiMessage} disabled={aiPanelLoading}
+              style={{ padding:"8px 14px", borderRadius:8,
+                background:"rgba(99,102,241,0.2)",
+                border:"1px solid rgba(99,102,241,0.4)",
+                color:"#818cf8", fontSize:12, cursor:"pointer", fontWeight:600 }}>
+              Send
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   )
 }
+
 
 
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
@@ -3772,6 +3880,7 @@ const LearningPath = ({ courseProgress, setCourseProgress, T, user, aiSettings, 
       user={user}
       markStudyToday={markStudyToday}
       githubData={githubData}
+      aiSettings={aiSettings}
     />
   )
 
@@ -3834,7 +3943,7 @@ const LearningPath = ({ courseProgress, setCourseProgress, T, user, aiSettings, 
         {/* Filters Row */}
         <div style={{ display:"flex", gap:10, marginBottom:20, alignItems:"center", flexWrap:"wrap" }}>
           <input value={search} onChange={e => setSearch(e.target.value)} placeholder="Search courses..." style={{ background:inBg, border:`1px solid ${bdr}`, borderRadius:8, padding:"7px 12px", color:txt, fontSize:13, outline:"none", minWidth:200 }} />
-          {["All","Done","In Progress","Not Started","Ready","Locked"].map(f => (
+          {["All","Done","In Progress","Not Started"].map(f => (
             <button key={f} onClick={() => setFilterStatus(f)} style={{ padding:"6px 12px", borderRadius:6, border:"1px solid", fontSize:12, cursor:"pointer",
               borderColor: filterStatus === f ? "#6366f1" : bdr,
               background: filterStatus === f ? "rgba(99,102,241,0.15)" : "transparent",
@@ -3908,6 +4017,30 @@ const LearningPath = ({ courseProgress, setCourseProgress, T, user, aiSettings, 
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 // FILE: src/components/modules/CompetitionTracker.jsx  (when splitting)
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+const NoteTextarea = ({ value, onChange, inBg, txt }) => {
+  const [draft, setDraft] = useState(value || "")
+  return (
+    <textarea
+      value={draft}
+      onChange={e => setDraft(e.target.value)}
+      onBlur={() => onChange(draft)}
+      onKeyDown={e => { if(e.key==="Enter" && !e.shiftKey){ e.preventDefault(); onChange(draft) }}}
+      placeholder="Personal notes, team info, requirements..."
+      style={{ width:"100%", minHeight:60, background:inBg,
+        border:"1px solid rgba(99,102,241,0.25)", borderRadius:8,
+        padding:"8px 12px", color:txt, fontSize:12, resize:"vertical",
+        outline:"none", fontFamily:"inherit", lineHeight:1.5, boxSizing:"border-box" }}
+    />
+  )
+}
+
+<NoteTextarea
+  value={compNotes[c.id]}
+  onChange={val => setCompNotes(p=>({...p,[c.id]:val}))}
+  inBg={inBg}
+  txt={txt}
+/>
+
 const CompetitionTracker = ({ bookmarks, setBookmarks, T, aiSettings, githubData = {} }) => {
   const LIVE_COMPS = githubData.competitions || COMPETITIONS
   const [search, setSearch] = useState("")
@@ -3965,10 +4098,9 @@ const CompetitionTracker = ({ bookmarks, setBookmarks, T, aiSettings, githubData
   }
 
   let filtered = LIVE_COMPS.filter(c => {
-    if (filterStatus !== "All" && filterStatus === "open"       && c.status !== "open")   return false
-    if (filterStatus !== "All" && filterStatus === "tba"        && c.status !== "tba")    return false
-    if (filterStatus !== "All" && filterStatus === "closed"     && c.status !== "closed") return false
-    if (filterStatus === "bookmarked" && !bookmarks.includes(c.id)) return false
+    if (filterStatus !== "All" && filterStatus === "open"   && deriveStatus(c) !== "open")   return false
+    if (filterStatus !== "All" && filterStatus === "tba"    && deriveStatus(c) !== "tba")    return false
+    if (filterStatus !== "All" && filterStatus === "closed" && deriveStatus(c) !== "closed") return false    if (filterStatus === "bookmarked" && !bookmarks.includes(c.id)) return false
     if (filterCat  !== "All" && c.category !== filterCat)  return false
     if (filterMode !== "All" && !c.mode.includes(filterMode)) return false
     if (search && !c.name.toLowerCase().includes(search.toLowerCase()) && !c.org.toLowerCase().includes(search.toLowerCase())) return false
