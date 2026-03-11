@@ -1,0 +1,506 @@
+
+  "c20": {
+    "playlistUrl": "https://youtube.com/playlist?list=PLyqSpQzTE6M8XNc8SxMLbUxdR7lDSuIGw&si=M_CtqGMmGk6kV6h6",
+    "notesPage": "",
+    "psets": [],
+    "lectures": [
+      {
+        "n": 1,
+        "title": "Optimization Theory and Algorithms - Introduction",
+        "videoId": "BMdLYXKZZtE",
+        "ps": false
+      },
+      {
+        "n": 2,
+        "title": "Introduction to the course - 1 - Prerequisites, key elements",
+        "videoId": "LlP-lcV9ARo",
+        "ps": false
+      },
+      {
+        "n": 3,
+        "title": "Introduction to the course - 2 - Types of problems",
+        "videoId": "xju3O5PCjyg",
+        "ps": false
+      },
+      {
+        "n": 4,
+        "title": "Introduction to the course - 3 - an optimization example to live longer",
+        "videoId": "zpilLHCrBJI",
+        "ps": false
+      },
+      {
+        "n": 5,
+        "title": "Summary of background material  - Linear Algebra 1",
+        "videoId": "QD4h03UaQB0",
+        "ps": false
+      },
+      {
+        "n": 6,
+        "title": "Summary of background material  - Linear Algebra II",
+        "videoId": "RAlwafbfEWo",
+        "ps": false
+      },
+      {
+        "n": 7,
+        "title": "Summary of background material -  Analysis I",
+        "videoId": "FfheLC-laYo",
+        "ps": false
+      },
+      {
+        "n": 8,
+        "title": "Summary of background material  - Analysis II",
+        "videoId": "_epZpuk-2Ds",
+        "ps": false
+      },
+      {
+        "n": 9,
+        "title": "Summary of background material - Analysis III",
+        "videoId": "NgGE9g2bEIM",
+        "ps": false
+      },
+      {
+        "n": 10,
+        "title": "Summary of background material - Calculus 1",
+        "videoId": "WHLKINW-zUE",
+        "ps": false
+      },
+      {
+        "n": 11,
+        "title": "Summary of background material - Calculus 2",
+        "videoId": "-H6GT0tjfC4",
+        "ps": false
+      },
+      {
+        "n": 12,
+        "title": "Summary of background material - Calculus 3",
+        "videoId": "qwGE6I9Jg7Y",
+        "ps": false
+      },
+      {
+        "n": 13,
+        "title": "Example of Multivariate Differentiation",
+        "videoId": "-JnIIr8M3eA",
+        "ps": false
+      },
+      {
+        "n": 14,
+        "title": "Gradient of Quadratic form and product rule",
+        "videoId": "Szz82xWGF9Y",
+        "ps": false
+      },
+      {
+        "n": 15,
+        "title": "Directional derivative, hessian, and mean value theorem",
+        "videoId": "freaaiSNV_Q",
+        "ps": false
+      },
+      {
+        "n": 16,
+        "title": "Unconstrained optimization -1- Roadmap of the course and Taylor’s theorem",
+        "videoId": "Ya93bjd_DcY",
+        "ps": false
+      },
+      {
+        "n": 17,
+        "title": "Unconstrained optimization - 2 - Identifying a local minima - 1st and 2nd order conditions",
+        "videoId": "xDzpVbq37uU",
+        "ps": false
+      },
+      {
+        "n": 18,
+        "title": "Unconstrained optimization - 3 - Proof of 1st Order Condition",
+        "videoId": "jnUvK4Xe1As",
+        "ps": false
+      },
+      {
+        "n": 19,
+        "title": "Unconstrained optimization - 4 - overview of algorithms and choosing a descent direction",
+        "videoId": "_bNufP6704w",
+        "ps": false
+      },
+      {
+        "n": 20,
+        "title": "Unconstrained optimization - 5 - properties of descent directions   steepest descent direction",
+        "videoId": "Ir9Eq2A8jxA",
+        "ps": false
+      },
+      {
+        "n": 21,
+        "title": "Unconstrained optimization - 6 - properties of descent directions   newton direction",
+        "videoId": "5oGwV--eDNM",
+        "ps": false
+      },
+      {
+        "n": 22,
+        "title": "Unconstrained optimization - 7 - Trust Region Methods",
+        "videoId": "5UhkfGVQqiA",
+        "ps": false
+      },
+      {
+        "n": 23,
+        "title": "A MATLAB session",
+        "videoId": "XNEp8xDBic0",
+        "ps": false
+      },
+      {
+        "n": 24,
+        "title": "Introduction to Line Search",
+        "videoId": "E0oiq-ZGi_g",
+        "ps": false
+      },
+      {
+        "n": 25,
+        "title": "Wolfe Conditions",
+        "videoId": "HdEE2sgak9Q",
+        "ps": false
+      },
+      {
+        "n": 26,
+        "title": "Strong Wolfe Conditions",
+        "videoId": "K34BkqPhi1Q",
+        "ps": false
+      },
+      {
+        "n": 27,
+        "title": "Backtracking Line Search",
+        "videoId": "UDgLspZRfqE",
+        "ps": false
+      },
+      {
+        "n": 28,
+        "title": "Line Search - Analysis",
+        "videoId": "6ohtSgl7Dzs",
+        "ps": false
+      },
+      {
+        "n": 29,
+        "title": "Line Search - Convergence and Rate  - 1",
+        "videoId": "lxkVpSL795E",
+        "ps": false
+      },
+      {
+        "n": 30,
+        "title": "Line Search - Convergence and Rate - 2",
+        "videoId": "MDnQF-aP-UE",
+        "ps": false
+      },
+      {
+        "n": 31,
+        "title": "Convergence analysis of a descent algorithm - 1",
+        "videoId": "fQF_k7hoekc",
+        "ps": false
+      },
+      {
+        "n": 32,
+        "title": "Convergence analysis of a descent algorithm - 2",
+        "videoId": "EDrrrbaLsNg",
+        "ps": false
+      },
+      {
+        "n": 33,
+        "title": "Implementation of an optimization algorithm in MATLAB",
+        "videoId": "16ukiLfsWR0",
+        "ps": false
+      },
+      {
+        "n": 34,
+        "title": "Conjugate Gradient Methods - Introduction and Proof",
+        "videoId": "UIsjsGIqs_4",
+        "ps": false
+      },
+      {
+        "n": 35,
+        "title": "Visualizing Quadratic Forms",
+        "videoId": "sQTv8azo0LI",
+        "ps": false
+      },
+      {
+        "n": 36,
+        "title": "Orthogonality and Conjugacy",
+        "videoId": "xUp5CNGp7WI",
+        "ps": false
+      },
+      {
+        "n": 37,
+        "title": "Conjugate Directions Method - Introduction and Proof",
+        "videoId": "llxywBiJ4Cs",
+        "ps": false
+      },
+      {
+        "n": 38,
+        "title": "Discussion on doubts",
+        "videoId": "MPmin_EVx08",
+        "ps": false
+      },
+      {
+        "n": 39,
+        "title": "More on Conjugate Directions Method",
+        "videoId": "WFDbw7Py0Yw",
+        "ps": false
+      },
+      {
+        "n": 40,
+        "title": "Ways of Generating Conjugate Directions",
+        "videoId": "aukm4slm8tc",
+        "ps": false
+      },
+      {
+        "n": 41,
+        "title": "Expanding Subspace Theorem",
+        "videoId": "DILaiviunz4",
+        "ps": false
+      },
+      {
+        "n": 42,
+        "title": "Discussion on doubts",
+        "videoId": "B7tVE5MfyVE",
+        "ps": false
+      },
+      {
+        "n": 43,
+        "title": "Conjugate Gradient Method",
+        "videoId": "t-bNXpTWtwE",
+        "ps": false
+      },
+      {
+        "n": 44,
+        "title": "MATLAB implementation on CGM",
+        "videoId": "LAdSIEIgKrg",
+        "ps": false
+      },
+      {
+        "n": 45,
+        "title": "Discussion on doubts",
+        "videoId": "MFHmGQIFoaY",
+        "ps": false
+      },
+      {
+        "n": 46,
+        "title": "Preconditioned Conjugate Gradient - Part 1",
+        "videoId": "spVxMlbN_8M",
+        "ps": false
+      },
+      {
+        "n": 47,
+        "title": "Preconditioned Conjugate Gradient - Part 2",
+        "videoId": "p61xa9I_fWo",
+        "ps": false
+      },
+      {
+        "n": 48,
+        "title": "Preconditioned Conjugate Gradient - Part 3",
+        "videoId": "iUHVAZO8xH0",
+        "ps": false
+      },
+      {
+        "n": 49,
+        "title": "Non Linear Conjugate Gradient method",
+        "videoId": "EhmGe-gW_Mc",
+        "ps": false
+      },
+      {
+        "n": 50,
+        "title": "Intro to Newton methods",
+        "videoId": "fg50XtiaW9s",
+        "ps": false
+      },
+      {
+        "n": 51,
+        "title": "Newton methods and convergence",
+        "videoId": "-e7WtK1obJ4",
+        "ps": false
+      },
+      {
+        "n": 52,
+        "title": "Checks for positive definite matrices",
+        "videoId": "hX-78ESCXeA",
+        "ps": false
+      },
+      {
+        "n": 53,
+        "title": "Hessian Modification",
+        "videoId": "RO-_TXJU87c",
+        "ps": false
+      },
+      {
+        "n": 54,
+        "title": "Quasi newton methods",
+        "videoId": "IcQzcs2Houc",
+        "ps": false
+      },
+      {
+        "n": 55,
+        "title": "BFGS method",
+        "videoId": "NeRQIuHg5io",
+        "ps": false
+      },
+      {
+        "n": 56,
+        "title": "Least squares problems",
+        "videoId": "20dwxzg_eiU",
+        "ps": false
+      },
+      {
+        "n": 57,
+        "title": "Linear least squares - Part 1",
+        "videoId": "c33o23bsQzs",
+        "ps": false
+      },
+      {
+        "n": 58,
+        "title": "Linear least squares - Part 2",
+        "videoId": "souOzfExIZI",
+        "ps": false
+      },
+      {
+        "n": 59,
+        "title": "Solving least squares using SVD",
+        "videoId": "rvVUyCwXpwM",
+        "ps": false
+      },
+      {
+        "n": 60,
+        "title": "Non linear least squares",
+        "videoId": "mhqFfzRw3NQ",
+        "ps": false
+      },
+      {
+        "n": 61,
+        "title": "Constrained Optimisation",
+        "videoId": "aQqznCCauIo",
+        "ps": false
+      },
+      {
+        "n": 62,
+        "title": "Single equality constraint",
+        "videoId": "p4tUZz73uSA",
+        "ps": false
+      },
+      {
+        "n": 63,
+        "title": "Single inequality constraint",
+        "videoId": "Yj7JSu3K_7I",
+        "ps": false
+      },
+      {
+        "n": 64,
+        "title": "Single inequality constraint - part 2",
+        "videoId": "rsSc9Jc1ihg",
+        "ps": false
+      },
+      {
+        "n": 65,
+        "title": "Two inequality constraints example",
+        "videoId": "wcmzAaKi_lk",
+        "ps": false
+      },
+      {
+        "n": 66,
+        "title": "Linearised feasible directions",
+        "videoId": "BwFlDt_uXT4",
+        "ps": false
+      },
+      {
+        "n": 67,
+        "title": "Feasible sequences and tangent cone",
+        "videoId": "gHTj-m6eWmg",
+        "ps": false
+      },
+      {
+        "n": 68,
+        "title": "LICQ conditions",
+        "videoId": "i0tfy-G9QCo",
+        "ps": false
+      },
+      {
+        "n": 69,
+        "title": "KKT conditions (First order necessary conditions)",
+        "videoId": "YGHZmo-m_Z0",
+        "ps": false
+      },
+      {
+        "n": 70,
+        "title": "Proof sketch for KKT conditions - Part 1",
+        "videoId": "KPMIgO9As9o",
+        "ps": false
+      },
+      {
+        "n": 71,
+        "title": "Proof sketch for KKT conditions - Part 2",
+        "videoId": "1BoLwZ-s25o",
+        "ps": false
+      },
+      {
+        "n": 72,
+        "title": "Introduction to Projected gradient descent",
+        "videoId": "2mNkeTWWN6k",
+        "ps": false
+      },
+      {
+        "n": 73,
+        "title": "Projected gradient descent and proof of convergence",
+        "videoId": "J1D58-cxFWE",
+        "ps": false
+      },
+      {
+        "n": 74,
+        "title": "Proof of convergence - Part 2",
+        "videoId": "KOGUBj02lMI",
+        "ps": false
+      },
+      {
+        "n": 75,
+        "title": "Subgradients and Subdifferential",
+        "videoId": "oQuJSNUQZBw",
+        "ps": false
+      },
+      {
+        "n": 76,
+        "title": "Projection onto l1 ball",
+        "videoId": "_R4MtygMDV8",
+        "ps": false
+      },
+      {
+        "n": 77,
+        "title": "Soft thresholding example",
+        "videoId": "NR-2mQ5U34c",
+        "ps": false
+      },
+      {
+        "n": 78,
+        "title": "Recap of Projection onto l1 ball",
+        "videoId": "vHdxWPJKTKc",
+        "ps": false
+      },
+      {
+        "n": 79,
+        "title": "KKT and duality introduction",
+        "videoId": "O9cV11Z_VGQ",
+        "ps": false
+      },
+      {
+        "n": 80,
+        "title": "Intuition of duality and dual problem",
+        "videoId": "r5itGJ-VbS0",
+        "ps": false
+      },
+      {
+        "n": 81,
+        "title": "Proof of concavity of the dual problem",
+        "videoId": "aOD7kC68WZI",
+        "ps": false
+      },
+      {
+        "n": 82,
+        "title": "Proof of concavity of the dual problem - Part 2",
+        "videoId": "83VQNr8dKc4",
+        "ps": false
+      },
+      {
+        "n": 83,
+        "title": "Proof of concavity of the dual problem - Part 3",
+        "videoId": "Bw5N9sFGWiA",
+        "ps": false
+      }
+    ]
+  },

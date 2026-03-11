@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef, useCallback, useMemo } from "react"
-import mammoth from 'mammoth'
+ 
 // ─────────────────────────────────────────────
 //  EMBEDDED DATA  (from Excel + docx + research)
 // ─────────────────────────────────────────────
@@ -14,7 +14,7 @@ import mammoth from 'mammoth'
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 // VERSION — bump this once per release
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-const APP_VERSION = "v1.33"
+const APP_VERSION = "v1.32"
 
 // ─────────────────────────────────────────────
 //  QUANTSUN LOGO — rising sun SVG
@@ -2471,160 +2471,6 @@ const SCHEDULES = {
 }
 
 // ─────────────────────────────────────────────
-//  COMPONENT: COURSE TUTOR — floating AI bubble inside CourseDetail
-// ─────────────────────────────────────────────
-const CourseTutor = ({ course, sched, aiSettings, T }) => {
-  const [open, setOpen]       = useState(false)
-  const [messages, setMessages] = useState([])
-  const [input, setInput]     = useState("")
-  const [loading, setLoading] = useState(false)
-  const bottomRef             = useRef(null)
-
-  const txt  = T?.text      || "#f1f5f9"
-  const sub  = T?.textSub   || "#64748b"
-  const muted= T?.textMuted || "#475569"
-  const bg   = T?.cardBg    || "rgba(20,8,4,0.98)"
-  const bdr  = T?.cardBorder|| "rgba(255,255,255,0.08)"
-  const inBg = T?.inputBg   || "rgba(255,255,255,0.06)"
-
-  useEffect(() => {
-    bottomRef.current?.scrollIntoView({ behavior:"smooth" })
-  }, [messages])
-
-  const send = async () => {
-    const q = input.trim()
-    if (!q || loading) return
-    if (!aiSettings?.key) {
-      setMessages(prev => [...prev,
-        { role:"user", text:q },
-        { role:"ai", text:"⚙ No AI key set — open Settings (⚙ icon) and add your Groq or Gemini key to use the tutor." }
-      ])
-      setInput("")
-      return
-    }
-    setMessages(prev => [...prev, { role:"user", text:q }])
-    setInput("")
-    setLoading(true)
-    try {
-      const lectureList = sched?.lectures?.map(l => `L${l.n}: ${l.title}`).join(", ") || "not available"
-      const system = `You are a concise, expert tutor for the course "${course.name}" (${course.institution}, ${course.code}).
-Lectures covered: ${lectureList}.
-Answer questions about concepts, help debug understanding, give worked examples.
-Keep responses short and clear — max 3 paragraphs. Use plain text, no markdown headers.`
-      const history = messages.slice(-6).map(m => `${m.role === "user" ? "Student" : "Tutor"}: ${m.text}`).join("\n")
-      const prompt = history ? `${history}\nStudent: ${q}` : q
-      const reply = await callAI({ system, prompt, maxTokens:600, aiSettings })
-      setMessages(prev => [...prev, { role:"ai", text: reply || "No response." }])
-    } catch {
-      setMessages(prev => [...prev, { role:"ai", text:"Something went wrong. Check your AI key in ⚙ Settings." }])
-    }
-    setLoading(false)
-  }
-
-  return (
-    <>
-      {/* Floating bubble button */}
-      <button
-        onClick={() => setOpen(o => !o)}
-        title="Ask your AI course tutor"
-        style={{
-          position:"fixed", bottom:88, right:24, zIndex:1000,
-          width:52, height:52, borderRadius:"50%",
-          background:"linear-gradient(135deg,#C17F3A,#a06028)",
-          border:"none", cursor:"pointer",
-          boxShadow:"0 4px 20px rgba(193,127,58,0.5)",
-          display:"flex", alignItems:"center", justifyContent:"center",
-          fontSize:22, transition:"transform 0.2s",
-          transform: open ? "rotate(45deg) scale(1.05)" : "scale(1)",
-        }}>
-        {open ? "✕" : "✦"}
-      </button>
-
-      {/* Chat panel */}
-      {open && (
-        <div style={{
-          position:"fixed", bottom:152, right:24, zIndex:999,
-          width:"min(360px, calc(100vw - 48px))",
-          height:420,
-          borderRadius:16,
-          background:"rgba(14,5,2,0.97)",
-          border:"1px solid rgba(193,127,58,0.3)",
-          boxShadow:"0 16px 60px rgba(0,0,0,0.7)",
-          display:"flex", flexDirection:"column",
-          overflow:"hidden",
-          animation:"qsun-fade 0.18s ease",
-        }}>
-          {/* Header */}
-          <div style={{ padding:"14px 18px", borderBottom:"1px solid rgba(193,127,58,0.15)", flexShrink:0 }}>
-            <div style={{ fontSize:13, fontWeight:700, color:"#C17F3A", fontFamily:"'Syne',sans-serif" }}>
-              ✦ Course Tutor
-            </div>
-            <div style={{ fontSize:11, color:muted, marginTop:2 }}>
-              {course.code} · Ask anything about this course
-            </div>
-          </div>
-
-          {/* Messages */}
-          <div style={{ flex:1, overflowY:"auto", padding:"14px 16px", display:"flex", flexDirection:"column", gap:10,
-            scrollbarWidth:"thin", scrollbarColor:"rgba(193,127,58,0.2) transparent" }}>
-            {messages.length === 0 && (
-              <div style={{ fontSize:12, color:muted, textAlign:"center", marginTop:24, lineHeight:1.7 }}>
-                Hi! I'm your tutor for<br/>
-                <span style={{ color:"#C17F3A" }}>{course.name}</span>.<br/>
-                Ask me anything — concepts, examples, or problem help.
-              </div>
-            )}
-            {messages.map((m, i) => (
-              <div key={i} style={{
-                alignSelf: m.role === "user" ? "flex-end" : "flex-start",
-                maxWidth:"85%",
-                background: m.role === "user" ? "rgba(193,127,58,0.18)" : "rgba(255,255,255,0.05)",
-                border: `1px solid ${m.role === "user" ? "rgba(193,127,58,0.3)" : "rgba(255,255,255,0.08)"}`,
-                borderRadius: m.role === "user" ? "12px 12px 4px 12px" : "12px 12px 12px 4px",
-                padding:"10px 13px",
-                fontSize:12, color:txt, lineHeight:1.6,
-              }}>
-                {m.text}
-              </div>
-            ))}
-            {loading && (
-              <div style={{ alignSelf:"flex-start", fontSize:12, color:muted, padding:"8px 12px" }}>
-                <span style={{ display:"inline-block", animation:"spin 1s linear infinite" }}>⟳</span> Thinking...
-              </div>
-            )}
-            <div ref={bottomRef} />
-          </div>
-
-          {/* Input row */}
-          <div style={{ padding:"10px 12px", borderTop:"1px solid rgba(193,127,58,0.12)", display:"flex", gap:8, flexShrink:0 }}>
-            <input
-              value={input}
-              onChange={e => setInput(e.target.value)}
-              onKeyDown={e => e.key === "Enter" && !e.shiftKey && send()}
-              placeholder="Ask a question..."
-              style={{
-                flex:1, background:inBg, border:"1px solid rgba(193,127,58,0.2)",
-                borderRadius:8, padding:"8px 12px", color:txt, fontSize:12,
-                outline:"none", fontFamily:"inherit",
-              }}
-            />
-            <button onClick={send} disabled={loading || !input.trim()}
-              style={{
-                padding:"8px 14px", borderRadius:8, border:"none",
-                background: loading || !input.trim() ? "rgba(193,127,58,0.2)" : "rgba(193,127,58,0.9)",
-                color: loading || !input.trim() ? muted : "#000",
-                fontSize:12, fontWeight:700, cursor:"pointer",
-              }}>
-              →
-            </button>
-          </div>
-        </div>
-      )}
-    </>
-  )
-}
-
-// ─────────────────────────────────────────────
 //  COMPONENT: COURSE DETAIL
 // ─────────────────────────────────────────────
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
@@ -2699,28 +2545,40 @@ const sched = (raw ? {
   const [expandedPs, setExpandedPs] = useState(null)   // ps.id currently open
   const [drafts, setDrafts] = useState({})              // { psId: textValue }
   const [reviewing, setReviewing] = useState(null)      // ps.id being reviewed
-  const [fileLoading, setFileLoading] = useState(null)  // psId currently parsing file
+  const [attachments, setAttachments] = useState({})    // { psId: { name, text } }
+  const [extracting, setExtracting] = useState(null)    // psId currently being extracted
 
-   const handleFileUpload = async (psId, file) => {
+  // ── File extraction — supports .txt, .md (native) and .docx (mammoth) ──
+  const handleFileAttach = async (ps, file) => {
     if (!file) return
-    setFileLoading(psId)
+    setExtracting(ps.id)
     try {
       const ext = file.name.split(".").pop().toLowerCase()
-      if (ext === "docx") {
+
+      if (ext === "txt" || ext === "md") {
+        const text = await file.text()
+        setAttachments(prev => ({ ...prev, [ps.id]: { name: file.name, text } }))
+        setDrafts(prev => ({ ...prev, [ps.id]: text }))
+
+      } else if (ext === "docx") {
+        // Dynamically import mammoth — run `npm install mammoth` once if not installed
+        const mammoth = await import("mammoth")
         const arrayBuffer = await file.arrayBuffer()
         const result = await mammoth.extractRawText({ arrayBuffer })
-        setDrafts(prev => ({ ...prev, [psId]: result.value.trim() }))
-      } else if (ext === "txt" || ext === "md") {
-        const text = await file.text()
-        setDrafts(prev => ({ ...prev, [psId]: text.trim() }))
+        const text = result.value
+        setAttachments(prev => ({ ...prev, [ps.id]: { name: file.name, text } }))
+        setDrafts(prev => ({ ...prev, [ps.id]: text }))
+
       } else {
-        alert("Upload a .docx or .txt file.\nGoogle Docs: File → Download → Word Document (.docx)")
+        alert("Supported formats: .docx  .txt  .md\nFor PDFs or Google Docs: File → Download → .docx, then attach.")
       }
-    } catch {
-      alert("Could not read file — try pasting your solution directly.")
+    } catch (err) {
+      console.error("File extraction failed:", err)
+      alert("Could not read file. Try saving as .txt and attaching that instead.")
     }
-    setFileLoading(null)
+    setExtracting(null)
   }
+
 
   // ── AI Review via Anthropic API ──
   const submitForReview = async (ps) => {
@@ -3165,7 +3023,7 @@ const toggleL = (n) => {
                   {/* Submission panel */}
                   {isExpanded && (
                     <div style={{ borderTop:`1px solid rgba(193,127,58,0.25)`, padding:"16px 20px", background:"rgba(193,127,58,0.03)" }}>
-                   {/* Description + upload row */}
+                    {/* Description + upload row */}
                       <div style={{ display:"flex", justifyContent:"space-between", alignItems:"flex-start", gap:12, marginBottom:10 }}>
                         <div style={{ fontSize:12, color:sub, lineHeight:1.5, flex:1 }}>
                           Write, paste, or <strong style={{color:txt}}>upload your solution</strong>. Our AI professor will score it on <strong style={{color:txt}}>Conceptual Understanding</strong>, <strong style={{color:txt}}>Mathematical Rigor</strong>, <strong style={{color:txt}}>Problem Solving</strong>, and <strong style={{color:txt}}>Clarity</strong>.
@@ -3193,7 +3051,6 @@ const toggleL = (n) => {
                           </div>
                         </div>
                       </div>
-
                       <textarea
                         value={drafts[ps.id] || ""}
                         onChange={e => setDrafts(prev => ({ ...prev, [ps.id]: e.target.value }))}
@@ -3258,8 +3115,6 @@ const toggleL = (n) => {
           </div>
         </div>
       )}
-   {/* ── AI Tutor Bubble ── */}
-      <CourseTutor course={course} sched={sched} aiSettings={aiSettings} T={T} />
     </div>
   )
 }
@@ -4156,8 +4011,8 @@ const CompetitionTracker = ({ bookmarks, setBookmarks, T, aiSettings, githubData
   const [showLive, setShowLive] = useState(false)
   const [mainTab, setMainTab]   = useState("competitions")
 
-  const [compNotes,    setCompNotes]      = useStorage("comp_notes_v1", {})
-  const [openNotes,    setOpenNotes]      = useState({})
+  const [compNotes, setCompNotes] = useStorage("comp_notes_v1", {})
+  const [openNotes, setOpenNotes] = useState({})
 
   const bg   = T?.cardBg    || "rgba(255,255,255,0.02)"
   const bdr  = T?.cardBorder|| "rgba(255,255,255,0.07)"

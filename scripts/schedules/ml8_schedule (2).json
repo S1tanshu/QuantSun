@@ -1,0 +1,110 @@
+
+  "ml8": {
+    "playlistUrl": "https://youtube.com/playlist?list=PLpXfHEl2fzl6JWpKGs4w2X2laduGk9xY3&si=TNrMUnmvuH3RyqhE",
+    "notesPage": "",
+    "psets": [],
+    "lectures": [
+      {
+        "n": 1,
+        "title": "1. Introduction to the Human Brain",
+        "videoId": "ba-HMvDn_vU",
+        "ps": false
+      },
+      {
+        "n": 2,
+        "title": "2. Neuroanatomy",
+        "videoId": "bAkuNXtgrLA",
+        "ps": false
+      },
+      {
+        "n": 3,
+        "title": "4. Cognitive Neuroscience Methods I",
+        "videoId": "vFZY--lgmHs",
+        "ps": false
+      },
+      {
+        "n": 4,
+        "title": "5. Cognitive Neuroscience Methods II",
+        "videoId": "YD7QG4G7WVg",
+        "ps": false
+      },
+      {
+        "n": 5,
+        "title": "6. Introduction to the Human Brain",
+        "videoId": "Nk0H3o-hRMA",
+        "ps": false
+      },
+      {
+        "n": 6,
+        "title": "7. Category Selectivity, Controversies, and MVPA",
+        "videoId": "otriwYhNtm0",
+        "ps": false
+      },
+      {
+        "n": 7,
+        "title": "8. Navigation I",
+        "videoId": "MuRVOQY8KoY",
+        "ps": false
+      },
+      {
+        "n": 8,
+        "title": "9. Navigation II",
+        "videoId": "ppxK4R8XWfU",
+        "ps": false
+      },
+      {
+        "n": 9,
+        "title": "10. Development, Nature & Nurture I",
+        "videoId": "kAX_PRnliMo",
+        "ps": false
+      },
+      {
+        "n": 10,
+        "title": "11. Development, Nature & Nurture II (2018)",
+        "videoId": "xA00vkxG3lE",
+        "ps": false
+      },
+      {
+        "n": 11,
+        "title": "13. Number",
+        "videoId": "W2PY6z1Wddg",
+        "ps": false
+      },
+      {
+        "n": 12,
+        "title": "15. Hearing and Speech",
+        "videoId": "9Bz-5-RC690",
+        "ps": false
+      },
+      {
+        "n": 13,
+        "title": "16. Music",
+        "videoId": "YVHM8dSkimo",
+        "ps": false
+      },
+      {
+        "n": 14,
+        "title": "18. Language I",
+        "videoId": "XRdJ5mXBo8A",
+        "ps": false
+      },
+      {
+        "n": 15,
+        "title": "20. Theory of Mind & Mentalizing",
+        "videoId": "pfZY5aDJazA",
+        "ps": false
+      },
+      {
+        "n": 16,
+        "title": "21. Brain Networks",
+        "videoId": "SchmVoc5NzY",
+        "ps": false
+      },
+      {
+        "n": 17,
+        "title": "24. Attention and Awareness",
+        "videoId": "B4a0WdGp52g",
+        "ps": false
+      }
+    ]
+  },

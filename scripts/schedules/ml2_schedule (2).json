@@ -1,0 +1,74 @@
+
+  "ml2": {
+    "playlistUrl": "https://youtube.com/playlist?list=PLUl4u3cNGP60YyhMjYmXuVmX562QcClSp&si=sOXnTHjoaTn_qs_E",
+    "notesPage": "",
+    "psets": [],
+    "lectures": [
+      {
+        "n": 1,
+        "title": "1: Introduction to Neural Networks and Deep Learning; Training Deep NNs",
+        "videoId": "kyQ0CRkYhy4",
+        "ps": false
+      },
+      {
+        "n": 2,
+        "title": "2: Training Deep NNs (cont.); Introduction to Keras/Tensorflow; Application to Tabular Data",
+        "videoId": "3Lr8nVUDCpk",
+        "ps": false
+      },
+      {
+        "n": 3,
+        "title": "3: Deep Learning for Computer Vision – Building Convolutional Neural Networks from Scratch",
+        "videoId": "8QuyDcMIdRc",
+        "ps": false
+      },
+      {
+        "n": 4,
+        "title": "4: Deep Learning for Computer Vision – Transfer Learning and Fine-Tuning; Intro to HuggingFace",
+        "videoId": "8xh7Y0pBrCE",
+        "ps": false
+      },
+      {
+        "n": 5,
+        "title": "5: Deep Learning for Natural Language – The Basics",
+        "videoId": "duBLxHjaecQ",
+        "ps": false
+      },
+      {
+        "n": 6,
+        "title": "6: Deep Learning for Natural Language – Embeddings",
+        "videoId": "LqFc0z-pQTg",
+        "ps": false
+      },
+      {
+        "n": 7,
+        "title": "7: Deep Learning for Natural Language – Transformers",
+        "videoId": "IeF7aATDaw4",
+        "ps": false
+      },
+      {
+        "n": 8,
+        "title": "8: Deep Learning for Natural Language – Transformers, Self-Supervised Learning",
+        "videoId": "v-lHsawHyaI",
+        "ps": false
+      },
+      {
+        "n": 9,
+        "title": "9: Generative AI – Large Language Models (LLMs) and Retrieval Augmented Generation (RAG)",
+        "videoId": "KGDe1QvfKJ8",
+        "ps": false
+      },
+      {
+        "n": 10,
+        "title": "10: Generative AI – Adapting LLMs with Parameter-Efficient Fine-Tuning",
+        "videoId": "d-tngNnaG4U",
+        "ps": false
+      },
+      {
+        "n": 11,
+        "title": "11: Generative AI – Text-to-Image Models",
+        "videoId": "NQBhhRG-Pe4",
+        "ps": false
+      }
+    ]
+  },

@@ -1,0 +1,159 @@
+{
+  "c10": {
+    "playlistUrl": "https://youtube.com/playlist?list=PL2SOU6wwxB0uP4rJgf5ayhHWgw7akUWSf&si=SO0PniTWhx5aYJV4",
+    "notesPage": "",
+    "psets": [],
+    "lectures": [
+      {
+        "n": 1,
+        "title": "Advanced Algorithms (COMPSCI 224), Lecture 1",
+        "videoId": "0JUN9aDxVmI",
+        "ps": false
+      },
+      {
+        "n": 2,
+        "title": "Advanced Algorithms (COMPSCI 224), Lecture 2",
+        "videoId": "3_o0-zPRQqw",
+        "ps": false
+      },
+      {
+        "n": 3,
+        "title": "Advanced Algorithms (COMPSCI 224), Lecture 3",
+        "videoId": "WqBc0ZCU4Uw",
+        "ps": false
+      },
+      {
+        "n": 4,
+        "title": "Advanced Algorithms (COMPSCI 224), Lecture 4",
+        "videoId": "edOWKZE1t84",
+        "ps": false
+      },
+      {
+        "n": 5,
+        "title": "Advanced Algorithms (COMPSCI 224), Lecture 5",
+        "videoId": "rLMikQTOVnI",
+        "ps": false
+      },
+      {
+        "n": 6,
+        "title": "Advanced Algorithms (COMPSCI 224), Lecture 6",
+        "videoId": "gxp_FrgTkQI",
+        "ps": false
+      },
+      {
+        "n": 7,
+        "title": "Advanced Algorithms (COMPSCI 224), Lecture 7",
+        "videoId": "LbX51mey3vo",
+        "ps": false
+      },
+      {
+        "n": 8,
+        "title": "Advanced Algorithms (COMPSCI 224), Lecture 8",
+        "videoId": "aHW6HKVC-SY",
+        "ps": false
+      },
+      {
+        "n": 9,
+        "title": "Advanced Algorithms (COMPSCI 224), Lecture 9",
+        "videoId": "KBVkri8k3Ao",
+        "ps": false
+      },
+      {
+        "n": 10,
+        "title": "Advanced Algorithms (COMPSCI 224), Lecture 10",
+        "videoId": "Jsg9TwLRTbM",
+        "ps": false
+      },
+      {
+        "n": 11,
+        "title": "Advanced Algorithms (COMPSCI 224), Lecture 11",
+        "videoId": "vnS9_NKoEKI",
+        "ps": false
+      },
+      {
+        "n": 12,
+        "title": "Advanced Algorithms (COMPSCI 224), Lecture 12",
+        "videoId": "2Gl-yNso0_0",
+        "ps": false
+      },
+      {
+        "n": 13,
+        "title": "Advanced Algorithms (COMPSCI 224), Lecture 13",
+        "videoId": "VuM1WnwEMRQ",
+        "ps": false
+      },
+      {
+        "n": 14,
+        "title": "Advanced Algorithms (COMPSCI 224), Lecture 15",
+        "videoId": "U7158Q-2rJc",
+        "ps": false
+      },
+      {
+        "n": 15,
+        "title": "Advanced Algorithms (COMPSCI 224), Lecture 16",
+        "videoId": "4A5LiJpPDRw",
+        "ps": false
+      },
+      {
+        "n": 16,
+        "title": "Advanced Algorithms (COMPSCI 224), Lecture 17",
+        "videoId": "PPCnYiTpbCo",
+        "ps": false
+      },
+      {
+        "n": 17,
+        "title": "Advanced Algorithms (COMPSCI 224), Lecture 18",
+        "videoId": "kqt1YV9dEoE",
+        "ps": false
+      },
+      {
+        "n": 18,
+        "title": "Advanced Algorithms (COMPSCI 224), Lecture 19",
+        "videoId": "R9mT5CtdHLg",
+        "ps": false
+      },
+      {
+        "n": 19,
+        "title": "Advanced Algorithms (COMPSCI 224), Lecture 20",
+        "videoId": "TdTFYVjzs1I",
+        "ps": false
+      },
+      {
+        "n": 20,
+        "title": "Advanced Algorithms (COMPSCI 224), Lecture 21",
+        "videoId": "rfTt7k6Nv-I",
+        "ps": false
+      },
+      {
+        "n": 21,
+        "title": "Advanced Algorithms (COMPSCI 224), Lecture 22",
+        "videoId": "HFqO_8Eoc1U",
+        "ps": false
+      },
+      {
+        "n": 22,
+        "title": "Advanced Algorithms (COMPSCI 224), Lecture 23",
+        "videoId": "nDLe6_sPSfs",
+        "ps": false
+      },
+      {
+        "n": 23,
+        "title": "Advanced Algorithms (COMPSCI 224), Lecture 24",
+        "videoId": "GAKpnKLnJtc",
+        "ps": false
+      },
+      {
+        "n": 24,
+        "title": "Advanced Algorithms (COMPSCI 224), Lecture 25",
+        "videoId": "M42rQM0vC4g",
+        "ps": false
+      },
+      {
+        "n": 25,
+        "title": "Advanced Algorithms (COMPSCI 224), Lecture 26",
+        "videoId": "DpxNW0T8CWg",
+        "ps": false
+      }
+    ]
+  }
+}

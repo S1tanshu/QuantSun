@@ -1,0 +1,171 @@
+{
+  "c12": {
+    "playlistUrl": "https://youtube.com/playlist?list=PLF2K2xZjNEf97A_uBCwEl61sdxWVP7VWC&si=bUiHgbzizspg02AZ",
+    "notesPage": "",
+    "psets": [],
+    "lectures": [
+      {
+        "n": 1,
+        "title": "CS162 Lecture 1: What is an Operating System?",
+        "videoId": "pPzVV2kkGHc",
+        "ps": false
+      },
+      {
+        "n": 2,
+        "title": "CS162 Lecture 2: Four Fundamental OS Concepts",
+        "videoId": "4FpG1DcvHzc",
+        "ps": false
+      },
+      {
+        "n": 3,
+        "title": "CS162 Lecture 3: Abstractions 1: Threads and Processes",
+        "videoId": "QSep-J6vtdc",
+        "ps": false
+      },
+      {
+        "n": 4,
+        "title": "CS162 Lecture 4: Abstractions 2: Files and I/O",
+        "videoId": "WHmmT_syaG8",
+        "ps": false
+      },
+      {
+        "n": 5,
+        "title": "CS162 Lecture 5: Abstractions 3: IPC, Pipes and Sockets",
+        "videoId": "MKcSCaP0ZrQ",
+        "ps": false
+      },
+      {
+        "n": 6,
+        "title": "CS162: Lecture 6: Synchronization 1: Concurrency and Mutual Exclusion",
+        "videoId": "5uyGn147rr0",
+        "ps": false
+      },
+      {
+        "n": 7,
+        "title": "CS162: Lecture 6.5: Concurrency and Mutual Exclusion (Supplemental)",
+        "videoId": "utYC2tKDdoQ",
+        "ps": false
+      },
+      {
+        "n": 8,
+        "title": "CS162 Lecture 7: Synchronization 2: Semaphores (Con't), Lock Implementation, Atomic Instructions",
+        "videoId": "gRX-YxdFQzk",
+        "ps": false
+      },
+      {
+        "n": 9,
+        "title": "CS162 Lecture 8: Synchronization 3: Atomic Instructions (Con't), Monitors, Readers/Writers",
+        "videoId": "yqsqjqLGMe4",
+        "ps": false
+      },
+      {
+        "n": 10,
+        "title": "CS162 Lecture 9: Synchronization 4: Monitors and Readers/Writers (Con't), Process Structure",
+        "videoId": "snp580kqCto",
+        "ps": false
+      },
+      {
+        "n": 11,
+        "title": "CS162 Lecture 10: Scheduling 1: Concepts and Classic Policies",
+        "videoId": "U7P4FbrraYs",
+        "ps": false
+      },
+      {
+        "n": 12,
+        "title": "CS162 Lecture 11: Scheduling 2: Case Studies, Real Time, and Forward Progress",
+        "videoId": "v388OYBkfME",
+        "ps": false
+      },
+      {
+        "n": 13,
+        "title": "CS162 Lecture 12: Scheduling 3: Deadlock",
+        "videoId": "FDwJ6EW4dCM",
+        "ps": false
+      },
+      {
+        "n": 14,
+        "title": "CS162 Lecture 13: Memory 1: Address Translation and Virtual Memory",
+        "videoId": "1SJeLcI8otk",
+        "ps": false
+      },
+      {
+        "n": 15,
+        "title": "CS162 Lecture 14: Memory 2: Virtual Memory (Con't), Caching and TLBs",
+        "videoId": "aaCeY4YCCmM",
+        "ps": false
+      },
+      {
+        "n": 16,
+        "title": "CS162 Lecture 15: Memory 3: Caching and TLBs (Con't), Demand Paging",
+        "videoId": "IBgkKX6DUTM",
+        "ps": false
+      },
+      {
+        "n": 17,
+        "title": "CS162 Lecture 16: Memory 4: Demand Paging Policies",
+        "videoId": "THoYkBItSkk",
+        "ps": false
+      },
+      {
+        "n": 18,
+        "title": "CS162 Lecture 17: Demand Paging (Finished), General I/O, Storage Devices",
+        "videoId": "5pXaixRmj8U",
+        "ps": false
+      },
+      {
+        "n": 19,
+        "title": "CS162 Lecture 18: General I/O (Con't), Storage Devices, Performance",
+        "videoId": "obZ3HQaDly4",
+        "ps": false
+      },
+      {
+        "n": 20,
+        "title": "CS162 Lecture 19: Filesystems 1: Performance (Con't), Queueing Theory, Filesystem Design",
+        "videoId": "CrpLw5s2HQs",
+        "ps": false
+      },
+      {
+        "n": 21,
+        "title": "CS162 Lecture 20: Filesystems 2: Filesystem Design (Con't), Filesystem Case Studies",
+        "videoId": "9UQza7XNt6M",
+        "ps": false
+      },
+      {
+        "n": 22,
+        "title": "CS162 Lecture 21: Filesystems 3: Case Studies (Con't), Buffering, Reliability, and Transactions",
+        "videoId": "NpM0n6xBbrA",
+        "ps": false
+      },
+      {
+        "n": 23,
+        "title": "CS162 Lecture 22: Transactions (Con't), End-to-End Arguments, Distributed Decision Making",
+        "videoId": "50IU9PwlKas",
+        "ps": false
+      },
+      {
+        "n": 24,
+        "title": "CS162 Lecture 23: Distributed Decision Making (Con't), Networking and TCP/IP",
+        "videoId": "DDmExpQj1VI",
+        "ps": false
+      },
+      {
+        "n": 25,
+        "title": "CS162 Lecture 24: Networking and TCP/IP (Con't), RPC, Distributed File Systems",
+        "videoId": "nKqqtV-33k0",
+        "ps": false
+      },
+      {
+        "n": 26,
+        "title": "CS162 Lecture 25: Distributed Storage, NFS and AFS, Key Value Stores",
+        "videoId": "ROq0rGmR3GE",
+        "ps": false
+      },
+      {
+        "n": 27,
+        "title": "CS162 Lecture 26 (Optional): Key Value Stores (Con't), Chord, DataCapsules, Quantum Computing",
+        "videoId": "cgsU5R5dY2Y",
+        "ps": false
+      }
+    ]
+  }
+}

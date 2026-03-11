@@ -1,0 +1,254 @@
+
+  "c19": {
+    "playlistUrl": "https://youtube.com/playlist?list=PLwdnzlV3ogoVOBjwmNLnTN8fTWHy3wNOq&si=4GRUPuFsG-w8Fu1U",
+    "notesPage": "",
+    "psets": [],
+    "lectures": [
+      {
+        "n": 1,
+        "title": "Randomized Algorithms [Intro Video]",
+        "videoId": "uiArBfjtIAw",
+        "ps": false
+      },
+      {
+        "n": 2,
+        "title": "Lecture 1: Introduction to Randomized Algorithms",
+        "videoId": "rfAHeilGWoE",
+        "ps": false
+      },
+      {
+        "n": 3,
+        "title": "Lecture 2: Randomized Mincut Algorithm",
+        "videoId": "Kiz4OufHkjg",
+        "ps": false
+      },
+      {
+        "n": 4,
+        "title": "Lecture 3: Randomized Find",
+        "videoId": "FcQBZUe95TU",
+        "ps": false
+      },
+      {
+        "n": 5,
+        "title": "Lecture 4: Probability Review",
+        "videoId": "oCWhUqVt3kQ",
+        "ps": false
+      },
+      {
+        "n": 6,
+        "title": "Lecture 5: Expectation of Random Variables",
+        "videoId": "WHY-hZay_rc",
+        "ps": false
+      },
+      {
+        "n": 7,
+        "title": "Lec 6: Conditional Probability and Conditional Expectation2",
+        "videoId": "EC-bPnr-c68",
+        "ps": false
+      },
+      {
+        "n": 8,
+        "title": "Lec 7: Birthday Paradox",
+        "videoId": "Xh_UVOByt6s",
+        "ps": false
+      },
+      {
+        "n": 9,
+        "title": "Lecture 8: Markov and Chebychev's Inequalities",
+        "videoId": "uNWvNFS_Nu4",
+        "ps": false
+      },
+      {
+        "n": 10,
+        "title": "Lecture 9: Median Algorithm",
+        "videoId": "Wo5sBYiaGns",
+        "ps": false
+      },
+      {
+        "n": 11,
+        "title": "Lecture 10: Chernoff Bound",
+        "videoId": "c6TmsAgsYbE",
+        "ps": false
+      },
+      {
+        "n": 12,
+        "title": "Lec 11: Permutation Routing on a Hypercube",
+        "videoId": "hS7LbYHP4JE",
+        "ps": false
+      },
+      {
+        "n": 13,
+        "title": "Lec 12: Permutation Routing on a Hypercube(Analysis)",
+        "videoId": "iwhx2smcaXc",
+        "ps": false
+      },
+      {
+        "n": 14,
+        "title": "Lec 13: Introduction to Probabilistic Method",
+        "videoId": "bV20gCQm8MQ",
+        "ps": false
+      },
+      {
+        "n": 15,
+        "title": "Lec 14: More Examples on Probabilistic Method",
+        "videoId": "2Ck1Cv23q2E",
+        "ps": false
+      },
+      {
+        "n": 16,
+        "title": "Lec 15: Lovasz Local Lemma",
+        "videoId": "iRLRvwO5z2Q",
+        "ps": false
+      },
+      {
+        "n": 17,
+        "title": "Lec 16: Introduction to Markov Chains",
+        "videoId": "m_BspKtRTJs",
+        "ps": false
+      },
+      {
+        "n": 18,
+        "title": "Lec 17:  2-SAT and Markov Chains",
+        "videoId": "vE4TdrDVUPw",
+        "ps": false
+      },
+      {
+        "n": 19,
+        "title": "Lec 18:  3-SAT and Markov Chains",
+        "videoId": "kj0MVNDl9YI",
+        "ps": false
+      },
+      {
+        "n": 20,
+        "title": "Lec 19: Electrical Networks",
+        "videoId": "cHIpsUkA4DY",
+        "ps": false
+      },
+      {
+        "n": 21,
+        "title": "Lec 20: Cover Time",
+        "videoId": "YOX7SAvJYX0",
+        "ps": false
+      },
+      {
+        "n": 22,
+        "title": "Lec 21: Rapid Mixing",
+        "videoId": "5PeF334JdBo",
+        "ps": false
+      },
+      {
+        "n": 23,
+        "title": "Lec 22: Introduction to Computational Complexity",
+        "videoId": "M7Wt8rIL6SQ",
+        "ps": false
+      },
+      {
+        "n": 24,
+        "title": "Lec 23: Pratt's Certificate",
+        "videoId": "JGcGgBDTYvU",
+        "ps": false
+      },
+      {
+        "n": 25,
+        "title": "Lec 24: Primality Testing",
+        "videoId": "A1h5uf0nGGc",
+        "ps": false
+      },
+      {
+        "n": 26,
+        "title": "Lec 25: Miller Rabin Algorithm",
+        "videoId": "0NXcD5mpoUg",
+        "ps": false
+      },
+      {
+        "n": 27,
+        "title": "Lec 26: All pair shortest path-I",
+        "videoId": "1czxd0CULlw",
+        "ps": false
+      },
+      {
+        "n": 28,
+        "title": "Lec 27: All pair shortest path-II",
+        "videoId": "q-OVoFUkCC4",
+        "ps": false
+      },
+      {
+        "n": 29,
+        "title": "Lec 28: Randomized MST",
+        "videoId": "5IVMDrgBE90",
+        "ps": false
+      },
+      {
+        "n": 30,
+        "title": "Lec 29: Introduction to approximate counting",
+        "videoId": "NYsFvYaT5_8",
+        "ps": false
+      },
+      {
+        "n": 31,
+        "title": "Lec 30: DNF counting",
+        "videoId": "mSclSWDtG-8",
+        "ps": false
+      },
+      {
+        "n": 32,
+        "title": "Lec 31: Perfect Matching-I",
+        "videoId": "JK3_cGWkulc",
+        "ps": false
+      },
+      {
+        "n": 33,
+        "title": "Lec 32: Perfect Matching-II",
+        "videoId": "h4aQjHL63Kg",
+        "ps": false
+      },
+      {
+        "n": 34,
+        "title": "Lec 33: Perfect Matching-III",
+        "videoId": "PP_FPWSApGY",
+        "ps": false
+      },
+      {
+        "n": 35,
+        "title": "Lec 34: Treaps",
+        "videoId": "V0VDll0R2Hk",
+        "ps": false
+      },
+      {
+        "n": 36,
+        "title": "Lec 35: Hashing",
+        "videoId": "2LpVcSARjyE",
+        "ps": false
+      },
+      {
+        "n": 37,
+        "title": "Lec 36: Probabilistically checkable proofs - I",
+        "videoId": "fgO21OhDom8",
+        "ps": false
+      },
+      {
+        "n": 38,
+        "title": "Lec 37: Probabilistically checkable proofs - II",
+        "videoId": "0NNTf9ieWGw",
+        "ps": false
+      },
+      {
+        "n": 39,
+        "title": "Lec 38: Probabilistically checkable proofs - III",
+        "videoId": "3zpGLUB2zpk",
+        "ps": false
+      },
+      {
+        "n": 40,
+        "title": "Lec 39: LFKN Protocol",
+        "videoId": "8Q8itrVzZnw",
+        "ps": false
+      },
+      {
+        "n": 41,
+        "title": "Lec 40: Summary",
+        "videoId": "dVp9CBOXPX8",
+        "ps": false
+      }
+    ]
+  },

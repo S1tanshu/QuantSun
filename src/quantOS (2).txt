@@ -1,5 +1,5 @@
-import React, { useState, useEffect, useRef, useCallback, useMemo } from "react"
-import mammoth from 'mammoth'
+import { useState, useEffect, useRef, useCallback, useMemo } from "react"
+
 // ─────────────────────────────────────────────
 //  EMBEDDED DATA  (from Excel + docx + research)
 // ─────────────────────────────────────────────
@@ -14,31 +14,7 @@ import mammoth from 'mammoth'
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 // VERSION — bump this once per release
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-const APP_VERSION = "v1.33"
-
-// ─────────────────────────────────────────────
-//  QUANTSUN LOGO — rising sun SVG
-//  Usage: <QuantSunLogo size={28} />
-// ─────────────────────────────────────────────
-const QuantSunLogo = ({ size = 28 }) => (
-  <svg width={size} height={size} viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
-    {/* Rays */}
-    <line x1="20" y1="6" x2="20" y2="2"  stroke="#C17F3A" strokeWidth="2.2" strokeLinecap="round"/>
-    <line x1="30" y1="10" x2="33" y2="7"  stroke="#C17F3A" strokeWidth="2.2" strokeLinecap="round"/>
-    <line x1="34" y1="22" x2="38" y2="22" stroke="#C17F3A" strokeWidth="2.2" strokeLinecap="round"/>
-    <line x1="10" y1="10" x2="7"  y2="7"  stroke="#C17F3A" strokeWidth="2.2" strokeLinecap="round"/>
-    <line x1="6"  y1="22" x2="2"  y2="22" stroke="#C17F3A" strokeWidth="2.2" strokeLinecap="round"/>
-    <line x1="27" y1="33" x2="30" y2="36" stroke="#C17F3A" strokeWidth="2.2" strokeLinecap="round" opacity="0.4"/>
-    <line x1="13" y1="33" x2="10" y2="36" stroke="#C17F3A" strokeWidth="2.2" strokeLinecap="round" opacity="0.4"/>
-    {/* Horizon */}
-    <line x1="4" y1="30" x2="36" y2="30" stroke="#C17F3A" strokeWidth="1.5" strokeLinecap="round" opacity="0.5"/>
-    {/* Sun body — semicircle rising above horizon */}
-    <path d="M 8 30 A 12 12 0 0 1 32 30" fill="#C17F3A"/>
-    {/* Inner bright core */}
-    <path d="M 12 30 A 8 8 0 0 1 28 30" fill="#F0A84A" opacity="0.55"/>
-  </svg>
-)
-
+const APP_VERSION = "v1.29"
 
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 // AI PROVIDER ADAPTER — swap provider without touching any feature code
@@ -139,7 +115,7 @@ const callAI = async ({ system = "", prompt, maxTokens = 800, aiSettings = {} })
 // GITHUB DATA LOADER
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 // HOW TO USE WHEN DEPLOYING:
-//   1. Create a public GitHub repo (e.g. "QuantSun-data")
+//   1. Create a public GitHub repo (e.g. "quantos-data")
 //   2. Add JSON files: courses.json, competitions.json, internships.json, jobs.json
 //   3. Each file is just the array exported as JSON — same fields as hardcoded data below
 //   4. Paste the raw GitHub URL for each file in the GITHUB_DATA_URLS object below
@@ -148,18 +124,18 @@ const callAI = async ({ system = "", prompt, maxTokens = 800, aiSettings = {} })
 //   6. Once confirmed working, delete the hardcoded arrays to keep the file clean
 //
 // RAW URL FORMAT:
-//   https://raw.githubusercontent.com/YOUR_USERNAME/QuantSun-data/main/courses.json
+//   https://raw.githubusercontent.com/YOUR_USERNAME/quantos-data/main/courses.json
 //
 // NOTE: The repo must be PUBLIC. No API key needed. GitHub CDN is free & fast.
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
 // ── STEP 1: Raw GitHub URLs ───────────────────────────────────────────────────
 const GITHUB_DATA_URLS = {
-  courses:      "https://raw.githubusercontent.com/S1tanshu/QuantSun-data/main/courses.json",
-  competitions: "https://raw.githubusercontent.com/S1tanshu/QuantSun-data/main/competitions.json",
-  internships:  "https://raw.githubusercontent.com/S1tanshu/QuantSun-data/main/internships.json",
-  jobs:         "https://raw.githubusercontent.com/S1tanshu/QuantSun-data/main/jobs.json",
-  schedules:    "https://raw.githubusercontent.com/S1tanshu/QuantSun-data/main/schedules.json",
+  courses:      "https://raw.githubusercontent.com/S1tanshu/quantos-data/main/courses.json",
+  competitions: "https://raw.githubusercontent.com/S1tanshu/quantos-data/main/competitions.json",
+  internships:  "https://raw.githubusercontent.com/S1tanshu/quantos-data/main/internships.json",
+  jobs:         "https://raw.githubusercontent.com/S1tanshu/quantos-data/main/jobs.json",
+  schedules:    "https://raw.githubusercontent.com/S1tanshu/quantos-data/main/schedules.json",
 }
 
 
@@ -188,7 +164,7 @@ const useGithubData = () => {
           if (r.status === "fulfilled") loaded[key] = r.value[1]
           else failed.push(`${key}(${r.reason?.message})`)
         })
-        if (failed.length) console.warn("QuantSun data fetch failed:", failed.join(", "))
+        if (failed.length) console.warn("QuantOS data fetch failed:", failed.join(", "))
         setGithubData(loaded)
       } catch (e) {
         console.warn("GitHub data fetch failed — falling back to hardcoded data.", e.message)
@@ -204,7 +180,7 @@ const useGithubData = () => {
   return { githubData, loading, error, isLive: loadedKeys.length > 0, loadedKeys }
 }
 
-// ── STEP 3-6 now implemented below in QuantSun() shell ───────────────────────
+// ── STEP 3-6 now implemented below in QuantOS() shell ───────────────────────
 
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 // HARDCODED DATA (delete these arrays once GitHub fetch is working)
@@ -1141,7 +1117,7 @@ const useStorage = (key, fallback) => {
   const save = useCallback((v) => {
     setVal(prev => {
       const next = typeof v === "function" ? v(prev) : v
-      try { localStorage.setItem(key, JSON.stringify(next)) } catch (e) {}
+      try { localStorage.setItem(key, JSON.stringify(next)) } catch {}
       return next
     })
   }, [key])
@@ -1166,8 +1142,8 @@ const useStorage = (key, fallback) => {
 const TOUR_STEPS = [
   {
     icon:"🎯",
-    title:"Welcome to QUANT SUN",
-    body:"Your all-in-one quant career platform. Track 118 courses, competitions, interview prep, research papers and networking — all in one place.",
+    title:"Welcome to QuantOS",
+    body:"Your all-in-one quant career operating system. Track 118 courses, competitions, interview prep, research papers and networking — all in one place.",
     cta:"Let's go →",
   },
   {
@@ -1207,7 +1183,7 @@ const Onboarding = ({ onDone, isDark }) => {
       background:"rgba(4,4,12,0.88)",
       backdropFilter:"blur(18px)", WebkitBackdropFilter:"blur(18px)",
       display:"flex", alignItems:"center", justifyContent:"center",
-      animation:"qsun-fade 0.25s ease",
+      animation:"qos-fade 0.25s ease",
     }}>
       <div style={{
         width:440, borderRadius:24,
@@ -1215,7 +1191,7 @@ const Onboarding = ({ onDone, isDark }) => {
         border:"1px solid rgba(193,127,58,0.22)",
         boxShadow:"0 40px 120px rgba(0,0,0,0.6), 0 0 0 1px rgba(255,255,255,0.04) inset",
         overflow:"hidden",
-        animation:"qsun-fade 0.2s ease",
+        animation:"qos-fade 0.2s ease",
       }}>
         {/* Progress bar */}
         <div style={{height:3, background:"rgba(255,255,255,0.06)"}}>
@@ -1479,9 +1455,9 @@ const Dashboard = ({ courseProgress, bookmarks, T, onStartTour, navigate, isMobi
     const sc=COURSES.filter(c=>c.subject===subj); const done=sc.filter(c=>courseProgress[c.id]===1).length
     return { subj,color,done,total:sc.length,pct:sc.length?Math.round(done/sc.length*100):0 }
   })
-  const upcoming = COMPETITIONS.filter(c=>c.status !=="closed"&&c.deadline&&c.deadline!=="TBA"&&!c.deadline.includes("TBA")&&!c.deadline.includes("Closed")&&!c.deadline.includes("Open")&&!c.deadline.includes("Rolling")&&!c.deadline.includes("Ongoing")&&!c.deadline.includes("Multiple")).map(c=>({...c,days:daysUntil(c.deadline)})).filter(c=>c.days!==null&&c.days>=0).sort((a,b)=>a.days-b.days).slice(0,5)
-  const openCount = COMPETITIONS.filter(c=>c.status ==="open").length
-  const tbaCount  = COMPETITIONS.filter(c=>c.status ==="tba").length
+  const upcoming = COMPETITIONS.filter(c=>c.status!=="closed"&&c.deadline&&c.deadline!=="TBA"&&!c.deadline.includes("TBA")&&!c.deadline.includes("Closed")&&!c.deadline.includes("Open")&&!c.deadline.includes("Rolling")&&!c.deadline.includes("Ongoing")&&!c.deadline.includes("Multiple")).map(c=>({...c,days:daysUntil(c.deadline)})).filter(c=>c.days!==null&&c.days>=0).sort((a,b)=>a.days-b.days).slice(0,5)
+  const openCount = COMPETITIONS.filter(c=>c.status==="open").length
+  const tbaCount  = COMPETITIONS.filter(c=>c.status==="tba").length
 
   // ── Detect which courses the user is actively working on ──────────────────
   const activeMathCourse   = COURSES.find(c=>c.subject==="Mathematics"&&courseProgress[c.id]===0.5) || COURSES.find(c=>c.id==="m0")
@@ -1558,7 +1534,7 @@ const Dashboard = ({ courseProgress, bookmarks, T, onStartTour, navigate, isMobi
           borderRadius:14, padding:"24px", textAlign:"center" }}>
           <div style={{ fontSize:36, marginBottom:12 }}>⬡</div>
           <div style={{ fontSize:18, fontWeight:800, color:T.textHeading,
-            fontFamily:"'Syne',sans-serif", marginBottom:8 }}>Welcome to Quant Sun</div>
+            fontFamily:"'Syne',sans-serif", marginBottom:8 }}>Welcome to QuantOS</div>
           <div style={{ fontSize:13, color:T.textSub, lineHeight:1.7, marginBottom:18, maxWidth:380, margin:"0 auto 18px" }}>
             You haven't started any courses yet. Head to Learning Path to pick your first one — 18.01 Calculus is the recommended starting point for most quant tracks.
           </div>
@@ -1739,7 +1715,7 @@ const Dashboard = ({ courseProgress, bookmarks, T, onStartTour, navigate, isMobi
         {(()=>{
           const today=new Date().toISOString().slice(0,10)
           const reviewsDue=Object.entries(reviewSchedule).filter(([,due])=>due<=today).map(([id])=>COURSES.find(c=>c.id===id)).filter(Boolean)
-          const followUps=contacts.filter(c=>{ if(!c.date||c.status ==="Closed") return false; return Math.floor((new Date()-new Date(c.date))/86400000)>=21&&["Connected","Messaged","Replied"].includes(c.status) })
+          const followUps=contacts.filter(c=>{ if(!c.date||c.status==="Closed") return false; return Math.floor((new Date()-new Date(c.date))/86400000)>=21&&["Connected","Messaged","Replied"].includes(c.status) })
           if(!reviewsDue.length&&!followUps.length) return null
           return (
             <div style={{ marginTop:18, background:bg, border:"1px solid rgba(193,127,58,0.18)", borderRadius:12, padding:"18px 22px" }}>
@@ -2471,160 +2447,6 @@ const SCHEDULES = {
 }
 
 // ─────────────────────────────────────────────
-//  COMPONENT: COURSE TUTOR — floating AI bubble inside CourseDetail
-// ─────────────────────────────────────────────
-const CourseTutor = ({ course, sched, aiSettings, T }) => {
-  const [open, setOpen]       = useState(false)
-  const [messages, setMessages] = useState([])
-  const [input, setInput]     = useState("")
-  const [loading, setLoading] = useState(false)
-  const bottomRef             = useRef(null)
-
-  const txt  = T?.text      || "#f1f5f9"
-  const sub  = T?.textSub   || "#64748b"
-  const muted= T?.textMuted || "#475569"
-  const bg   = T?.cardBg    || "rgba(20,8,4,0.98)"
-  const bdr  = T?.cardBorder|| "rgba(255,255,255,0.08)"
-  const inBg = T?.inputBg   || "rgba(255,255,255,0.06)"
-
-  useEffect(() => {
-    bottomRef.current?.scrollIntoView({ behavior:"smooth" })
-  }, [messages])
-
-  const send = async () => {
-    const q = input.trim()
-    if (!q || loading) return
-    if (!aiSettings?.key) {
-      setMessages(prev => [...prev,
-        { role:"user", text:q },
-        { role:"ai", text:"⚙ No AI key set — open Settings (⚙ icon) and add your Groq or Gemini key to use the tutor." }
-      ])
-      setInput("")
-      return
-    }
-    setMessages(prev => [...prev, { role:"user", text:q }])
-    setInput("")
-    setLoading(true)
-    try {
-      const lectureList = sched?.lectures?.map(l => `L${l.n}: ${l.title}`).join(", ") || "not available"
-      const system = `You are a concise, expert tutor for the course "${course.name}" (${course.institution}, ${course.code}).
-Lectures covered: ${lectureList}.
-Answer questions about concepts, help debug understanding, give worked examples.
-Keep responses short and clear — max 3 paragraphs. Use plain text, no markdown headers.`
-      const history = messages.slice(-6).map(m => `${m.role === "user" ? "Student" : "Tutor"}: ${m.text}`).join("\n")
-      const prompt = history ? `${history}\nStudent: ${q}` : q
-      const reply = await callAI({ system, prompt, maxTokens:600, aiSettings })
-      setMessages(prev => [...prev, { role:"ai", text: reply || "No response." }])
-    } catch {
-      setMessages(prev => [...prev, { role:"ai", text:"Something went wrong. Check your AI key in ⚙ Settings." }])
-    }
-    setLoading(false)
-  }
-
-  return (
-    <>
-      {/* Floating bubble button */}
-      <button
-        onClick={() => setOpen(o => !o)}
-        title="Ask your AI course tutor"
-        style={{
-          position:"fixed", bottom:88, right:24, zIndex:1000,
-          width:52, height:52, borderRadius:"50%",
-          background:"linear-gradient(135deg,#C17F3A,#a06028)",
-          border:"none", cursor:"pointer",
-          boxShadow:"0 4px 20px rgba(193,127,58,0.5)",
-          display:"flex", alignItems:"center", justifyContent:"center",
-          fontSize:22, transition:"transform 0.2s",
-          transform: open ? "rotate(45deg) scale(1.05)" : "scale(1)",
-        }}>
-        {open ? "✕" : "✦"}
-      </button>
-
-      {/* Chat panel */}
-      {open && (
-        <div style={{
-          position:"fixed", bottom:152, right:24, zIndex:999,
-          width:"min(360px, calc(100vw - 48px))",
-          height:420,
-          borderRadius:16,
-          background:"rgba(14,5,2,0.97)",
-          border:"1px solid rgba(193,127,58,0.3)",
-          boxShadow:"0 16px 60px rgba(0,0,0,0.7)",
-          display:"flex", flexDirection:"column",
-          overflow:"hidden",
-          animation:"qsun-fade 0.18s ease",
-        }}>
-          {/* Header */}
-          <div style={{ padding:"14px 18px", borderBottom:"1px solid rgba(193,127,58,0.15)", flexShrink:0 }}>
-            <div style={{ fontSize:13, fontWeight:700, color:"#C17F3A", fontFamily:"'Syne',sans-serif" }}>
-              ✦ Course Tutor
-            </div>
-            <div style={{ fontSize:11, color:muted, marginTop:2 }}>
-              {course.code} · Ask anything about this course
-            </div>
-          </div>
-
-          {/* Messages */}
-          <div style={{ flex:1, overflowY:"auto", padding:"14px 16px", display:"flex", flexDirection:"column", gap:10,
-            scrollbarWidth:"thin", scrollbarColor:"rgba(193,127,58,0.2) transparent" }}>
-            {messages.length === 0 && (
-              <div style={{ fontSize:12, color:muted, textAlign:"center", marginTop:24, lineHeight:1.7 }}>
-                Hi! I'm your tutor for<br/>
-                <span style={{ color:"#C17F3A" }}>{course.name}</span>.<br/>
-                Ask me anything — concepts, examples, or problem help.
-              </div>
-            )}
-            {messages.map((m, i) => (
-              <div key={i} style={{
-                alignSelf: m.role === "user" ? "flex-end" : "flex-start",
-                maxWidth:"85%",
-                background: m.role === "user" ? "rgba(193,127,58,0.18)" : "rgba(255,255,255,0.05)",
-                border: `1px solid ${m.role === "user" ? "rgba(193,127,58,0.3)" : "rgba(255,255,255,0.08)"}`,
-                borderRadius: m.role === "user" ? "12px 12px 4px 12px" : "12px 12px 12px 4px",
-                padding:"10px 13px",
-                fontSize:12, color:txt, lineHeight:1.6,
-              }}>
-                {m.text}
-              </div>
-            ))}
-            {loading && (
-              <div style={{ alignSelf:"flex-start", fontSize:12, color:muted, padding:"8px 12px" }}>
-                <span style={{ display:"inline-block", animation:"spin 1s linear infinite" }}>⟳</span> Thinking...
-              </div>
-            )}
-            <div ref={bottomRef} />
-          </div>
-
-          {/* Input row */}
-          <div style={{ padding:"10px 12px", borderTop:"1px solid rgba(193,127,58,0.12)", display:"flex", gap:8, flexShrink:0 }}>
-            <input
-              value={input}
-              onChange={e => setInput(e.target.value)}
-              onKeyDown={e => e.key === "Enter" && !e.shiftKey && send()}
-              placeholder="Ask a question..."
-              style={{
-                flex:1, background:inBg, border:"1px solid rgba(193,127,58,0.2)",
-                borderRadius:8, padding:"8px 12px", color:txt, fontSize:12,
-                outline:"none", fontFamily:"inherit",
-              }}
-            />
-            <button onClick={send} disabled={loading || !input.trim()}
-              style={{
-                padding:"8px 14px", borderRadius:8, border:"none",
-                background: loading || !input.trim() ? "rgba(193,127,58,0.2)" : "rgba(193,127,58,0.9)",
-                color: loading || !input.trim() ? muted : "#000",
-                fontSize:12, fontWeight:700, cursor:"pointer",
-              }}>
-              →
-            </button>
-          </div>
-        </div>
-      )}
-    </>
-  )
-}
-
-// ─────────────────────────────────────────────
 //  COMPONENT: COURSE DETAIL
 // ─────────────────────────────────────────────
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
@@ -2657,7 +2479,7 @@ const YouTubePlayer = ({ videoId, T }) => {
 
 
 
-const CourseDetail = ({ course, onBack, lectureProgress, setLectureProgress, setCourseProgress = ()=>{}, T, user, aiSettings, markStudyToday = ()=>{}, githubData = {} }) => {
+const CourseDetail = ({ course, onBack, lectureProgress, setLectureProgress, setCourseProgress = ()=>{}, T, user, markStudyToday = ()=>{}, githubData = {} }) => {
 const LIVE_SCHEDULES = githubData.schedules || SCHEDULES
 const raw = LIVE_SCHEDULES[course.id]
 const sched = (raw ? {
@@ -2699,28 +2521,7 @@ const sched = (raw ? {
   const [expandedPs, setExpandedPs] = useState(null)   // ps.id currently open
   const [drafts, setDrafts] = useState({})              // { psId: textValue }
   const [reviewing, setReviewing] = useState(null)      // ps.id being reviewed
-  const [fileLoading, setFileLoading] = useState(null)  // psId currently parsing file
 
-   const handleFileUpload = async (psId, file) => {
-    if (!file) return
-    setFileLoading(psId)
-    try {
-      const ext = file.name.split(".").pop().toLowerCase()
-      if (ext === "docx") {
-        const arrayBuffer = await file.arrayBuffer()
-        const result = await mammoth.extractRawText({ arrayBuffer })
-        setDrafts(prev => ({ ...prev, [psId]: result.value.trim() }))
-      } else if (ext === "txt" || ext === "md") {
-        const text = await file.text()
-        setDrafts(prev => ({ ...prev, [psId]: text.trim() }))
-      } else {
-        alert("Upload a .docx or .txt file.\nGoogle Docs: File → Download → Word Document (.docx)")
-      }
-    } catch {
-      alert("Could not read file — try pasting your solution directly.")
-    }
-    setFileLoading(null)
-  }
 
   // ── AI Review via Anthropic API ──
   const submitForReview = async (ps) => {
@@ -2794,13 +2595,11 @@ Grade this submission strictly and fairly. Return ONLY a JSON object (no markdow
     </div>
   )
 
-const toggleL = (n) => {
-  markStudyToday()
-  setLectureProgress(prev => {
-    const k = `${course.id}_l${n}`
-    const curr = prev[k] || 0
-    const next = curr === 0 ? 0.5 : curr === 0.5 ? 1 : 0
-    return { ...prev, [k]: next }
+ const toggleL = (n) => {
+    markStudyToday()
+    setLectureProgress(prev => {
+      const k    = `${course.id}_l${n}`
+      const next = { ...prev, [k]: prev[k] === 1 ? 0 : 1 }
 
       // ── Auto-sync course state based on lecture completions ──────────
       if (sched) {
@@ -2811,8 +2610,8 @@ const toggleL = (n) => {
           [course.id]: doneCount === 0 ? 0 : doneCount === total ? 1 : 0.5,
         }))
       }
-//syntax fixed
-      return update
+
+      return next
     })
   }
   const isDone = (n) => lectureProgress[`${course.id}_l${n}`] === 1
@@ -2956,7 +2755,6 @@ const toggleL = (n) => {
                 ))}
               </div>
               {sched.lectures.map(l => {
-                const lp = lectureProgress[`${course.id}_l${l.n}`] || 0
                 const done = isDone(l.n)
                 const isExam = l.title.includes("🎯") || l.title.includes("🏁")
                 return (
@@ -2989,7 +2787,7 @@ const toggleL = (n) => {
                     </div>
                     <div style={{ padding:"10px 8px", display:"flex", alignItems:"center" }}>
                       <button onClick={() => toggleL(l.n)} style={{ fontSize:11, background:done?"rgba(16,185,129,0.15)":bg, border:`1px solid ${done?"rgba(16,185,129,0.3)":bdr}`, borderRadius:4, padding:"3px 8px", color:done?"#10b981":sub, cursor:"pointer", whiteSpace:"nowrap" }}>
-                      {lp===1 ? "✓ Done" : lp===0.5 ? "◑ Active" : "○ Start"}
+                        {done ? "✓ Done" : "○ Mark"}
                       </button>
                     </div>
                   </div>
@@ -3165,39 +2963,13 @@ const toggleL = (n) => {
                   {/* Submission panel */}
                   {isExpanded && (
                     <div style={{ borderTop:`1px solid rgba(193,127,58,0.25)`, padding:"16px 20px", background:"rgba(193,127,58,0.03)" }}>
-                   {/* Description + upload row */}
-                      <div style={{ display:"flex", justifyContent:"space-between", alignItems:"flex-start", gap:12, marginBottom:10 }}>
-                        <div style={{ fontSize:12, color:sub, lineHeight:1.5, flex:1 }}>
-                          Write, paste, or <strong style={{color:txt}}>upload your solution</strong>. Our AI professor will score it on <strong style={{color:txt}}>Conceptual Understanding</strong>, <strong style={{color:txt}}>Mathematical Rigor</strong>, <strong style={{color:txt}}>Problem Solving</strong>, and <strong style={{color:txt}}>Clarity</strong>.
-                        </div>
-                        {/* Upload button */}
-                        <div style={{ flexShrink:0 }}>
-                          <label title="Upload .docx or .txt — Google Docs: File → Download → Word Document (.docx)"
-                            style={{
-                              display:"flex", alignItems:"center", gap:6, padding:"7px 13px",
-                              borderRadius:8, border:"1px solid rgba(193,127,58,0.35)",
-                              background:"rgba(193,127,58,0.08)", color:"#C17F3A",
-                              fontSize:12, cursor:"pointer", fontFamily:"'JetBrains Mono',monospace",
-                              whiteSpace:"nowrap", userSelect:"none",
-                            }}>
-                            {fileLoading === ps.id ? "⏳ Reading..." : "📎 Upload Doc"}
-                            <input
-                              type="file"
-                              accept=".docx,.txt,.md"
-                              style={{ display:"none" }}
-                              onChange={e => handleFileUpload(ps.id, e.target.files?.[0])}
-                            />
-                          </label>
-                          <div style={{ fontSize:10, color:muted, marginTop:4, textAlign:"center" }}>
-                            .docx · .txt
-                          </div>
-                        </div>
+                      <div style={{ fontSize:12, color:sub, marginBottom:10, lineHeight:1.5 }}>
+                        Write or paste your solution below. Our AI professor will score it on <strong style={{color:txt}}>Conceptual Understanding</strong>, <strong style={{color:txt}}>Mathematical Rigor</strong>, <strong style={{color:txt}}>Problem Solving</strong>, and <strong style={{color:txt}}>Clarity</strong>.
                       </div>
-
                       <textarea
                         value={drafts[ps.id] || ""}
                         onChange={e => setDrafts(prev => ({ ...prev, [ps.id]: e.target.value }))}
-                        placeholder={`Write your solution to ${ps.title} here…\n\nOr upload a Word doc above (Google Docs: File → Download → Word Document).`}
+                        placeholder={`Write your solution to ${ps.title} here...\n\nExample: "For problem 1, I applied the definition of linear independence... Setting up the matrix A = [...], I computed the determinant..."`}
                         rows={10}
                         style={{
                           width:"100%", background:inBg, border:`1px solid rgba(193,127,58,0.25)`,
@@ -3258,8 +3030,6 @@ const toggleL = (n) => {
           </div>
         </div>
       )}
-   {/* ── AI Tutor Bubble ── */}
-      <CourseTutor course={course} sched={sched} aiSettings={aiSettings} T={T} />
     </div>
   )
 }
@@ -3726,7 +3496,7 @@ const SkillTreeView = ({ courseProgress, onCourseClick, setCourseProgress, T, is
             boxShadow:isDark?"-12px 0 40px rgba(0,0,0,0.4)":"-12px 0 40px rgba(0,0,0,0.08)",
             display:"flex",flexDirection:"column",
             overflowY:"auto",
-            animation:"qsun-fade 0.18s ease",
+            animation:"qos-fade 0.18s ease",
           }}>
             {/* Header */}
             <div style={{padding:"20px 20px 16px",borderBottom:"none",
@@ -3978,7 +3748,6 @@ const LearningPath = ({ courseProgress, setCourseProgress, T, user, aiSettings, 
       user={user}
       markStudyToday={markStudyToday}
       githubData={githubData}
-      aiSettings={aiSettings}
     />
   )
 
@@ -4041,7 +3810,7 @@ const LearningPath = ({ courseProgress, setCourseProgress, T, user, aiSettings, 
         {/* Filters Row */}
         <div style={{ display:"flex", gap:10, marginBottom:20, alignItems:"center", flexWrap:"wrap" }}>
           <input value={search} onChange={e => setSearch(e.target.value)} placeholder="Search courses..." style={{ background:inBg, border:`1px solid ${bdr}`, borderRadius:8, padding:"7px 12px", color:txt, fontSize:13, outline:"none", minWidth:200 }} />
-          {["All","Done","In Progress","Not Started"].map(f => (
+          {["All","Done","In Progress","Not Started","Ready","Locked"].map(f => (
             <button key={f} onClick={() => setFilterStatus(f)} style={{ padding:"6px 12px", borderRadius:6, border:"1px solid", fontSize:12, cursor:"pointer",
               borderColor: filterStatus === f ? "#6366f1" : bdr,
               background: filterStatus === f ? "rgba(99,102,241,0.15)" : "transparent",
@@ -4115,34 +3884,7 @@ const LearningPath = ({ courseProgress, setCourseProgress, T, user, aiSettings, 
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 // FILE: src/components/modules/CompetitionTracker.jsx  (when splitting)
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-const NoteTextarea = ({ value, onChange, inBg, txt }) => {
-  const [draft, setDraft] = React.useState(value || "")
-  return (
-    <textarea
-      value={draft}
-      onChange={e => setDraft(e.target.value)}
-      onBlur={() => onChange(draft)}
-      onKeyDown={e => { if(e.key==="Enter" && !e.shiftKey){ e.preventDefault(); onChange(draft) }}}
-      placeholder="Personal notes, team info, requirements..."
-      style={{ width:"100%", minHeight:60, background:inBg,
-        border:"1px solid rgba(99,102,241,0.25)", borderRadius:8,
-        padding:"8px 12px", color:txt, fontSize:12, resize:"vertical",
-        outline:"none", fontFamily:"inherit", lineHeight:1.5, boxSizing:"border-box" }}
-    />
-  )
-}
-
 const CompetitionTracker = ({ bookmarks, setBookmarks, T, aiSettings, githubData = {} }) => {
-  const deriveStatus = (c) => {
-    
-  const today = new Date(); today.setHours(0,0,0,0)
-  const start    = c.start    && c.start    !== "TBA" ? new Date(c.start)    : null
-  const deadline = c.deadline && c.deadline !== "TBA" ? new Date(c.deadline) : null
-  if (deadline && today > deadline) return "closed"
-  if (start    && today >= start)   return "running"
-  return c.status // fallback to JSON value (handles "tba" etc.)
-}
- 
   const LIVE_COMPS = githubData.competitions || COMPETITIONS
   const [search, setSearch] = useState("")
   const [filterStatus, setFilterStatus] = useState("All")
@@ -4176,8 +3918,8 @@ const CompetitionTracker = ({ bookmarks, setBookmarks, T, aiSettings, githubData
       const d = new Date(str); if (isNaN(d)) return null
       return d.toISOString().replace(/-|:|\.\d{3}/g,"").slice(0,15)+"Z"
     }
-    const lines = ["BEGIN:VCALENDAR","VERSION:2.0","PRODID:-//QuantSun//Competitions//EN","CALSCALE:GREGORIAN"]
-    LIVE_COMPS.filter(c=>deriveStatus(c)!=="closed").forEach(c=>{
+    const lines = ["BEGIN:VCALENDAR","VERSION:2.0","PRODID:-//QuantOS//Competitions//EN","CALSCALE:GREGORIAN"]
+    LIVE_COMPS.filter(c=>c.status!=="closed").forEach(c=>{
       const dt = toICSDate(c.deadline); if(!dt) return
       lines.push("BEGIN:VEVENT",
         `DTSTART:${dt}`, `DTEND:${dt}`,
@@ -4185,13 +3927,13 @@ const CompetitionTracker = ({ bookmarks, setBookmarks, T, aiSettings, githubData
         `DESCRIPTION:${c.desc?.replace(/\n/g,"\\n")||""} | ${c.link||""}`,
         `URL:${c.link||""}`,
         `LOCATION:${c.location||""}`,
-        `UID:QuantSun-${c.id}@competitions`,
+        `UID:quantos-${c.id}@competitions`,
         "END:VEVENT")
     })
     lines.push("END:VCALENDAR")
     const blob = new Blob([lines.join("\r\n")],{type:"text/calendar"})
     const a = document.createElement("a"); a.href=URL.createObjectURL(blob)
-    a.download="QuantSun_Competitions_2026.ics"; a.click(); URL.revokeObjectURL(a.href)
+    a.download="QuantOS_Competitions_2026.ics"; a.click(); URL.revokeObjectURL(a.href)
   }
 
   const toggleBookmark = (id) => {
@@ -4199,9 +3941,9 @@ const CompetitionTracker = ({ bookmarks, setBookmarks, T, aiSettings, githubData
   }
 
   let filtered = LIVE_COMPS.filter(c => {
-    if (filterStatus !== "All" && filterStatus === "open"       && deriveStatus(c) !== "open")   return false
-    if (filterStatus !== "All" && filterStatus === "tba"        && deriveStatus(c) !== "tba")    return false
-    if (filterStatus !== "All" && filterStatus === "closed"     && deriveStatus(c) !== "closed") return false
+    if (filterStatus !== "All" && filterStatus === "open"       && c.status !== "open")   return false
+    if (filterStatus !== "All" && filterStatus === "tba"        && c.status !== "tba")    return false
+    if (filterStatus !== "All" && filterStatus === "closed"     && c.status !== "closed") return false
     if (filterStatus === "bookmarked" && !bookmarks.includes(c.id)) return false
     if (filterCat  !== "All" && c.category !== filterCat)  return false
     if (filterMode !== "All" && !c.mode.includes(filterMode)) return false
@@ -4269,12 +4011,12 @@ Focus on real, verifiable competitions. If deadline is unknown use TBA. Today is
     const catColor = CATEGORY_COLORS[c.category] || "#64748b"
     const isBookmarked = bookmarks.includes(c.id)
     return (
-      <div style={{ background:bg, border:`1px solid ${deriveStatus(c)==="open"?"rgba(16,185,129,0.2)":c.isLive?"rgba(193,127,58,0.2)":bdr}`, borderRadius:12, padding:"16px 18px", display:"flex", flexDirection:"column", gap:10 }}>
+      <div style={{ background:bg, border:`1px solid ${c.status==="open"?"rgba(16,185,129,0.2)":c.isLive?"rgba(193,127,58,0.2)":bdr}`, borderRadius:12, padding:"16px 18px", display:"flex", flexDirection:"column", gap:10 }}>
         <div style={{ display:"flex", justifyContent:"space-between", alignItems:"flex-start" }}>
           <div style={{ flex:1, minWidth:0 }}>
             <div style={{ display:"flex", gap:6, alignItems:"center", marginBottom:4, flexWrap:"wrap" }}>
               <span style={{ fontSize:10, color:catColor, background:`${catColor}15`, padding:"2px 8px", borderRadius:4, fontFamily:"'JetBrains Mono', monospace", textTransform:"uppercase", letterSpacing:"0.05em" }}>{c.category}</span>
-              <StatusBadge status={deriveStatus(c)} />
+              <StatusBadge status={c.status} />
               {c.isLive && <span style={{ fontSize:9, color:"#C17F3A", background:"rgba(193,127,58,0.1)", padding:"2px 6px", borderRadius:3 }}>✦ AI</span>}
             </div>
             <div style={{ fontSize:14, fontWeight:700, color:txt, lineHeight:1.3 }}>{c.name}</div>
@@ -4313,17 +4055,19 @@ Focus on real, verifiable competitions. If deadline is unknown use TBA. Today is
             </button>
           </div>
         </div>
-       
-  {openNotes[c.id] && (
-  <div style={{ marginTop:10, paddingTop:10, borderTop:`1px solid ${bdr}` }}>
-    <NoteTextarea
-      value={compNotes[c.id]}
-      onChange={val => setCompNotes(p=>({...p,[c.id]:val}))}
-      inBg={inBg}
-      txt={txt}
-    />
-  </div>
-)}
+        {openNotes[c.id] && (
+          <div style={{ marginTop:10, paddingTop:10, borderTop:`1px solid ${bdr}` }}>
+            <textarea
+              value={compNotes[c.id]||""}
+              onChange={e=>setCompNotes(p=>({...p,[c.id]:e.target.value}))}
+              placeholder="Personal notes, team info, requirements..."
+              style={{ width:"100%", minHeight:60, background:inBg,
+                border:"1px solid rgba(99,102,241,0.25)", borderRadius:8,
+                padding:"8px 12px", color:txt, fontSize:12, resize:"vertical",
+                outline:"none", fontFamily:"inherit", lineHeight:1.5, boxSizing:"border-box" }}
+            />
+          </div>
+        )}
       </div>
     )
   }
@@ -5091,7 +4835,7 @@ const ResourceHub = ({ T }) => {
       // ✅ fixed
     const ARXIV_URL = `https://arxiv.org/api/query?search_query=${searchQ}&sortBy=submittedDate&sortOrder=descending&max_results=12`
     
-    const res = await fetch(`https://arxiv-proxy.s1tanshu.workers.dev/?url=${encodeURIComponent(ARXIV_URL)}`)
+    const res = await fetch(`https://arxiv-proxy.quantos.workers.dev/?url=${encodeURIComponent(ARXIV_URL)}`)
       const text = await res.text()
       const parser = new DOMParser()
       const xml = parser.parseFromString(text, "text/xml")
@@ -6430,10 +6174,10 @@ const WelcomeScreen = ({ onLogin, isDark }) => {
         {/* Logo — wordmark only */}
         <div style={{ marginBottom: step === 0 ? 40 : 24 }}>
           <div style={{ fontSize:42, fontWeight:800, fontFamily:"'Syne',sans-serif", letterSpacing:"-0.03em", lineHeight:1 }}>
-            <span style={{ color:"#C17F3A" }}>QUANT</span><span style={{ color:text }}>SUN</span>
+            <span style={{ color:"#C17F3A" }}>Quant</span><span style={{ color:text }}>OS</span>
           </div>
           <div style={{ fontSize:10, color:sub, fontFamily:"'JetBrains Mono',monospace", letterSpacing:"0.14em", marginTop:6 }}>
-            QUANT CAREER PLATFORM · {APP_VERSION}
+            CAREER OPERATING SYSTEM · {APP_VERSION}
           </div>
         </div>
 
@@ -6531,7 +6275,7 @@ const WelcomeScreen = ({ onLogin, isDark }) => {
                 style={{ width:"100%", padding:"12px", borderRadius:12, border:"none",
                   background:"#C17F3A", color:"#000", fontSize:14, fontWeight:700,
                   cursor:"pointer", fontFamily:"'Syne',sans-serif" }}>
-                Enter QUANTSUN →
+                Enter QuantOS →
               </button>
 
               <button onClick={() => setStep(0)}
@@ -6744,7 +6488,7 @@ const CareerPrep = ({ T, isMobile, aiSettings, githubData = {}, markStudyToday =
   )
 }
 
-export default function QuantSun() {
+export default function QuantOS() {
   const [active, setActive]                     = useState("dashboard")
   const { githubData, loading: dataLoading, isLive, loadedKeys } = useGithubData()
   const [courseProgress, setCourseProgress]     = useStorage("course_progress_v2", {})
@@ -6863,13 +6607,13 @@ export default function QuantSun() {
     <div style={{ minHeight:"100vh", display:"flex", flexDirection:"column", alignItems:"center", justifyContent:"center",
       background:"#110703", fontFamily:"'JetBrains Mono',monospace", gap:16 }}>
       <div style={{ fontSize:28, fontWeight:800, fontFamily:"'Syne',sans-serif" }}>
-        <span style={{ color:"#C17F3A" }}>Quant</span><span style={{ color:"#E8D5C0" }}>SUN</span>
+        <span style={{ color:"#C17F3A" }}>Quant</span><span style={{ color:"#E8D5C0" }}>OS</span>
       </div>
       <div style={{ fontSize:12, color:"#9A7A62", letterSpacing:"0.1em" }}>LOADING DATA...</div>
       <div style={{ width:120, height:2, background:"rgba(193,127,58,0.15)", borderRadius:99, overflow:"hidden" }}>
-        <div style={{ height:"100%", background:"#C17F3A", borderRadius:99, animation:"qsun-load 1.2s ease-in-out infinite" }}/>
+        <div style={{ height:"100%", background:"#C17F3A", borderRadius:99, animation:"qos-load 1.2s ease-in-out infinite" }}/>
       </div>
-      <style>{`@keyframes qsun-load { 0%{width:0%} 50%{width:100%} 100%{width:0%;margin-left:100%} }`}</style>
+      <style>{`@keyframes qos-load { 0%{width:0%} 50%{width:100%} 100%{width:0%;margin-left:100%} }`}</style>
     </div>
   )
 
@@ -7051,7 +6795,7 @@ export default function QuantSun() {
         display: "flex", alignItems: "center", justifyContent: "center",
         boxShadow: "0 2px 16px rgba(193,127,58,0.18)",
       }}>
-        <QuantSunLogo size={22} />
+        <span style={{ fontSize: 16, fontWeight: 800, fontFamily: "'Syne',sans-serif", color: "#C17F3A" }}>Q</span>
       </div>
    
         <div
@@ -7073,7 +6817,7 @@ export default function QuantSun() {
           const isActive = active === item.id
           return (
             <button key={item.id} onClick={() => navigate(item.id)}
-              data-tip={item.label} className="qsun-tip"
+              data-tip={item.label} className="qos-tip"
               style={{
                 width: "100%", height: 44,
                 display: "flex", alignItems: "center", justifyContent: "center",
@@ -7119,7 +6863,7 @@ export default function QuantSun() {
       {/* Footer */}
       <div style={{ display:"flex", flexDirection:"column", alignItems:"center", gap:8, padding:"12px 8px 0", borderTop:`1px solid ${T.border}`, width:"100%" }}>
         <button onClick={() => setShowShortcuts(s=>!s)}
-          data-tip="Keyboard shortcuts (?)" className="qsun-tip"
+          data-tip="Keyboard shortcuts (?)" className="qos-tip"
           style={{
             width:"100%", height:32, borderRadius:8,
             border:`1px solid ${showShortcuts?"rgba(193,127,58,0.35)":T.border}`,
@@ -7130,7 +6874,7 @@ export default function QuantSun() {
           }}>?</button>
         {/* AI Settings button — glows if no key set */}
         <button onClick={() => setShowAISettings(true)}
-          data-tip="AI Settings" className="qsun-tip"
+          data-tip="AI Settings" className="qos-tip"
           style={{
             width:"100%", height:32, borderRadius:8, position:"relative",
             border:`1px solid ${aiSettings.key ? T.border : "rgba(193,127,58,0.4)"}`,
@@ -7147,12 +6891,12 @@ export default function QuantSun() {
         </button>
         {user.picture
           ? <img src={user.picture} onClick={() => setUser(null)}
-              data-tip="Sign out" className="qsun-tip"
+              data-tip="Sign out" className="qos-tip"
               style={{ width:32, height:32, borderRadius:"50%", cursor:"pointer",
                 border:`2px solid ${isDark ? "rgba(255,255,255,0.10)" : "rgba(255,255,255,0.85)"}`,
                 boxShadow:"0 2px 8px rgba(0,0,0,0.12)", objectFit:"cover" }} />
           : <div onClick={() => setUser(null)}
-              data-tip={`${user.name||"Guest"} · Sign out`} className="qsun-tip"
+              data-tip={`${user.name||"Guest"} · Sign out`} className="qos-tip"
               style={{
                 width:32, height:32, borderRadius:"50%", cursor:"pointer",
                 background: isDark ? "rgba(193,127,58,0.18)" : "rgba(255,255,255,0.75)",
@@ -7188,7 +6932,7 @@ export default function QuantSun() {
            Modules set background: T.cardBg inline. We add backdrop-filter + the
            inner top-edge highlight via a global rule so every card glows correctly
            without touching any module code.                                       */
-        .qsun-root * {
+        .qos-root * {
           /* pass-through — no global override needed; blur handled per-element */
         }
         /* Glass card surfaces */
@@ -7197,8 +6941,8 @@ export default function QuantSun() {
         [style*="rgba(255,255,255,0.055)"] { backdrop-filter:blur(10px); -webkit-backdrop-filter:blur(10px); }
 
         /* ── CSS tooltip (icon rail) ── */
-        .qsun-tip { position: relative; }
-        .qsun-tip::after {
+        .qos-tip { position: relative; }
+        .qos-tip::after {
           content: attr(data-tip);
           position: absolute; left: calc(100% + 14px); top: 50%;
           transform: translateY(-50%) scale(0.94);
@@ -7213,7 +6957,7 @@ export default function QuantSun() {
           box-shadow: 0 4px 20px rgba(0,0,0,0.12);
           z-index: 999;
         }
-        .qsun-tip:hover::after { opacity: 1; transform: translateY(-50%) scale(1); }
+        .qos-tip:hover::after { opacity: 1; transform: translateY(-50%) scale(1); }
 
 
         /* ── Glass shadow system ────────────────────────────────────────────────────
@@ -7234,7 +6978,7 @@ export default function QuantSun() {
             4px 0 32px rgba(0,0,0,0.25) !important;
         }
         /* Orange accent hover glow on interactive tiles */
-        .qsun-tile-hover:hover {
+        .qos-tile-hover:hover {
           box-shadow:
             0 0 0 1px rgba(193,127,58,0.22),
             0 8px 32px rgba(193,127,58,0.08),
@@ -7242,10 +6986,10 @@ export default function QuantSun() {
           transform: translateY(-1px);
           transition: all 0.2s ease;
         }
-        @keyframes qsun-fade { from{opacity:0;transform:translateY(8px)} to{opacity:1;transform:translateY(0)} }
+        @keyframes qos-fade { from{opacity:0;transform:translateY(8px)} to{opacity:1;transform:translateY(0)} }
       `}</style>
 
-      <div className="qsun-root" style={{
+      <div className="qos-root" style={{
         display:"flex", minHeight:"100vh",
         background: T.bg,
         fontFamily:"'Inter',system-ui,sans-serif", color:T.text,
@@ -7306,7 +7050,7 @@ export default function QuantSun() {
               padding:"0 4px",
             }}>
               {/* Hide scrollbar for webkit */}
-              <style>{`.qsun-nav-scroll::-webkit-scrollbar{display:none}`}</style>
+              <style>{`.qos-nav-scroll::-webkit-scrollbar{display:none}`}</style>
               {NAV_ITEMS.filter(item => !item.desktopOnly).map(item => {
                 const isActive = active === item.id
                 const badge = NAV_BADGES[item.id]
@@ -7392,7 +7136,7 @@ export default function QuantSun() {
           background:"rgba(4,4,12,0.70)",
           backdropFilter:"blur(12px)",WebkitBackdropFilter:"blur(12px)",
           display:"flex",alignItems:"center",justifyContent:"center",
-          animation:"qsun-fade 0.18s ease",
+          animation:"qos-fade 0.18s ease",
         }}>
           <div onClick={e=>e.stopPropagation()} style={{
             width:380,borderRadius:20,

@@ -1,0 +1,188 @@
+
+  "ml0": {
+    "playlistUrl": "https://youtube.com/playlist?list=PLUl4u3cNGP63gFHB6xb-kVBiQHYe_4hSi&si=jUhsTwjIis3vdQhY",
+    "notesPage": "",
+    "psets": [],
+    "lectures": [
+      {
+        "n": 1,
+        "title": "1. Introduction and Scope",
+        "videoId": "TjZBTDzGeGg",
+        "ps": false
+      },
+      {
+        "n": 2,
+        "title": "2. Reasoning: Goal Trees and Problem Solving",
+        "videoId": "PNKj529yY5c",
+        "ps": false
+      },
+      {
+        "n": 3,
+        "title": "3. Reasoning: Goal Trees and Rule-Based Expert Systems",
+        "videoId": "leXa7EKUPFk",
+        "ps": false
+      },
+      {
+        "n": 4,
+        "title": "4. Search: Depth-First, Hill Climbing, Beam",
+        "videoId": "j1H3jAAGlEA",
+        "ps": false
+      },
+      {
+        "n": 5,
+        "title": "5. Search: Optimal, Branch and Bound, A*",
+        "videoId": "gGQ-vAmdAOI",
+        "ps": false
+      },
+      {
+        "n": 6,
+        "title": "6. Search: Games, Minimax, and Alpha-Beta",
+        "videoId": "STjW3eH0Cik",
+        "ps": false
+      },
+      {
+        "n": 7,
+        "title": "7. Constraints: Interpreting Line Drawings",
+        "videoId": "l-tzjenXrvI",
+        "ps": false
+      },
+      {
+        "n": 8,
+        "title": "8. Constraints: Search, Domain Reduction",
+        "videoId": "dARl_gGrS4o",
+        "ps": false
+      },
+      {
+        "n": 9,
+        "title": "9. Constraints: Visual Object Recognition",
+        "videoId": "gvmfbePC2pc",
+        "ps": false
+      },
+      {
+        "n": 10,
+        "title": "10. Introduction to Learning, Nearest Neighbors",
+        "videoId": "09mb78oiPkA",
+        "ps": false
+      },
+      {
+        "n": 11,
+        "title": "11. Learning: Identification Trees, Disorder",
+        "videoId": "SXBG3RGr_Rc",
+        "ps": false
+      },
+      {
+        "n": 12,
+        "title": "12a: Neural Nets",
+        "videoId": "uXt8qF2Zzfo",
+        "ps": false
+      },
+      {
+        "n": 13,
+        "title": "12b: Deep Neural Nets",
+        "videoId": "VrMHA3yX_QI",
+        "ps": false
+      },
+      {
+        "n": 14,
+        "title": "13. Learning: Genetic Algorithms",
+        "videoId": "kHyNqSnzP8Y",
+        "ps": false
+      },
+      {
+        "n": 15,
+        "title": "14. Learning: Sparse Spaces, Phonology",
+        "videoId": "L73hY1pBcQI",
+        "ps": false
+      },
+      {
+        "n": 16,
+        "title": "15. Learning: Near Misses, Felicity Conditions",
+        "videoId": "sh3EPjhhd40",
+        "ps": false
+      },
+      {
+        "n": 17,
+        "title": "16. Learning: Support Vector Machines",
+        "videoId": "_PwhiWxHK8o",
+        "ps": false
+      },
+      {
+        "n": 18,
+        "title": "17. Learning: Boosting",
+        "videoId": "UHBmv7qCey4",
+        "ps": false
+      },
+      {
+        "n": 19,
+        "title": "18. Representations: Classes, Trajectories, Transitions",
+        "videoId": "bQI0OmJPby4",
+        "ps": false
+      },
+      {
+        "n": 20,
+        "title": "19. Architectures: GPS, SOAR, Subsumption, Society of Mind",
+        "videoId": "PimSbFGrwXM",
+        "ps": false
+      },
+      {
+        "n": 21,
+        "title": "21. Probabilistic Inference I",
+        "videoId": "A6Ud6oUCRak",
+        "ps": false
+      },
+      {
+        "n": 22,
+        "title": "22. Probabilistic Inference II",
+        "videoId": "EC6bf8JCpDQ",
+        "ps": false
+      },
+      {
+        "n": 23,
+        "title": "23. Model Merging, Cross-Modal Coupling, Course Summary",
+        "videoId": "XPEJg_6Cg6o",
+        "ps": false
+      },
+      {
+        "n": 24,
+        "title": "Mega-R1. Rule-Based Systems",
+        "videoId": "iusTmgQyZ44",
+        "ps": false
+      },
+      {
+        "n": 25,
+        "title": "Mega-R2. Basic Search, Optimal Search",
+        "videoId": "Tl_p5pgBsyM",
+        "ps": false
+      },
+      {
+        "n": 26,
+        "title": "Mega-R3. Games, Minimax, Alpha-Beta",
+        "videoId": "hM2EAvMkhtk",
+        "ps": false
+      },
+      {
+        "n": 27,
+        "title": "Mega-R4. Neural Nets",
+        "videoId": "JMrFgnqSS0w",
+        "ps": false
+      },
+      {
+        "n": 28,
+        "title": "Mega-R5. Support Vector Machines",
+        "videoId": "6nDqY8MPLDM",
+        "ps": false
+      },
+      {
+        "n": 29,
+        "title": "Mega-R6. Boosting",
+        "videoId": "ZZmzMJB-tow",
+        "ps": false
+      },
+      {
+        "n": 30,
+        "title": "Mega-R7. Near Misses, Arch Learning",
+        "videoId": "J-ocRQCjcwE",
+        "ps": false
+      }
+    ]
+  },

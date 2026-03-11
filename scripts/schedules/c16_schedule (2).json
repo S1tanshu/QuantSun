@@ -1,0 +1,128 @@
+
+  "c16": {
+    "playlistUrl": "https://youtube.com/playlist?list=PLrw6a1wE39_tb2fErI4-WkMbsvGQk9_UB&si=1Ls2jJa8jhsGFa0t",
+    "notesPage": "",
+    "psets": [],
+    "lectures": [
+      {
+        "n": 1,
+        "title": "Lecture 1: Introduction",
+        "videoId": "cQP8WApzIQQ",
+        "ps": false
+      },
+      {
+        "n": 2,
+        "title": "Lecture 2: RPC and Threads",
+        "videoId": "gA4YXUJX7t8",
+        "ps": false
+      },
+      {
+        "n": 3,
+        "title": "Lecture 3: GFS",
+        "videoId": "EpIgvowZr00",
+        "ps": false
+      },
+      {
+        "n": 4,
+        "title": "Lecture 4: Primary-Backup Replication",
+        "videoId": "M_teob23ZzY",
+        "ps": false
+      },
+      {
+        "n": 5,
+        "title": "Lecture 5: Go, Threads, and Raft",
+        "videoId": "UzzcUS2OHqo",
+        "ps": false
+      },
+      {
+        "n": 6,
+        "title": "Lecture 6: Fault Tolerance: Raft (1)",
+        "videoId": "64Zp3tzNbpE",
+        "ps": false
+      },
+      {
+        "n": 7,
+        "title": "Lecture 7: Fault Tolerance: Raft (2)",
+        "videoId": "4r8Mz3MMivY",
+        "ps": false
+      },
+      {
+        "n": 8,
+        "title": "Lecture 8: Zookeeper",
+        "videoId": "pbmyrNjzdDk",
+        "ps": false
+      },
+      {
+        "n": 9,
+        "title": "Lecture 9: More Replication, CRAQ",
+        "videoId": "IXHzbCuADt0",
+        "ps": false
+      },
+      {
+        "n": 10,
+        "title": "Lecture 10: Cloud Replicated DB, Aurora",
+        "videoId": "jJSh54J1s5o",
+        "ps": false
+      },
+      {
+        "n": 11,
+        "title": "Lecture 11: Cache Consistency: Frangipani",
+        "videoId": "-pKNCjUhPjQ",
+        "ps": false
+      },
+      {
+        "n": 12,
+        "title": "Lecture 12: Distributed Transactions",
+        "videoId": "aDp99WDIM_4",
+        "ps": false
+      },
+      {
+        "n": 13,
+        "title": "Lecture 13: Spanner",
+        "videoId": "4eW5SWBi7vs",
+        "ps": false
+      },
+      {
+        "n": 14,
+        "title": "Lecture 14: Optimistic Concurrency Control",
+        "videoId": "Cw6Nj2evjSs",
+        "ps": false
+      },
+      {
+        "n": 15,
+        "title": "Lecture 15: Big Data: Spark",
+        "videoId": "mzIoSW-cInA",
+        "ps": false
+      },
+      {
+        "n": 16,
+        "title": "Lecture 16: Cache Consistency: Memcached at Facebook",
+        "videoId": "Myp8z0ybdzM",
+        "ps": false
+      },
+      {
+        "n": 17,
+        "title": "Lecture 17: COPS, Causal Consistency",
+        "videoId": "fR_NB714EAI",
+        "ps": false
+      },
+      {
+        "n": 18,
+        "title": "Lecture 18: Fork Consistency, Certificate Transparency",
+        "videoId": "UKdLJ7-0iFM",
+        "ps": false
+      },
+      {
+        "n": 19,
+        "title": "Lecture 19: Bitcoin",
+        "videoId": "K_euhRou98Y",
+        "ps": false
+      },
+      {
+        "n": 20,
+        "title": "Lecture 20: Blockstack",
+        "videoId": "XvXK_vZ0BNw",
+        "ps": false
+      }
+    ]
+  },

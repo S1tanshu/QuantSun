@@ -1,0 +1,243 @@
+{
+  "c4": {
+    "playlistUrl": "https://youtube.com/playlist?list=PL5PHm2jkkXmi5CxxI7b3JCL1TWybTDtKq&si=kmrjKVsQRNPWqdZ_",
+    "notesPage": "",
+    "psets": [],
+    "lectures": [
+      {
+        "n": 1,
+        "title": "Lecture 1. Introduction and Basics - Carnegie Mellon - Computer Architecture 2015 - Onur Mutlu",
+        "videoId": "zLP_X4wyHbY",
+        "ps": false
+      },
+      {
+        "n": 2,
+        "title": "Lecture 2. Fundamental Concepts and ISA - Carnegie Mellon - Computer Architecture 2015 - Onur Mutlu",
+        "videoId": "NpC39uS4K4o",
+        "ps": false
+      },
+      {
+        "n": 3,
+        "title": "Lecture 3. ISA Tradeoffs  - Carnegie Mellon - Computer Architecture 2015 - Onur Mutlu",
+        "videoId": "QKdiZSfwg-g",
+        "ps": false
+      },
+      {
+        "n": 4,
+        "title": "Lecture 4. ISA Tradeoffs & MIPS ISA - Carnegie Mellon - Computer Architecture 2015 - Onur Mutlu",
+        "videoId": "RBgeCCW5Hjs",
+        "ps": false
+      },
+      {
+        "n": 5,
+        "title": "Review Session 1 - CMU - Computer Architecture 2015 - Onur Mutlu",
+        "videoId": "Z1jsJKAlWjw",
+        "ps": false
+      },
+      {
+        "n": 6,
+        "title": "Lecture 5. Intro to Microarchitecture - Carnegie Mellon - Computer Architecture 2015 - Onur Mutlu",
+        "videoId": "qJmTZwzf1L4",
+        "ps": false
+      },
+      {
+        "n": 7,
+        "title": "Lecture 6. Microarchitecture II - Carnegie Mellon - Computer Architecture 2015 - Onur Mutlu",
+        "videoId": "b4Dl85FVSok",
+        "ps": false
+      },
+      {
+        "n": 8,
+        "title": "Lecture 7. Pipelining  - Carnegie Mellon - Computer Architecture 2015 - Onur Mutlu",
+        "videoId": "dKXbONPqBNY",
+        "ps": false
+      },
+      {
+        "n": 9,
+        "title": "Lecture 8. Pipelining II: Data and Control Dependence Handling - CMU - Comp. Arch. 2015 - Onur Mutlu",
+        "videoId": "2Sa55D_Ve4U",
+        "ps": false
+      },
+      {
+        "n": 10,
+        "title": "Lecture 9. Branch Prediction I - Carnegie Mellon - Comp. Arch. 2015 - Onur Mutlu",
+        "videoId": "CkOPbj5KhP8",
+        "ps": false
+      },
+      {
+        "n": 11,
+        "title": "Lecture 10. Branch Prediction II - Carnegie Mellon - Comp. Arch. 2015 - Onur Mutlu",
+        "videoId": "NCUDEgLfC_I",
+        "ps": false
+      },
+      {
+        "n": 12,
+        "title": "Review Session 2 - CMU - Computer Architecture 2015 - Onur Mutlu",
+        "videoId": "y94DjKHPYVk",
+        "ps": false
+      },
+      {
+        "n": 13,
+        "title": "Lecture 11. Precise Exceptions, State Maintenance/Recovery - CMU - Comp. Arch. 2015 - Onur Mutlu",
+        "videoId": "nMfbtzWizDA",
+        "ps": false
+      },
+      {
+        "n": 14,
+        "title": "Lecture 12. Out of Order Execution - Carnegie Mellon - Comp. Arch. 2015 - Onur Mutlu",
+        "videoId": "P-mXr9adbCc",
+        "ps": false
+      },
+      {
+        "n": 15,
+        "title": "Lecture 13. Out of Order Execution II and Data Flow - CMU - Comp. Arch. 2015 - Onur Mutlu",
+        "videoId": "z0EknfZdlIs",
+        "ps": false
+      },
+      {
+        "n": 16,
+        "title": "Lecture 14. SIMD (Vector Processors) - Carnegie Mellon - Comp. Arch. 2015 - Onur Mutlu",
+        "videoId": "oGwvMk5re3Y",
+        "ps": false
+      },
+      {
+        "n": 17,
+        "title": "Lecture 15. GPUs, VLIW, Execution Models - Carnegie Mellon - Computer Architecture 2015 - Onur Mutlu",
+        "videoId": "U8K13P6loyk",
+        "ps": false
+      },
+      {
+        "n": 18,
+        "title": "Lecture 16. Static Instruction Scheduling - Carnegie Mellon - Comp. Arch. 2015 - Onur Mutlu",
+        "videoId": "isBEVkIjgGA",
+        "ps": false
+      },
+      {
+        "n": 19,
+        "title": "Lecture 17. Memory Hierarchy and Caches - Carnegie Mellon - Comp. Arch. 2015 - Onur Mutlu",
+        "videoId": "AXf_C5qOm8o",
+        "ps": false
+      },
+      {
+        "n": 20,
+        "title": "Lecture 18. Caches - Carnegie Mellon - Comp. Arch. 2015 - Onur Mutlu",
+        "videoId": "4_Z07m8tf6k",
+        "ps": false
+      },
+      {
+        "n": 21,
+        "title": "Lecture 19. High Performance Caches - Carnegie Mellon - Comp. Arch. 2015 - Onur Mutlu",
+        "videoId": "jDHx2K9HxlM",
+        "ps": false
+      },
+      {
+        "n": 22,
+        "title": "Lecture 20. Virtual Memory - Carnegie Mellon - Comp. Arch. 2015 - Onur Mutlu",
+        "videoId": "2RhGMpY18zw",
+        "ps": false
+      },
+      {
+        "n": 23,
+        "title": "Recitation 3  - Carnegie Mellon - Comp. Arch. 2015 - Onur Mutlu",
+        "videoId": "cIhExOjdFPI",
+        "ps": false
+      },
+      {
+        "n": 24,
+        "title": "Midterm 1 Review  - Carnegie Mellon - Comp. Arch. 2015 - Onur Mutlu",
+        "videoId": "tXIO8JNwCi0",
+        "ps": false
+      },
+      {
+        "n": 25,
+        "title": "Lecture 21: Main Memory and the DRAM System - Carnegie Mellon - Comp. Arch. 2015 - Onur Mutlu",
+        "videoId": "IUk9o9wvX1Y",
+        "ps": false
+      },
+      {
+        "n": 26,
+        "title": "Lecture 22: Memory Controllers - Carnegie Mellon - Comp. Arch. 2015 - Onur Mutlu",
+        "videoId": "tpQPN01i3GA",
+        "ps": false
+      },
+      {
+        "n": 27,
+        "title": "Lecture 23: Memory Management - Carnegie Mellon - Comp. Arch. 2015 - Onur Mutlu",
+        "videoId": "WQL2yMciD2M",
+        "ps": false
+      },
+      {
+        "n": 28,
+        "title": "Lecture 24: Simulation & Memory Latency Tolerance - Carnegie Mellon - Comp. Arch. 2015 - Onur Mutlu",
+        "videoId": "RKyCrSUjd-Q",
+        "ps": false
+      },
+      {
+        "n": 29,
+        "title": "Lecture 25: Prefetching - Carnegie Mellon - Computer Architecture 2015 - Onur Mutlu",
+        "videoId": "ibPL7T9iEwY",
+        "ps": false
+      },
+      {
+        "n": 30,
+        "title": "Lecture 26. More Prefetching and Emerging Memory Technologies - CMU - Comp. Arch. 2015 - Onur Mutlu",
+        "videoId": "TUFins4z6o4",
+        "ps": false
+      },
+      {
+        "n": 31,
+        "title": "Lecture 27. Multiprocessors - Carnegie Mellon - Computer Architecture 2015 - Onur Mutlu",
+        "videoId": "PhUo1IMo6UU",
+        "ps": false
+      },
+      {
+        "n": 32,
+        "title": "Lecture 28. Memory Consistency and Cache Coherence - Carnegie Mellon - Comp. Arch. 2015 - Onur Mutlu",
+        "videoId": "JfjT1a0vi4E",
+        "ps": false
+      },
+      {
+        "n": 33,
+        "title": "Lecture 29. Cache Coherence - Carnegie Mellon - Computer Architecture 2015 - Onur Mutlu",
+        "videoId": "X6DZchnMYcw",
+        "ps": false
+      },
+      {
+        "n": 34,
+        "title": "Lecture 30. In-memory Processing - Carnegie Mellon - Computer Architecture 2015 - Onur Mutlu",
+        "videoId": "r9HbMrb98CQ",
+        "ps": false
+      },
+      {
+        "n": 35,
+        "title": "Lecture 31. Predictable Performance - Carnegie Mellon - Computer Architecture 2015 - Onur Mutlu",
+        "videoId": "gQvaT_AU0Gg",
+        "ps": false
+      },
+      {
+        "n": 36,
+        "title": "Lecture 32. Heterogeneous Systems - Carnegie Mellon - Computer Architecture 2015 - Onur Mutlu",
+        "videoId": "MB_mzk4dACo",
+        "ps": false
+      },
+      {
+        "n": 37,
+        "title": "Midterm 2 Review - Carnegie Mellon - Comp. Arch. 2015 - Onur Mutlu",
+        "videoId": "B2PPyATuSvs",
+        "ps": false
+      },
+      {
+        "n": 38,
+        "title": "Lecture 33. Interconnection Networks - Carnegie Mellon - Computer Architecture 2015 - Onur Mutlu",
+        "videoId": "93CVEOXM3T4",
+        "ps": false
+      },
+      {
+        "n": 39,
+        "title": "Final Review Session - Carnegie Mellon - Computer Architecture 2015 - Onur Mutlu",
+        "videoId": "5Oi7tvYE7fI",
+        "ps": false
+      }
+    ]
+  }
+}

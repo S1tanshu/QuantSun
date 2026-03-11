@@ -1,0 +1,453 @@
+{
+  "m4": {
+    "playlistUrl": "https://youtube.com/playlist?list=PL221E2BBF13BECF6C&si=Pg-red_7rM9-HUgR",
+    "notesPage": "",
+    "psets": [],
+    "lectures": [
+      {
+        "n": 1,
+        "title": "An Interview with Gilbert Strang on Teaching Linear Algebra",
+        "videoId": "7UJ4CFRGd-U",
+        "ps": false
+      },
+      {
+        "n": 2,
+        "title": "Course Introduction | MIT 18.06SC Linear Algebra",
+        "videoId": "YeyrH-Oc2p4",
+        "ps": false
+      },
+      {
+        "n": 3,
+        "title": "1. The Geometry of Linear Equations",
+        "videoId": "J7DzL2_Na80",
+        "ps": false
+      },
+      {
+        "n": 4,
+        "title": "Geometry of Linear Algebra",
+        "videoId": "My5w4MXWBew",
+        "ps": false
+      },
+      {
+        "n": 5,
+        "title": "Rec 1 | MIT 18.085 Computational Science and Engineering I, Fall 2008",
+        "videoId": "0oBJN8F616U",
+        "ps": false
+      },
+      {
+        "n": 6,
+        "title": "An Overview of Key Ideas",
+        "videoId": "OZxzHcW663g",
+        "ps": false
+      },
+      {
+        "n": 7,
+        "title": "2. Elimination with Matrices.",
+        "videoId": "QVKj3LADCnA",
+        "ps": false
+      },
+      {
+        "n": 8,
+        "title": "Elimination with Matrices",
+        "videoId": "GLFg2UBMAxc",
+        "ps": false
+      },
+      {
+        "n": 9,
+        "title": "3. Multiplication and Inverse Matrices",
+        "videoId": "FX4C-JpTFgY",
+        "ps": false
+      },
+      {
+        "n": 10,
+        "title": "Inverse Matrices",
+        "videoId": "zWxhmBCdvFs",
+        "ps": false
+      },
+      {
+        "n": 11,
+        "title": "4. Factorization into A = LU",
+        "videoId": "MsIvs_6vC38",
+        "ps": false
+      },
+      {
+        "n": 12,
+        "title": "LU Decomposition",
+        "videoId": "-eA2D_rIcNA",
+        "ps": false
+      },
+      {
+        "n": 13,
+        "title": "5. Transposes, Permutations, Spaces R^n",
+        "videoId": "JibVXBElKL0",
+        "ps": false
+      },
+      {
+        "n": 14,
+        "title": "Subspaces of Three Dimensional Space",
+        "videoId": "QQpvGlF_1Qo",
+        "ps": false
+      },
+      {
+        "n": 15,
+        "title": "6. Column Space and Nullspace",
+        "videoId": "8o5Cmfpeo6g",
+        "ps": false
+      },
+      {
+        "n": 16,
+        "title": "Vector Subspaces",
+        "videoId": "S8DQZjE4V8U",
+        "ps": false
+      },
+      {
+        "n": 17,
+        "title": "7. Solving Ax = 0: Pivot Variables, Special Solutions",
+        "videoId": "VqP2tREMvt0",
+        "ps": false
+      },
+      {
+        "n": 18,
+        "title": "Solving Ax=0",
+        "videoId": "3cMyj8EKFGo",
+        "ps": false
+      },
+      {
+        "n": 19,
+        "title": "8. Solving Ax = b: Row Reduced Form R",
+        "videoId": "9Q1q7s1jTzU",
+        "ps": false
+      },
+      {
+        "n": 20,
+        "title": "Solving Ax=b",
+        "videoId": "fjsPjh0B2tU",
+        "ps": false
+      },
+      {
+        "n": 21,
+        "title": "9. Independence, Basis, and Dimension",
+        "videoId": "yjBerM5jWsc",
+        "ps": false
+      },
+      {
+        "n": 22,
+        "title": "Basis and Dimension",
+        "videoId": "MMWqGD4Urso",
+        "ps": false
+      },
+      {
+        "n": 23,
+        "title": "10. The Four Fundamental Subspaces",
+        "videoId": "nHlE7EgJFds",
+        "ps": false
+      },
+      {
+        "n": 24,
+        "title": "Computing the Four Fundamental Subspaces",
+        "videoId": "D8u1LV9CnCk",
+        "ps": false
+      },
+      {
+        "n": 25,
+        "title": "11. Matrix Spaces; Rank 1; Small World Graphs",
+        "videoId": "2IdtqGM6KWU",
+        "ps": false
+      },
+      {
+        "n": 26,
+        "title": "Matrix Spaces",
+        "videoId": "BaBoztM9Q1w",
+        "ps": false
+      },
+      {
+        "n": 27,
+        "title": "12. Graphs, Networks, Incidence Matrices",
+        "videoId": "6-wh6yvk6uc",
+        "ps": false
+      },
+      {
+        "n": 28,
+        "title": "Graphs and Networks",
+        "videoId": "h0m2tsmSPTI",
+        "ps": false
+      },
+      {
+        "n": 29,
+        "title": "13. Quiz 1 Review",
+        "videoId": "l88D4r74gtM",
+        "ps": false
+      },
+      {
+        "n": 30,
+        "title": "Exam #1 Problem Solving",
+        "videoId": "AMLekTJR5_U",
+        "ps": false
+      },
+      {
+        "n": 31,
+        "title": "14. Orthogonal Vectors and Subspaces",
+        "videoId": "YzZUIYRCE38",
+        "ps": false
+      },
+      {
+        "n": 32,
+        "title": "Orthogonal Vectors and Subspaces",
+        "videoId": "h9aDgvW59TU",
+        "ps": false
+      },
+      {
+        "n": 33,
+        "title": "15. Projections onto Subspaces",
+        "videoId": "Y_Ac6KiQ1t0",
+        "ps": false
+      },
+      {
+        "n": 34,
+        "title": "Projection into Subspaces",
+        "videoId": "t-n4a18AW08",
+        "ps": false
+      },
+      {
+        "n": 35,
+        "title": "16. Projection Matrices and Least Squares",
+        "videoId": "osh80YCg_GM",
+        "ps": false
+      },
+      {
+        "n": 36,
+        "title": "Least Squares Approximation",
+        "videoId": "AmQcoopBUTk",
+        "ps": false
+      },
+      {
+        "n": 37,
+        "title": "17. Orthogonal Matrices and Gram-Schmidt",
+        "videoId": "0MtwqhIwdrI",
+        "ps": false
+      },
+      {
+        "n": 38,
+        "title": "Gram-Schmidt Orthogonalization",
+        "videoId": "HEQuN0QELSQ",
+        "ps": false
+      },
+      {
+        "n": 39,
+        "title": "18. Properties of Determinants",
+        "videoId": "srxexLishgY",
+        "ps": false
+      },
+      {
+        "n": 40,
+        "title": "Properties of Determinants",
+        "videoId": "55AoWKZZtww",
+        "ps": false
+      },
+      {
+        "n": 41,
+        "title": "19. Determinant Formulas and Cofactors",
+        "videoId": "23LLB9mNJvc",
+        "ps": false
+      },
+      {
+        "n": 42,
+        "title": "Determinants",
+        "videoId": "B17h10EF59g",
+        "ps": false
+      },
+      {
+        "n": 43,
+        "title": "20. Cramer's Rule, Inverse Matrix, and Volume",
+        "videoId": "QNpj-gOXW9M",
+        "ps": false
+      },
+      {
+        "n": 44,
+        "title": "Determinants and Volume",
+        "videoId": "qEBi0K5wfOs",
+        "ps": false
+      },
+      {
+        "n": 45,
+        "title": "21. Eigenvalues and Eigenvectors",
+        "videoId": "cdZnhQjJu4I",
+        "ps": false
+      },
+      {
+        "n": 46,
+        "title": "Eigenvalues and Eigenvectors",
+        "videoId": "mVeuZzJdd1w",
+        "ps": false
+      },
+      {
+        "n": 47,
+        "title": "22. Diagonalization and Powers of A",
+        "videoId": "13r9QY6cmjc",
+        "ps": false
+      },
+      {
+        "n": 48,
+        "title": "Powers of a Matrix",
+        "videoId": "5IGTFgPqlkw",
+        "ps": false
+      },
+      {
+        "n": 49,
+        "title": "23. Differential Equations and exp(At)",
+        "videoId": "IZqwi0wJovM",
+        "ps": false
+      },
+      {
+        "n": 50,
+        "title": "Differential Equations and exp (At)",
+        "videoId": "FzncDO1eSNI",
+        "ps": false
+      },
+      {
+        "n": 51,
+        "title": "24. Markov Matrices; Fourier Series",
+        "videoId": "lGGDIGizcQ0",
+        "ps": false
+      },
+      {
+        "n": 52,
+        "title": "Markov Matrices",
+        "videoId": "wuyAeWE3iIM",
+        "ps": false
+      },
+      {
+        "n": 53,
+        "title": "24b. Quiz 2 Review",
+        "videoId": "QuZL5IKpO_U",
+        "ps": false
+      },
+      {
+        "n": 54,
+        "title": "Exam #2 Problem Solving",
+        "videoId": "pz3zyUO2gpM",
+        "ps": false
+      },
+      {
+        "n": 55,
+        "title": "25. Symmetric Matrices and Positive Definiteness",
+        "videoId": "UCc9q_cAhho",
+        "ps": false
+      },
+      {
+        "n": 56,
+        "title": "Symmetric Matrices and Positive Definiteness",
+        "videoId": "lpnY5QVjU5w",
+        "ps": false
+      },
+      {
+        "n": 57,
+        "title": "26. Complex Matrices; Fast Fourier Transform",
+        "videoId": "M0Sa8fLOajA",
+        "ps": false
+      },
+      {
+        "n": 58,
+        "title": "Complex Matrices",
+        "videoId": "VYS9EYZ3gCo",
+        "ps": false
+      },
+      {
+        "n": 59,
+        "title": "27. Positive Definite Matrices and Minima",
+        "videoId": "vF7eyJ2g3kU",
+        "ps": false
+      },
+      {
+        "n": 60,
+        "title": "Positive Definite Matrices and Minima",
+        "videoId": "cfn2ZUuWPd0",
+        "ps": false
+      },
+      {
+        "n": 61,
+        "title": "28. Similar Matrices and Jordan Form",
+        "videoId": "TSdXJw83kyA",
+        "ps": false
+      },
+      {
+        "n": 62,
+        "title": "Similar Matrices",
+        "videoId": "KUuxdk_V7To",
+        "ps": false
+      },
+      {
+        "n": 63,
+        "title": "29. Singular Value Decomposition",
+        "videoId": "TX_vooSnhm8",
+        "ps": false
+      },
+      {
+        "n": 64,
+        "title": "Computing the Singular Value Decomposition",
+        "videoId": "pSbafxDHdgE",
+        "ps": false
+      },
+      {
+        "n": 65,
+        "title": "30. Linear Transformations and Their Matrices",
+        "videoId": "Ts3o2I8_Mxc",
+        "ps": false
+      },
+      {
+        "n": 66,
+        "title": "Linear Transformations",
+        "videoId": "2uDvRUowBzg",
+        "ps": false
+      },
+      {
+        "n": 67,
+        "title": "31. Change of Basis; Image Compression",
+        "videoId": "0h43aV4aH7I",
+        "ps": false
+      },
+      {
+        "n": 68,
+        "title": "Change of Basis",
+        "videoId": "rMv2rDiOTsI",
+        "ps": false
+      },
+      {
+        "n": 69,
+        "title": "33. Left and Right Inverses; Pseudoinverse",
+        "videoId": "Go2aLo7ZOlU",
+        "ps": false
+      },
+      {
+        "n": 70,
+        "title": "Pseudoinverses",
+        "videoId": "hSRcHTafkjE",
+        "ps": false
+      },
+      {
+        "n": 71,
+        "title": "32. Quiz 3 Review",
+        "videoId": "HgC1l_6ySkc",
+        "ps": false
+      },
+      {
+        "n": 72,
+        "title": "Exam #3 Problem Solving",
+        "videoId": "OsHY7ycgbaE",
+        "ps": false
+      },
+      {
+        "n": 73,
+        "title": "34. Final Course Review",
+        "videoId": "RWvi4Vx4CDc",
+        "ps": false
+      },
+      {
+        "n": 74,
+        "title": "Final Exam Problem Solving",
+        "videoId": "4PnArrxCZLE",
+        "ps": false
+      }
+    ]
+  }
+}

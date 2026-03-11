@@ -1,0 +1,159 @@
+{
+  "c6": {
+    "playlistUrl": "https://youtube.com/playlist?list=PLP8iPy9hna6T56GkMHEdSrjCCheNuEwI0&si=nZE0AiPtY_cSTuYn",
+    "notesPage": "",
+    "psets": [],
+    "lectures": [
+      {
+        "n": 1,
+        "title": "Course Welcome + Intro to Arrays & Images! MIT Computational Thinking Spring 2021 | Lecture 1",
+        "videoId": "3zTO3LEY-cM",
+        "ps": false
+      },
+      {
+        "n": 2,
+        "title": "Transforming Images , MIT Computational Thinking Spring 2021 | Lecture 2",
+        "videoId": "uZYVjDDZW9A",
+        "ps": false
+      },
+      {
+        "n": 3,
+        "title": "Transformations & AutoDiff | Lecture 3 | MIT Computational Thinking Spring 2021",
+        "videoId": "AAREeuaKCic",
+        "ps": false
+      },
+      {
+        "n": 4,
+        "title": "Transformations 2: Composability and Linearity | MIT Computational Thinking Spring 2021 | Lecture 4",
+        "videoId": "VDPf3RjoCpY",
+        "ps": false
+      },
+      {
+        "n": 5,
+        "title": "Inverses and Newton method | MIT Computational Thinking Spring 2021 | Lecture 5",
+        "videoId": "Wjcx9sNSLP8",
+        "ps": false
+      },
+      {
+        "n": 6,
+        "title": "Dynamic Programming and Seam Carving | MIT Computational Thinking Spring 2021 | Lecture 6",
+        "videoId": "KyBXJV1zFlo",
+        "ps": false
+      },
+      {
+        "n": 7,
+        "title": "Structure | MIT Computational Thinking Spring 2021 | Lecture 7",
+        "videoId": "wZrVxbmX218",
+        "ps": false
+      },
+      {
+        "n": 8,
+        "title": "Principal Component Analysis | MIT Computational Thinking | Spring 2021 | Lecture 8",
+        "videoId": "iuKrM_NzxCk",
+        "ps": false
+      },
+      {
+        "n": 9,
+        "title": "Sampling and random variables | MIT Computational Thinking Spring | Lecture 9",
+        "videoId": "7HrpoFZzITI",
+        "ps": false
+      },
+      {
+        "n": 10,
+        "title": "Modeling with stochastic simulation | MIT Computational Thinking Spring 2021 | Lecture 10",
+        "videoId": "d8BohH76C7E",
+        "ps": false
+      },
+      {
+        "n": 11,
+        "title": "Random variables as types | MIT Computational Thinking Spring 2021 | Lecture 11",
+        "videoId": "xKAO38UsXo0",
+        "ps": false
+      },
+      {
+        "n": 12,
+        "title": "Random walks I | MIT Computational Thinking Spring 2021 | Lecture 12",
+        "videoId": "WLQ1l75jSwU",
+        "ps": false
+      },
+      {
+        "n": 13,
+        "title": "Random walks II | MIT Computational Thinking Spring | Lecture 13",
+        "videoId": "pIAFHyLmwbM",
+        "ps": false
+      },
+      {
+        "n": 14,
+        "title": "Discrete & Continuous | MIT Computational Thinking Spring 2021 | Lecture 14",
+        "videoId": "H6Dcx3YeTkE",
+        "ps": false
+      },
+      {
+        "n": 15,
+        "title": "Linear models and simulations | MIT Computational Thinking Spring 2021 | Lecture 15",
+        "videoId": "O6NTKsR8TjQ",
+        "ps": false
+      },
+      {
+        "n": 16,
+        "title": "Optimization | MIT Computational Thinking Spring 2021 | Lecture 16",
+        "videoId": "44RA9fclTdA",
+        "ps": false
+      },
+      {
+        "n": 17,
+        "title": "Time stepping and differential equations | MIT Computational Thinking Spring 2021 | Lecture 17",
+        "videoId": "3Y5gVyO8KcI",
+        "ps": false
+      },
+      {
+        "n": 18,
+        "title": "Libraries & parameterized types | MIT Computational Thinking Spring 2021 | Lecture 18",
+        "videoId": "S71YIZ8e7MQ",
+        "ps": false
+      },
+      {
+        "n": 19,
+        "title": "Why can't we predict the weather? | MIT Computational Thinking Spring 2021 | Lecture 19",
+        "videoId": "M3udLzIHtsc",
+        "ps": false
+      },
+      {
+        "n": 20,
+        "title": "A first climate model | MIT Computational Thinking Spring 2021 | Lecture 20",
+        "videoId": "J1UsMa1cTeE",
+        "ps": false
+      },
+      {
+        "n": 21,
+        "title": "How to collaborate on software | MIT Computational Thinking Spring 2021 | Lecture 21",
+        "videoId": "7N9Vvc8amGM",
+        "ps": false
+      },
+      {
+        "n": 22,
+        "title": "Snowball Earth and hysteresis | MIT Computational Thinking Spring 2021 | Lecture 22",
+        "videoId": "cdIgr_2nUvI",
+        "ps": false
+      },
+      {
+        "n": 23,
+        "title": "Advection and diffusion: PDEs in 1D | MIT Computational Thinking Spring 2021 | Lecture 23",
+        "videoId": "Xb-iUwXI78A",
+        "ps": false
+      },
+      {
+        "n": 24,
+        "title": "Resistors, stencils and climate models | MIT Computational Thinking Spring 2021 | Lecture 24",
+        "videoId": "DdTWgBlDgr0",
+        "ps": false
+      },
+      {
+        "n": 25,
+        "title": "Modeling climate change | MIT Computational Thinking Spring 2021 | Lecture 25",
+        "videoId": "nm86_hDwYTU",
+        "ps": false
+      }
+    ]
+  }
+}

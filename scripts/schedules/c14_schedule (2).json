@@ -1,0 +1,134 @@
+
+  "c14": {
+    "playlistUrl": "https://youtube.com/playlist?list=PLUl4u3cNGP60jIMmB53zl6awCKMnABhYx&si=Mj0_lYKY_OWw-ro3",
+    "notesPage": "",
+    "psets": [],
+    "lectures": [
+      {
+        "n": 1,
+        "title": "Meet the Educator",
+        "videoId": "MOdNzHR_tck",
+        "ps": false
+      },
+      {
+        "n": 2,
+        "title": "Course Design and Orienting Students with the \"V Model\"",
+        "videoId": "Wc0PmAIEUhM",
+        "ps": false
+      },
+      {
+        "n": 3,
+        "title": "Teaching the Class as a Small Private Online Course (SPOC)",
+        "videoId": "aiSpEUZzP0A",
+        "ps": false
+      },
+      {
+        "n": 4,
+        "title": "Engaging Students in the Design Process through the CanSat Competition",
+        "videoId": "v6eIvQ9wU1w",
+        "ps": false
+      },
+      {
+        "n": 5,
+        "title": "Learning from CanSat Examples",
+        "videoId": "4hYgHHC-5z8",
+        "ps": false
+      },
+      {
+        "n": 6,
+        "title": "Ideal Team Size for the CanSat Competition",
+        "videoId": "rh9ggz7vyM8",
+        "ps": false
+      },
+      {
+        "n": 7,
+        "title": "Team Charters",
+        "videoId": "7IqUQUic5cI",
+        "ps": false
+      },
+      {
+        "n": 8,
+        "title": "Assessing Student Work Completed as Teams",
+        "videoId": "-Km2237G0P8",
+        "ps": false
+      },
+      {
+        "n": 9,
+        "title": "Teaching with Concept Questions",
+        "videoId": "RsOCnszziDA",
+        "ps": false
+      },
+      {
+        "n": 10,
+        "title": "Online Written and Oral Exams",
+        "videoId": "3_vcJ6l7b8Y",
+        "ps": false
+      },
+      {
+        "n": 11,
+        "title": "Reflective Memos",
+        "videoId": "Gv3fPjWiQhs",
+        "ps": false
+      },
+      {
+        "n": 12,
+        "title": "2. Requirements Definition",
+        "videoId": "J_y2I09rj_I",
+        "ps": false
+      },
+      {
+        "n": 13,
+        "title": "3. Systems Modeling Languages",
+        "videoId": "CTVFDb44ses",
+        "ps": false
+      },
+      {
+        "n": 14,
+        "title": "4. System Architecture and Concept Generation",
+        "videoId": "ScbSrUSbumo",
+        "ps": false
+      },
+      {
+        "n": 15,
+        "title": "5. Concept Selection and Tradespace Exploration",
+        "videoId": "sOkQ4HBmZXo",
+        "ps": false
+      },
+      {
+        "n": 16,
+        "title": "6. Design Definition and Multidisciplinary Optimization",
+        "videoId": "d44SDevJYR0",
+        "ps": false
+      },
+      {
+        "n": 17,
+        "title": "7. Miscellaneous Topics — MBSE and Introduction to CAD",
+        "videoId": "dv8Dbyfcrd4",
+        "ps": false
+      },
+      {
+        "n": 18,
+        "title": "8. Systems Integration and Interface Management",
+        "videoId": "9AtMQqCBdhw",
+        "ps": false
+      },
+      {
+        "n": 19,
+        "title": "9. Verification and Validation",
+        "videoId": "-63JXElqPaY",
+        "ps": false
+      },
+      {
+        "n": 20,
+        "title": "10. Commissioning and Operations",
+        "videoId": "rpGJsC5INd4",
+        "ps": false
+      },
+      {
+        "n": 21,
+        "title": "11. Lifecycle Management",
+        "videoId": "b0VqqwHLqcI",
+        "ps": false
+      }
+    ]
+  },
