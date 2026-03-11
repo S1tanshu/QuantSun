@@ -3929,8 +3929,8 @@ const NoteTextarea = ({ value, onChange, inBg, txt }) => {
 }
 
 const CompetitionTracker = ({ bookmarks, setBookmarks, T, aiSettings, githubData = {} }) => {
- 
   const deriveStatus = (c) => {
+    
   const today = new Date(); today.setHours(0,0,0,0)
   const start    = c.start    && c.start    !== "TBA" ? new Date(c.start)    : null
   const deadline = c.deadline && c.deadline !== "TBA" ? new Date(c.deadline) : null
