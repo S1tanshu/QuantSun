@@ -14,7 +14,7 @@ import { useState, useEffect, useRef, useCallback, useMemo } from "react"
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 // VERSION — bump this once per release
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-const APP_VERSION = "v1.30"
+const APP_VERSION = "v1.31"
 
 // ─────────────────────────────────────────────
 //  QUANTSUN LOGO — rising sun SVG
@@ -147,6 +147,10 @@ const callAI = async ({ system = "", prompt, maxTokens = 800, aiSettings = {} })
 //      loaded version: e.g. replace COURSES with (githubData.courses || COURSES)
 //   6. Once confirmed working, delete the hardcoded arrays to keep the file clean
 //
+// RAW URL FORMAT:
+//   https://raw.githubusercontent.com/YOUR_USERNAME/QuantSun-data/main/courses.json
+//
+// NOTE: The repo must be PUBLIC. No API key needed. GitHub CDN is free & fast.
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
 // ── STEP 1: Raw GitHub URLs ───────────────────────────────────────────────────
@@ -1137,7 +1141,7 @@ const useStorage = (key, fallback) => {
   const save = useCallback((v) => {
     setVal(prev => {
       const next = typeof v === "function" ? v(prev) : v
-      try { localStorage.setItem(key, JSON.stringify(next)) } catch {}
+      try { localStorage.setItem(key, JSON.stringify(next)) } catch (e) {}
       return next
     })
   }, [key])
@@ -1475,9 +1479,9 @@ const Dashboard = ({ courseProgress, bookmarks, T, onStartTour, navigate, isMobi
     const sc=COURSES.filter(c=>c.subject===subj); const done=sc.filter(c=>courseProgress[c.id]===1).length
     return { subj,color,done,total:sc.length,pct:sc.length?Math.round(done/sc.length*100):0 }
   })
-  const upcoming = COMPETITIONS.filter(c=>c.status!=="closed"&&c.deadline&&c.deadline!=="TBA"&&!c.deadline.includes("TBA")&&!c.deadline.includes("Closed")&&!c.deadline.includes("Open")&&!c.deadline.includes("Rolling")&&!c.deadline.includes("Ongoing")&&!c.deadline.includes("Multiple")).map(c=>({...c,days:daysUntil(c.deadline)})).filter(c=>c.days!==null&&c.days>=0).sort((a,b)=>a.days-b.days).slice(0,5)
-  const openCount = COMPETITIONS.filter(c=>c.status==="open").length
-  const tbaCount  = COMPETITIONS.filter(c=>c.status==="tba").length
+  const upcoming = COMPETITIONS.filter(c=>deriveStatus(c)!=="closed"&&c.deadline&&c.deadline!=="TBA"&&!c.deadline.includes("TBA")&&!c.deadline.includes("Closed")&&!c.deadline.includes("Open")&&!c.deadline.includes("Rolling")&&!c.deadline.includes("Ongoing")&&!c.deadline.includes("Multiple")).map(c=>({...c,days:daysUntil(c.deadline)})).filter(c=>c.days!==null&&c.days>=0).sort((a,b)=>a.days-b.days).slice(0,5)
+  const openCount = COMPETITIONS.filter(c=>deriveStatus(c)==="open").length
+  const tbaCount  = COMPETITIONS.filter(c=>deriveStatus(c)==="tba").length
 
   // ── Detect which courses the user is actively working on ──────────────────
   const activeMathCourse   = COURSES.find(c=>c.subject==="Mathematics"&&courseProgress[c.id]===0.5) || COURSES.find(c=>c.id==="m0")
@@ -1735,7 +1739,7 @@ const Dashboard = ({ courseProgress, bookmarks, T, onStartTour, navigate, isMobi
         {(()=>{
           const today=new Date().toISOString().slice(0,10)
           const reviewsDue=Object.entries(reviewSchedule).filter(([,due])=>due<=today).map(([id])=>COURSES.find(c=>c.id===id)).filter(Boolean)
-          const followUps=contacts.filter(c=>{ if(!c.date||c.status==="Closed") return false; return Math.floor((new Date()-new Date(c.date))/86400000)>=21&&["Connected","Messaged","Replied"].includes(c.status) })
+          const followUps=contacts.filter(c=>{ if(!c.date||deriveStatus(c)==="Closed") return false; return Math.floor((new Date()-new Date(c.date))/86400000)>=21&&["Connected","Messaged","Replied"].includes(deriveStatus(c)) })
           if(!reviewsDue.length&&!followUps.length) return null
           return (
             <div style={{ marginTop:18, background:bg, border:"1px solid rgba(193,127,58,0.18)", borderRadius:12, padding:"18px 22px" }}>
@@ -2499,7 +2503,7 @@ const YouTubePlayer = ({ videoId, T }) => {
 
 
 
-const CourseDetail = ({ course, onBack, lectureProgress, setLectureProgress, setCourseProgress = ()=>{}, T, user, markStudyToday = ()=>{}, githubData = {}, aiSettings  }) => {
+const CourseDetail = ({ course, onBack, lectureProgress, setLectureProgress, setCourseProgress = ()=>{}, T, user, markStudyToday = ()=>{}, githubData = {} }) => {
 const LIVE_SCHEDULES = githubData.schedules || SCHEDULES
 const raw = LIVE_SCHEDULES[course.id]
 const sched = (raw ? {
@@ -2615,24 +2619,13 @@ Grade this submission strictly and fairly. Return ONLY a JSON object (no markdow
     </div>
   )
 
- const toggleL = (n) => {
+const toggleL = (n) => {
   markStudyToday()
   setLectureProgress(prev => {
     const k = `${course.id}_l${n}`
     const curr = prev[k] || 0
     const next = curr === 0 ? 0.5 : curr === 0.5 ? 1 : 0
-    const updated = { ...prev, [k]: next }
-    if (sched) {
-      const total = sched.lectures.length
-      const doneCount = sched.lectures.filter(l => updated[`${course.id}_l${l.n}`] === 1).length
-      setCourseProgress(cp => ({
-        ...cp,
-        [course.id]: doneCount === 0 ? 0 : doneCount === total ? 1 : 0.5,
-      }))
-    }
-    return updated
-  })
-}
+    return { ...prev, [k]: next }
 
       // ── Auto-sync course state based on lecture completions ──────────
       if (sched) {
@@ -2643,8 +2636,8 @@ Grade this submission strictly and fairly. Return ONLY a JSON object (no markdow
           [course.id]: doneCount === 0 ? 0 : doneCount === total ? 1 : 0.5,
         }))
       }
-
-      return next
+//syntax fixed
+      return update
     })
   }
   const isDone = (n) => lectureProgress[`${course.id}_l${n}`] === 1
@@ -2653,9 +2646,6 @@ Grade this submission strictly and fairly. Return ONLY a JSON object (no markdow
 
   // ── YouTube player ────────────────────────────────────────────────────────
   const hasVideoIds = sched?.lectures?.some(l => l.videoId)
-  const [aiPanel, setAiPanel]           = useState(null)
-  const [aiPanelInput, setAiPanelInput] = useState("")
-  const [aiPanelLoading, setAiPanelLoading] = useState(false)
   const [showPlayer, setShowPlayer]     = useState(false)
   const [activeVideoId, setActiveVideoId] = useState(null)
   const [manualIndex, setManualIndex]   = useState(null)  // 0-based index of playing lecture
@@ -2671,41 +2661,6 @@ Grade this submission strictly and fairly. Return ONLY a JSON object (no markdow
     setShowPlayer(false)
   }
 
-//Ai chat panel
-  const openAiPanel = async (lec) => {
-  if (aiPanel?.lectureN === lec.n) { setAiPanel(null); return }
-  const context = `Course: ${course.name} (${course.institution})
-Subject: ${course.subject}
-Lecture ${lec.n}: "${lec.title}"
-Progress: Lecture ${lec.n} of ${sched.lectures.length} total.`
-  const systemMsg = `You are a helpful quant finance teaching assistant for ${course.name}. Answer concisely. Use examples where helpful.`
-  setAiPanel({ lectureN: lec.n, lectureName: lec.title, messages: [], loading: true })
-  setAiPanelLoading(true)
-  try {
-    const greeting = await callAI({ prompt: `${context}\n\nGreet the student in 1 sentence and tell them what you can help with for this lecture.`, systemPrompt: systemMsg, maxTokens: 120, aiSettings })
-    setAiPanel({ lectureN: lec.n, lectureName: lec.title, context, systemMsg, messages: [{ role:"assistant", content: greeting }] })
-  } catch(e) {
-    setAiPanel({ lectureN: lec.n, lectureName: lec.title, context, systemMsg, messages: [{ role:"assistant", content: "Ask me anything about this lecture!" }] })
-  }
-  setAiPanelLoading(false)
-}
-
-const sendAiMessage = async () => {
-  if (!aiPanelInput.trim() || !aiPanel) return
-  const userMsg = aiPanelInput.trim()
-  setAiPanelInput("")
-  const newMessages = [...aiPanel.messages, { role:"user", content: userMsg }]
-  setAiPanel(p => ({ ...p, messages: newMessages }))
-  setAiPanelLoading(true)
-  try {
-    const history = newMessages.map(m => `${m.role==="user"?"Student":"Assistant"}: ${m.content}`).join("\n")
-    const reply = await callAI({ prompt: `${aiPanel.context}\n\nConversation:\n${history}\n\nStudent: ${userMsg}`, systemPrompt: aiPanel.systemMsg, maxTokens: 400, aiSettings })
-    setAiPanel(p => ({ ...p, messages: [...p.messages, { role:"assistant", content: reply }] }))
-  } catch(e) {
-    setAiPanel(p => ({ ...p, messages: [...p.messages, { role:"assistant", content: "Couldn't reach AI. Check your API key in Settings." }] }))
-  }
-  setAiPanelLoading(false)
-}
   // Top-level ▶ Watch Here button — start at first unwatched lecture
   const togglePlayer = () => {
     if (showPlayer) { setShowPlayer(false); return }
@@ -2826,6 +2781,7 @@ const sendAiMessage = async () => {
                 ))}
               </div>
               {sched.lectures.map(l => {
+                const lp = lectureProgress[`${course.id}_l${l.n}`] || 0
                 const done = isDone(l.n)
                 const isExam = l.title.includes("🎯") || l.title.includes("🏁")
                 return (
@@ -2856,18 +2812,9 @@ const sendAiMessage = async () => {
                         </button>
                       )}
                     </div>
-                    <div style={{ padding:"10px 8px", display:"flex", alignItems:"center", gap:6 }}>
-                      <button onClick={() => openAiPanel(l)}
-                     title="Ask AI about this lecture"
-                     style={{ fontSize:11, width:26, height:26, borderRadius:"50%",
-                     background: aiPanel?.lectureN===l.n ? "rgba(99,102,241,0.3)" : "rgba(99,102,241,0.1)",
-                     border:`1px solid ${aiPanel?.lectureN===l.n ? "#818cf8" : "rgba(99,102,241,0.25)"}`,
-                     color:"#818cf8", cursor:"pointer",
-                     display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0 }}>
-                     ?
-                   </button>
+                    <div style={{ padding:"10px 8px", display:"flex", alignItems:"center" }}>
                       <button onClick={() => toggleL(l.n)} style={{ fontSize:11, background:done?"rgba(16,185,129,0.15)":bg, border:`1px solid ${done?"rgba(16,185,129,0.3)":bdr}`, borderRadius:4, padding:"3px 8px", color:done?"#10b981":sub, cursor:"pointer", whiteSpace:"nowrap" }}>
-                        {lectureProgress[`${course.id}_l${l.n}`] === 1 ? "✓ Done" : lectureProgress[`${course.id}_l${l.n}`] === 0.5 ? "◑ Active" : "○ Start"}
+                      {lp===1 ? "✓ Done" : lp===0.5 ? "◑ Active" : "○ Start"}
                       </button>
                     </div>
                   </div>
@@ -3110,61 +3057,9 @@ const sendAiMessage = async () => {
           </div>
         </div>
       )}
-       {aiPanel && (
-        <div style={{ position:"fixed", bottom:0, right:0,
-          width: window.innerWidth > 768 ? 360 : "100%",
-          height: window.innerWidth > 768 ? "70vh" : "50vh",
-          background:"#0f1629", border:"1px solid rgba(99,102,241,0.3)",
-          borderRadius: window.innerWidth > 768 ? "16px 0 0 16px" : "16px 16px 0 0",
-          display:"flex", flexDirection:"column", zIndex:1000,
-          boxShadow:"0 -4px 40px rgba(0,0,0,0.5)" }}>
-          <div style={{ padding:"12px 16px", borderBottom:"1px solid rgba(99,102,241,0.2)",
-            display:"flex", justifyContent:"space-between", alignItems:"center" }}>
-            <div>
-              <div style={{ fontSize:11, color:"#818cf8", fontFamily:"'JetBrains Mono',monospace" }}>✦ AI TUTOR</div>
-              <div style={{ fontSize:12, color:"#f1f5f9", fontWeight:600 }}>L{aiPanel.lectureN}: {aiPanel.lectureName}</div>
-            </div>
-            <button onClick={() => setAiPanel(null)}
-              style={{ background:"none", border:"none", color:"#64748b", cursor:"pointer", fontSize:18 }}>✕</button>
-          </div>
-          <div style={{ flex:1, overflowY:"auto", padding:"12px 16px", display:"flex", flexDirection:"column", gap:10 }}>
-            {aiPanel.messages.map((m,i) => (
-              <div key={i} style={{ alignSelf: m.role==="user" ? "flex-end" : "flex-start",
-                maxWidth:"85%",
-                background: m.role==="user" ? "rgba(99,102,241,0.2)" : "rgba(255,255,255,0.05)",
-                border:`1px solid ${m.role==="user" ? "rgba(99,102,241,0.3)" : "rgba(255,255,255,0.08)"}`,
-                borderRadius: m.role==="user" ? "12px 12px 2px 12px" : "12px 12px 12px 2px",
-                padding:"8px 12px", fontSize:12, color:"#f1f5f9", lineHeight:1.6 }}>
-                {m.content}
-              </div>
-            ))}
-            {aiPanelLoading && (
-              <div style={{ alignSelf:"flex-start", fontSize:12, color:"#818cf8", fontStyle:"italic" }}>Thinking…</div>
-            )}
-          </div>
-          <div style={{ padding:"10px 12px", borderTop:"1px solid rgba(99,102,241,0.2)", display:"flex", gap:8 }}>
-            <input value={aiPanelInput} onChange={e=>setAiPanelInput(e.target.value)}
-              onKeyDown={e=>e.key==="Enter"&&!e.shiftKey&&sendAiMessage()}
-              placeholder="Ask about this lecture…"
-              style={{ flex:1, background:"rgba(255,255,255,0.05)",
-                border:"1px solid rgba(99,102,241,0.25)",
-                borderRadius:8, padding:"8px 12px", color:"#f1f5f9",
-                fontSize:12, outline:"none", fontFamily:"inherit" }}
-            />
-            <button onClick={sendAiMessage} disabled={aiPanelLoading}
-              style={{ padding:"8px 14px", borderRadius:8,
-                background:"rgba(99,102,241,0.2)",
-                border:"1px solid rgba(99,102,241,0.4)",
-                color:"#818cf8", fontSize:12, cursor:"pointer", fontWeight:600 }}>
-              Send
-            </button>
-          </div>
-        </div>
-      )}
     </div>
   )
 }
-
 
 
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
@@ -3880,7 +3775,6 @@ const LearningPath = ({ courseProgress, setCourseProgress, T, user, aiSettings, 
       user={user}
       markStudyToday={markStudyToday}
       githubData={githubData}
-      aiSettings={aiSettings}
     />
   )
 
@@ -4018,7 +3912,7 @@ const LearningPath = ({ courseProgress, setCourseProgress, T, user, aiSettings, 
 // FILE: src/components/modules/CompetitionTracker.jsx  (when splitting)
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 const NoteTextarea = ({ value, onChange, inBg, txt }) => {
-  const [draft, setDraft] = useState(value || "")
+  const [draft, setDraft] = React.useState(value || "")
   return (
     <textarea
       value={draft}
@@ -4034,14 +3928,17 @@ const NoteTextarea = ({ value, onChange, inBg, txt }) => {
   )
 }
 
-<NoteTextarea
-  value={compNotes[c.id]}
-  onChange={val => setCompNotes(p=>({...p,[c.id]:val}))}
-  inBg={inBg}
-  txt={txt}
-/>
-
 const CompetitionTracker = ({ bookmarks, setBookmarks, T, aiSettings, githubData = {} }) => {
+ 
+  const deriveStatus = (c) => {
+  const today = new Date(); today.setHours(0,0,0,0)
+  const start    = c.start    && c.start    !== "TBA" ? new Date(c.start)    : null
+  const deadline = c.deadline && c.deadline !== "TBA" ? new Date(c.deadline) : null
+  if (deadline && today > deadline) return "closed"
+  if (start    && today >= start)   return "running"
+  return c.status // fallback to JSON value (handles "tba" etc.)
+}
+ 
   const LIVE_COMPS = githubData.competitions || COMPETITIONS
   const [search, setSearch] = useState("")
   const [filterStatus, setFilterStatus] = useState("All")
@@ -4076,7 +3973,7 @@ const CompetitionTracker = ({ bookmarks, setBookmarks, T, aiSettings, githubData
       return d.toISOString().replace(/-|:|\.\d{3}/g,"").slice(0,15)+"Z"
     }
     const lines = ["BEGIN:VCALENDAR","VERSION:2.0","PRODID:-//QuantSun//Competitions//EN","CALSCALE:GREGORIAN"]
-    LIVE_COMPS.filter(c=>c.status!=="closed").forEach(c=>{
+    LIVE_COMPS.filter(c=>deriveStatus(c)!=="closed").forEach(c=>{
       const dt = toICSDate(c.deadline); if(!dt) return
       lines.push("BEGIN:VEVENT",
         `DTSTART:${dt}`, `DTEND:${dt}`,
@@ -4098,9 +3995,10 @@ const CompetitionTracker = ({ bookmarks, setBookmarks, T, aiSettings, githubData
   }
 
   let filtered = LIVE_COMPS.filter(c => {
-    if (filterStatus !== "All" && filterStatus === "open"   && deriveStatus(c) !== "open")   return false
-    if (filterStatus !== "All" && filterStatus === "tba"    && deriveStatus(c) !== "tba")    return false
-    if (filterStatus !== "All" && filterStatus === "closed" && deriveStatus(c) !== "closed") return false    if (filterStatus === "bookmarked" && !bookmarks.includes(c.id)) return false
+    if (filterStatus !== "All" && filterStatus === "open"       && deriveStatus(c) !== "open")   return false
+    if (filterStatus !== "All" && filterStatus === "tba"        && deriveStatus(c) !== "tba")    return false
+    if (filterStatus !== "All" && filterStatus === "closed"     && deriveStatus(c) !== "closed") return false
+    if (filterStatus === "bookmarked" && !bookmarks.includes(c.id)) return false
     if (filterCat  !== "All" && c.category !== filterCat)  return false
     if (filterMode !== "All" && !c.mode.includes(filterMode)) return false
     if (search && !c.name.toLowerCase().includes(search.toLowerCase()) && !c.org.toLowerCase().includes(search.toLowerCase())) return false
@@ -4167,12 +4065,12 @@ Focus on real, verifiable competitions. If deadline is unknown use TBA. Today is
     const catColor = CATEGORY_COLORS[c.category] || "#64748b"
     const isBookmarked = bookmarks.includes(c.id)
     return (
-      <div style={{ background:bg, border:`1px solid ${c.status==="open"?"rgba(16,185,129,0.2)":c.isLive?"rgba(193,127,58,0.2)":bdr}`, borderRadius:12, padding:"16px 18px", display:"flex", flexDirection:"column", gap:10 }}>
+      <div style={{ background:bg, border:`1px solid ${deriveStatus(c)==="open"?"rgba(16,185,129,0.2)":c.isLive?"rgba(193,127,58,0.2)":bdr}`, borderRadius:12, padding:"16px 18px", display:"flex", flexDirection:"column", gap:10 }}>
         <div style={{ display:"flex", justifyContent:"space-between", alignItems:"flex-start" }}>
           <div style={{ flex:1, minWidth:0 }}>
             <div style={{ display:"flex", gap:6, alignItems:"center", marginBottom:4, flexWrap:"wrap" }}>
               <span style={{ fontSize:10, color:catColor, background:`${catColor}15`, padding:"2px 8px", borderRadius:4, fontFamily:"'JetBrains Mono', monospace", textTransform:"uppercase", letterSpacing:"0.05em" }}>{c.category}</span>
-              <StatusBadge status={c.status} />
+              <StatusBadge status={deriveStatus(c)} />
               {c.isLive && <span style={{ fontSize:9, color:"#C17F3A", background:"rgba(193,127,58,0.1)", padding:"2px 6px", borderRadius:3 }}>✦ AI</span>}
             </div>
             <div style={{ fontSize:14, fontWeight:700, color:txt, lineHeight:1.3 }}>{c.name}</div>
@@ -4211,19 +4109,17 @@ Focus on real, verifiable competitions. If deadline is unknown use TBA. Today is
             </button>
           </div>
         </div>
-        {openNotes[c.id] && (
-          <div style={{ marginTop:10, paddingTop:10, borderTop:`1px solid ${bdr}` }}>
-            <textarea
-              value={compNotes[c.id]||""}
-              onChange={e=>setCompNotes(p=>({...p,[c.id]:e.target.value}))}
-              placeholder="Personal notes, team info, requirements..."
-              style={{ width:"100%", minHeight:60, background:inBg,
-                border:"1px solid rgba(99,102,241,0.25)", borderRadius:8,
-                padding:"8px 12px", color:txt, fontSize:12, resize:"vertical",
-                outline:"none", fontFamily:"inherit", lineHeight:1.5, boxSizing:"border-box" }}
-            />
-          </div>
-        )}
+       
+  {openNotes[c.id] && (
+  <div style={{ marginTop:10, paddingTop:10, borderTop:`1px solid ${bdr}` }}>
+    <NoteTextarea
+      value={compNotes[c.id]}
+      onChange={val => setCompNotes(p=>({...p,[c.id]:val}))}
+      inBg={inBg}
+      txt={txt}
+    />
+  </div>
+)}
       </div>
     )
   }
@@ -5313,12 +5209,12 @@ const NetworkingTracker = ({ T, aiSettings, markStudyToday = ()=>{} }) => {
   const startEdit = (c) => { setForm(c); setEditId(c.id); setShowForm(true); setMainTab("tracker") }
 
   const filtered = contacts.filter(c => {
-    if (filterStatus !== "All" && c.status !== filterStatus) return false
+    if (filterStatus !== "All" && deriveStatus(c) !== filterStatus) return false
     if (search && !c.name.toLowerCase().includes(search.toLowerCase()) && !c.firm.toLowerCase().includes(search.toLowerCase())) return false
     return true
   })
 
-  const statCounts = STATUSES.reduce((acc, s) => { acc[s] = contacts.filter(c => c.status === s).length; return acc }, {})
+  const statCounts = STATUSES.reduce((acc, s) => { acc[s] = contacts.filter(c => deriveStatus(c) === s).length; return acc }, {})
 
   // ── AI Discover: call Claude to generate targeted quant professionals ──────
   const runDiscover = async () => {
@@ -5480,14 +5376,14 @@ Return ONLY a JSON array (no markdown, no preamble). Each object must have exact
         )}
         <div style={{ display:"flex", flexDirection:"column", gap:10 }}>
           {filtered.map(c => {
-            const sc = STATUS_COLORS[c.status] || "#6366f1"
+            const sc = STATUS_COLORS[deriveStatus(c)] || "#6366f1"
             return (
               <div key={c.id} style={{ background:bg, border:`1px solid ${sc}25`, borderRadius:12, padding:"16px 20px" }}>
                 <div style={{ display:"flex", justifyContent:"space-between", alignItems:"flex-start", gap:12 }}>
                   <div style={{ flex:1, minWidth:0 }}>
                     <div style={{ display:"flex", alignItems:"center", gap:8, flexWrap:"wrap", marginBottom:4 }}>
                       <span style={{ fontSize:15, fontWeight:700, color:txt }}>{c.name}</span>
-                      <span style={{ fontSize:10, color:sc, background:`${sc}15`, border:`1px solid ${sc}30`, padding:"2px 8px", borderRadius:4, fontFamily:"'JetBrains Mono',monospace" }}>{c.status}</span>
+                      <span style={{ fontSize:10, color:sc, background:`${sc}15`, border:`1px solid ${sc}30`, padding:"2px 8px", borderRadius:4, fontFamily:"'JetBrains Mono',monospace" }}>{deriveStatus(c)}</span>
                       <span style={{ fontSize:10, color:muted, fontFamily:"'JetBrains Mono',monospace" }}>via {c.met_via}</span>
                     </div>
                     <div style={{ fontSize:13, color:sub }}>{c.role} · {c.firm}</div>
@@ -5499,7 +5395,7 @@ Return ONLY a JSON array (no markdown, no preamble). Each object must have exact
                       <a href={c.linkedin} target="_blank" rel="noreferrer"
                         style={{ fontSize:11, color:"#0ea5e9", textDecoration:"none", border:"1px solid rgba(14,165,233,0.3)", padding:"4px 10px", borderRadius:6, textAlign:"center" }}>LinkedIn</a>
                     )}
-                    <select value={c.status} onChange={e => setContacts(prev => prev.map(x => x.id===c.id ? {...x, status:e.target.value} : x))}
+                    <select value={deriveStatus(c)} onChange={e => setContacts(prev => prev.map(x => x.id===c.id ? {...x, status:e.target.value} : x))}
                       style={{ background:selBg, border:`1px solid ${sc}40`, borderRadius:6, padding:"3px 8px", color:sc, fontSize:11, cursor:"pointer" }}>
                       {STATUSES.map(s => <option key={s}>{s}</option>)}
                     </select>
@@ -5765,7 +5661,7 @@ const CareerRoadmap = ({ T, courseProgress, navigate, isMobile, isTablet, aiSett
 
   // ── Relevant open competitions ────────────────────────────────────────────────
   const relevantComps = COMPETITIONS.filter(c =>
-    c.status !== "closed" &&
+    deriveStatus(c) !== "closed" &&
     t.comp_keywords.some(kw => (c.name+c.desc+c.category).toLowerCase().includes(kw.toLowerCase()))
   ).slice(0, 5)
 
@@ -6784,7 +6680,7 @@ export default function QuantSun() {
 
   // Competitions: only badge if deadline ≤ 3 days AND user hasn't visited since it became urgent
   const urgentComps = COMPETITIONS.filter(c => {
-    const d = daysUntil(c.deadline); return c.status === "open" && d !== null && d >= 0 && d <= 3
+    const d = daysUntil(c.deadline); return deriveStatus(c) === "open" && d !== null && d >= 0 && d <= 3
   })
   const urgentCompetitions = seenSince("competitions", today) ? 0 : urgentComps.length
 
@@ -6794,8 +6690,8 @@ export default function QuantSun() {
 
   // Networking: follow-ups overdue
   const overdueFollowups = netContactsShell.filter(c => {
-    if (!c.date || c.status === "Closed") return false
-    return Math.floor((new Date() - new Date(c.date)) / 86400000) >= 21 && ["Connected","Messaged","Replied"].includes(c.status)
+    if (!c.date || deriveStatus(c) === "Closed") return false
+    return Math.floor((new Date() - new Date(c.date)) / 86400000) >= 21 && ["Connected","Messaged","Replied"].includes(deriveStatus(c))
   })
   const followUpsBadge = seenSince("networking", today) ? 0 : overdueFollowups.length
 
@@ -6867,9 +6763,9 @@ export default function QuantSun() {
     // Networking
     const totalContacts = netContactsShell.length
     const contactsByStatus = {}
-    netContactsShell.forEach(c => { contactsByStatus[c.status] = (contactsByStatus[c.status]||0)+1 })
+    netContactsShell.forEach(c => { contactsByStatus[deriveStatus(c)] = (contactsByStatus[deriveStatus(c)]||0)+1 })
     const overdueFollowups = netContactsShell.filter(c => {
-      if (!c.date || c.status === "Closed") return false
+      if (!c.date || deriveStatus(c) === "Closed") return false
       return Math.floor((Date.now()-new Date(c.date))/86400000) >= 21
     }).length
 
