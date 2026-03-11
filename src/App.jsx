@@ -1479,9 +1479,9 @@ const Dashboard = ({ courseProgress, bookmarks, T, onStartTour, navigate, isMobi
     const sc=COURSES.filter(c=>c.subject===subj); const done=sc.filter(c=>courseProgress[c.id]===1).length
     return { subj,color,done,total:sc.length,pct:sc.length?Math.round(done/sc.length*100):0 }
   })
-  const upcoming = COMPETITIONS.filter(c=>deriveStatus(c)!=="closed"&&c.deadline&&c.deadline!=="TBA"&&!c.deadline.includes("TBA")&&!c.deadline.includes("Closed")&&!c.deadline.includes("Open")&&!c.deadline.includes("Rolling")&&!c.deadline.includes("Ongoing")&&!c.deadline.includes("Multiple")).map(c=>({...c,days:daysUntil(c.deadline)})).filter(c=>c.days!==null&&c.days>=0).sort((a,b)=>a.days-b.days).slice(0,5)
-  const openCount = COMPETITIONS.filter(c=>deriveStatus(c)==="open").length
-  const tbaCount  = COMPETITIONS.filter(c=>deriveStatus(c)==="tba").length
+  const upcoming = COMPETITIONS.filter(c=>c.status !=="closed"&&c.deadline&&c.deadline!=="TBA"&&!c.deadline.includes("TBA")&&!c.deadline.includes("Closed")&&!c.deadline.includes("Open")&&!c.deadline.includes("Rolling")&&!c.deadline.includes("Ongoing")&&!c.deadline.includes("Multiple")).map(c=>({...c,days:daysUntil(c.deadline)})).filter(c=>c.days!==null&&c.days>=0).sort((a,b)=>a.days-b.days).slice(0,5)
+  const openCount = COMPETITIONS.filter(c=>c.status ==="open").length
+  const tbaCount  = COMPETITIONS.filter(c=>c.status ==="tba").length
 
   // ── Detect which courses the user is actively working on ──────────────────
   const activeMathCourse   = COURSES.find(c=>c.subject==="Mathematics"&&courseProgress[c.id]===0.5) || COURSES.find(c=>c.id==="m0")
@@ -1739,7 +1739,7 @@ const Dashboard = ({ courseProgress, bookmarks, T, onStartTour, navigate, isMobi
         {(()=>{
           const today=new Date().toISOString().slice(0,10)
           const reviewsDue=Object.entries(reviewSchedule).filter(([,due])=>due<=today).map(([id])=>COURSES.find(c=>c.id===id)).filter(Boolean)
-          const followUps=contacts.filter(c=>{ if(!c.date||deriveStatus(c)==="Closed") return false; return Math.floor((new Date()-new Date(c.date))/86400000)>=21&&["Connected","Messaged","Replied"].includes(deriveStatus(c)) })
+          const followUps=contacts.filter(c=>{ if(!c.date||c.status ==="Closed") return false; return Math.floor((new Date()-new Date(c.date))/86400000)>=21&&["Connected","Messaged","Replied"].includes(c.status) })
           if(!reviewsDue.length&&!followUps.length) return null
           return (
             <div style={{ marginTop:18, background:bg, border:"1px solid rgba(193,127,58,0.18)", borderRadius:12, padding:"18px 22px" }}>
@@ -5209,12 +5209,12 @@ const NetworkingTracker = ({ T, aiSettings, markStudyToday = ()=>{} }) => {
   const startEdit = (c) => { setForm(c); setEditId(c.id); setShowForm(true); setMainTab("tracker") }
 
   const filtered = contacts.filter(c => {
-    if (filterStatus !== "All" && deriveStatus(c) !== filterStatus) return false
+    if (filterStatus !== "All" && c.status !== filterStatus) return false
     if (search && !c.name.toLowerCase().includes(search.toLowerCase()) && !c.firm.toLowerCase().includes(search.toLowerCase())) return false
     return true
   })
 
-  const statCounts = STATUSES.reduce((acc, s) => { acc[s] = contacts.filter(c => deriveStatus(c) === s).length; return acc }, {})
+  const statCounts = STATUSES.reduce((acc, s) => { acc[s] = contacts.filter(c => c.status === s).length; return acc }, {})
 
   // ── AI Discover: call Claude to generate targeted quant professionals ──────
   const runDiscover = async () => {
@@ -5376,14 +5376,14 @@ Return ONLY a JSON array (no markdown, no preamble). Each object must have exact
         )}
         <div style={{ display:"flex", flexDirection:"column", gap:10 }}>
           {filtered.map(c => {
-            const sc = STATUS_COLORS[deriveStatus(c)] || "#6366f1"
+            const sc = STATUS_COLORS[c.status] || "#6366f1"
             return (
               <div key={c.id} style={{ background:bg, border:`1px solid ${sc}25`, borderRadius:12, padding:"16px 20px" }}>
                 <div style={{ display:"flex", justifyContent:"space-between", alignItems:"flex-start", gap:12 }}>
                   <div style={{ flex:1, minWidth:0 }}>
                     <div style={{ display:"flex", alignItems:"center", gap:8, flexWrap:"wrap", marginBottom:4 }}>
                       <span style={{ fontSize:15, fontWeight:700, color:txt }}>{c.name}</span>
-                      <span style={{ fontSize:10, color:sc, background:`${sc}15`, border:`1px solid ${sc}30`, padding:"2px 8px", borderRadius:4, fontFamily:"'JetBrains Mono',monospace" }}>{deriveStatus(c)}</span>
+                      <span style={{ fontSize:10, color:sc, background:`${sc}15`, border:`1px solid ${sc}30`, padding:"2px 8px", borderRadius:4, fontFamily:"'JetBrains Mono',monospace" }}>{c.status}</span>
                       <span style={{ fontSize:10, color:muted, fontFamily:"'JetBrains Mono',monospace" }}>via {c.met_via}</span>
                     </div>
                     <div style={{ fontSize:13, color:sub }}>{c.role} · {c.firm}</div>
@@ -5395,7 +5395,7 @@ Return ONLY a JSON array (no markdown, no preamble). Each object must have exact
                       <a href={c.linkedin} target="_blank" rel="noreferrer"
                         style={{ fontSize:11, color:"#0ea5e9", textDecoration:"none", border:"1px solid rgba(14,165,233,0.3)", padding:"4px 10px", borderRadius:6, textAlign:"center" }}>LinkedIn</a>
                     )}
-                    <select value={deriveStatus(c)} onChange={e => setContacts(prev => prev.map(x => x.id===c.id ? {...x, status:e.target.value} : x))}
+                    <select value={c.status} onChange={e => setContacts(prev => prev.map(x => x.id===c.id ? {...x, status:e.target.value} : x))}
                       style={{ background:selBg, border:`1px solid ${sc}40`, borderRadius:6, padding:"3px 8px", color:sc, fontSize:11, cursor:"pointer" }}>
                       {STATUSES.map(s => <option key={s}>{s}</option>)}
                     </select>
@@ -5661,7 +5661,7 @@ const CareerRoadmap = ({ T, courseProgress, navigate, isMobile, isTablet, aiSett
 
   // ── Relevant open competitions ────────────────────────────────────────────────
   const relevantComps = COMPETITIONS.filter(c =>
-    deriveStatus(c) !== "closed" &&
+    c.status !== "closed" &&
     t.comp_keywords.some(kw => (c.name+c.desc+c.category).toLowerCase().includes(kw.toLowerCase()))
   ).slice(0, 5)
 
@@ -6680,7 +6680,7 @@ export default function QuantSun() {
 
   // Competitions: only badge if deadline ≤ 3 days AND user hasn't visited since it became urgent
   const urgentComps = COMPETITIONS.filter(c => {
-    const d = daysUntil(c.deadline); return deriveStatus(c) === "open" && d !== null && d >= 0 && d <= 3
+    const d = daysUntil(c.deadline); return c.status === "open" && d !== null && d >= 0 && d <= 3
   })
   const urgentCompetitions = seenSince("competitions", today) ? 0 : urgentComps.length
 
@@ -6690,8 +6690,8 @@ export default function QuantSun() {
 
   // Networking: follow-ups overdue
   const overdueFollowups = netContactsShell.filter(c => {
-    if (!c.date || deriveStatus(c) === "Closed") return false
-    return Math.floor((new Date() - new Date(c.date)) / 86400000) >= 21 && ["Connected","Messaged","Replied"].includes(deriveStatus(c))
+    if (!c.date || c.status === "Closed") return false
+    return Math.floor((new Date() - new Date(c.date)) / 86400000) >= 21 && ["Connected","Messaged","Replied"].includes(c.status)
   })
   const followUpsBadge = seenSince("networking", today) ? 0 : overdueFollowups.length
 
@@ -6763,9 +6763,9 @@ export default function QuantSun() {
     // Networking
     const totalContacts = netContactsShell.length
     const contactsByStatus = {}
-    netContactsShell.forEach(c => { contactsByStatus[deriveStatus(c)] = (contactsByStatus[deriveStatus(c)]||0)+1 })
+    netContactsShell.forEach(c => { contactsByStatus[c.status] = (contactsByStatus[c.status]||0)+1 })
     const overdueFollowups = netContactsShell.filter(c => {
-      if (!c.date || deriveStatus(c) === "Closed") return false
+      if (!c.date || c.status === "Closed") return false
       return Math.floor((Date.now()-new Date(c.date))/86400000) >= 21
     }).length
 
