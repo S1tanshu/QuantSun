@@ -64,8 +64,6 @@ Built by a student, for students who can't afford the alternatives.
 
 ## Running Locally
 
-**Zero install — open in Claude.ai artifacts:**
-Drop `Quant Sun_v1_20.jsx` into claude.ai → it runs instantly.
 
 **Local dev with hot-reload:**
 ```bash

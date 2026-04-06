@@ -4088,7 +4088,18 @@ const LearningPath = ({ courseProgress, setCourseProgress, T, user, aiSettings, 
                 </div>
 
                 <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center" }}>
-                  <span style={{ fontSize:11, color:sub, fontFamily:"'JetBrains Mono', monospace" }}>📹 {c.lectures}</span>
+                 
+                  {(() => {
+                    const total = parseInt(c.lectures?.split("/")?.[1])
+                    const done = Object.keys(lectureProgress)
+                     .filter(k => k.startsWith(`${c.id}_l`) && lectureProgress[k] === 1).length
+                   return (
+                     <span style={{ fontSize:11, color:sub, fontFamily:"'JetBrains Mono', monospace" }}>
+                      📹 {total ? `${done}/${total}` : c.lectures}
+                     </span>
+                    )
+                  })()}
+
                   <div style={{ display:"flex", gap:8, alignItems:"center" }}>
                     {c.link && c.link.startsWith("http") && (
                       <a href={c.link} target="_blank" rel="noreferrer" style={{ fontSize:11, color:"#6366f1", textDecoration:"none" }}>Course →</a>
