@@ -1441,7 +1441,7 @@ const QuantReadinessRadar = ({ courseProgress, interviewHistory, T }) => {
   )
 }
 
-const Dashboard = ({ courseProgress, bookmarks, T, onStartTour, navigate, isMobile }) => {
+const Dashboard = ({ courseProgress, bookmarks, compStatus, T, onStartTour, navigate, isMobile }) => {
   const txt   = T?.text      || "#C8956A"
   const sub   = T?.textSub   || "#8B6250"
   const muted = T?.textMuted || "#5a3828"
@@ -1453,6 +1453,11 @@ const Dashboard = ({ courseProgress, bookmarks, T, onStartTour, navigate, isMobi
 
   const [interviewHistory]           = useStorage("interview_history", [])
   const [weeklyGoal, setWeeklyGoal]  = useStorage("weekly_goal_days_v1", 5)
+  
+  const registeredCount = Object.values(compStatus||{}).filter(s => s === "registered").length
+  const competingCount  = Object.values(compStatus).filter(s => s === "competing").length
+  const completedCount  = Object.values(compStatus).filter(s => s === "completed").length
+  const anyTracked      = registeredCount + competingCount + completedCount > 0
   const [reviewSchedule]             = useStorage("review_schedule_v1", {})
   const [contacts]                   = useStorage("networking_contacts_v1", [])
   const [studyLog]                   = useStorage("study_log_v1", {})
@@ -1627,6 +1632,30 @@ const Dashboard = ({ courseProgress, bookmarks, T, onStartTour, navigate, isMobi
           ))}
         </div>
 
+        {/* ── My Competition Participation — visible only once user starts tracking ── */}
+        {anyTracked && (
+          <div style={{ marginBottom:18, background:bg, border:`1px solid ${bdr}`, borderRadius:12, padding:"14px 20px" }}>
+            <div style={{ fontSize:11, color:muted, textTransform:"uppercase", letterSpacing:"0.08em", marginBottom:12, fontFamily:"'JetBrains Mono',monospace" }}>
+              ⚡ My Competition Activity
+            </div>
+            <div style={{ display:"flex", gap:12, flexWrap:"wrap" }}>
+              {[
+                { label:"Registered",  count:registeredCount, color:"#6366f1" },
+                { label:"Competing",   count:competingCount,  color:"#10b981" },
+                { label:"Completed",   count:completedCount,  color:"#C17F3A" },
+              ].map(s => (
+                <div key={s.label} onClick={() => navigate("competitions")}
+                  style={{ display:"flex", alignItems:"center", gap:10, padding:"10px 18px",
+                    background:`${s.color}08`, border:`1px solid ${s.color}25`,
+                    borderRadius:10, cursor:"pointer", flex:1, minWidth:100 }}>
+                  <div style={{ fontSize:28, fontWeight:800, color:s.color, fontFamily:"'Syne',sans-serif", lineHeight:1 }}>{s.count}</div>
+                  <div style={{ fontSize:11, color:sub, fontFamily:"'JetBrains Mono',monospace" }}>{s.label}</div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+      
         <div style={{ display:"grid", gridTemplateColumns:isMobile?"1fr":"1fr 1fr", gap:18 }}>
           {/* Subject Progress */}
           <div style={{ background:bg, border:`1px solid ${bdr}`, borderRadius:12, padding:"20px 24px" }}>
@@ -4143,7 +4172,7 @@ const NoteTextarea = ({ value, onChange, inBg, txt }) => {
   )
 }
 
-const CompetitionTracker = ({ bookmarks, setBookmarks, T, aiSettings, githubData = {} }) => {
+const CompetitionTracker = ({ bookmarks, setBookmarks, compStatus, setCompStatus, T, aiSettings, githubData = {} }) => {
   const deriveStatus = (c) => {
     
   const today = new Date(); today.setHours(0,0,0,0)
@@ -4313,6 +4342,30 @@ Focus on real, verifiable competitions. If deadline is unknown use TBA. Today is
               <div style={{ fontSize:12, color:"#C17F3A", fontFamily:"'JetBrains Mono', monospace" }}>{c.prize}</div>
             </div>
           )}
+          {/* ── Participation status toggles ── */}
+          <div style={{ display:"flex", gap:5, gridColumn:"1/-1" }}>
+            {[
+              { key:"registered", label:"Registered", color:"#6366f1", icon:"✓" },
+              { key:"competing",  label:"Competing",  color:"#10b981", icon:"⚡" },
+              { key:"completed",  label:"Completed",  color:"#C17F3A", icon:"★" },
+            ].map(s => {
+              const isActive = compStatus[c.id] === s.key
+              return (
+                <button key={s.key}
+                  onClick={() => setCompStatus(p => ({ ...p, [c.id]: isActive ? null : s.key }))}
+                  style={{
+                    flex:1, padding:"5px 0", borderRadius:6, cursor:"pointer", fontSize:10,
+                    fontFamily:"'JetBrains Mono',monospace", fontWeight:600,
+                    border:`1px solid ${isActive ? s.color : "rgba(255,255,255,0.08)"}`,
+                    background: isActive ? `${s.color}20` : "transparent",
+                    color: isActive ? s.color : "#475569",
+                    transition:"all 0.15s",
+                  }}>
+                  {s.icon} {s.label}
+                </button>
+              )
+            })}
+          </div>
           <div style={{ display:"flex", alignItems:"flex-end", gap:6 }}>
             <a href={c.link} target="_blank" rel="noreferrer" style={{ fontSize:12, color:"#C17F3A", textDecoration:"none", border:"1px solid rgba(193,127,58,0.3)", padding:"4px 12px", borderRadius:6 }}>Register →</a>
             <button onClick={()=>setOpenNotes(p=>({...p,[c.id]:!p[c.id]}))}
@@ -6760,6 +6813,7 @@ export default function QuantSun() {
   const { githubData, loading: dataLoading, isLive, loadedKeys } = useGithubData()
   const [courseProgress, setCourseProgress]     = useStorage("course_progress_v2", {})
   const [bookmarks, setBookmarks]               = useStorage("comp_bookmarks_v2", [])
+  const [compStatus, setCompStatus]             = useStorage("comp_status_v1", {})
   const [user, setUser]                         = useStorage("auth_user_v2", null)
   // ── Tantra theme: fixed warm-dark palette — no toggle ───────────────────────
   const isDark = true   // always dark; toggle removed
@@ -7024,9 +7078,9 @@ export default function QuantSun() {
     }
 
     switch (active) {
-      case "dashboard":    return <Dashboard courseProgress={courseProgress} bookmarks={bookmarks} T={T} onStartTour={()=>setShowOnboarding(true)} navigate={setActive} isMobile={isMobile} />
+      case "dashboard":    return <Dashboard courseProgress={courseProgress} bookmarks={bookmarks} compStatus={compStatus} T={T} onStartTour={()=>setShowOnboarding(true)} navigate={setActive} isMobile={isMobile} />
       case "learning":     return <LearningPath courseProgress={courseProgress} setCourseProgress={setCourseProgress} T={T} user={user} aiSettings={aiSettings} githubData={githubData} markStudyToday={markStudyToday} />
-      case "competitions": return <CompetitionTracker bookmarks={bookmarks} setBookmarks={setBookmarks} T={T} aiSettings={aiSettings} githubData={githubData} />
+      case "competitions": return <CompetitionTracker bookmarks={bookmarks} setBookmarks={setBookmarks} compStatus={compStatus} setCompStatus={setCompStatus} T={T} aiSettings={aiSettings} githubData={githubData} />
       case "interview":    return <PracticeHub T={T} isMobile={isMobile} aiSettings={aiSettings} markStudyToday={markStudyToday} />
       case "resources":    return <ResourceHub T={T} />
       case "networking":   return <NetworkingTracker T={T} aiSettings={aiSettings} markStudyToday={markStudyToday} />
